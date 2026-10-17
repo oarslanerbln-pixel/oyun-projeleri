@@ -1,0 +1,19 @@
+{
+  "$aciklama": "Teslim ön ayarları (mimari §4.3). Platform süre sınırları sık değişir: her sınır 'kontrol' tarihiyle tutulur; tarihi 6 aydan eski bir sınır gözden geçirilir. Güvenli alan kenar boşlukları karenin oranıdır.",
+  "on_ayarlar": {
+    "yatay-master":  { "genislik": 3840, "yukseklik": 2160, "lufs": -23, "not": "ProRes 422 HQ ya da DNxHR HQ; arşiv" },
+    "yatay-web":     { "genislik": 1920, "yukseklik": 1080, "lufs": -14, "not": "H.264; YouTube, site" },
+    "youtube-bumper": { "genislik": 1920, "yukseklik": 1080, "lufs": -14,
+                       "sure_siniri": { "sn": 6, "kontrol": "2026-10-17" }, "not": "Atlanamaz 6 sn reklam" },
+    "dikey":         { "genislik": 1080, "yukseklik": 1920, "lufs": -14,
+                       "sure_siniri": { "sn": 90, "kontrol": "2026-10-17" },
+                       "guvenli_alan": { "ust": 0.14, "alt": 0.20, "yan": 0.06 }, "not": "Reels, Shorts, TikTok" },
+    "kare":          { "genislik": 1080, "yukseklik": 1080, "lufs": -14,
+                       "sure_siniri": { "sn": 60, "kontrol": "2026-10-17" }, "not": "Akış içi" },
+    "dikey-akis":    { "genislik": 1080, "yukseklik": 1350, "lufs": -14,
+                       "sure_siniri": { "sn": 60, "kontrol": "2026-10-17" }, "not": "Instagram / Facebook akışı" },
+    "sessiz-gif":    { "genislik": 960, "yukseklik": 540, "lufs": null,
+                       "sure_siniri": { "sn": 20, "kontrol": "2026-10-17" }, "not": "Steam sayfası, e-posta; ses yok" },
+    "steam-fragman": { "genislik": 1920, "yukseklik": 1080, "lufs": -14, "not": "Steam yükleme şartları" }
+  }
+}

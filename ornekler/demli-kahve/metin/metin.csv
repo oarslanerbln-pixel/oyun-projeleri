@@ -1,0 +1,12 @@
+anahtar,tr,en,kaynak,not,izin,azami
+sabah.saat,07:42,07:42,docs/01-oz/brif.json,,,
+sabah.soru,Kahven yine ayakta mı soğudu?,Coffee gone cold on your feet again?,docs/01-oz/brif.json,,,40
+sabah.onerme,Sabahın on dakikası senin,The first ten minutes are yours,docs/01-oz/brif.json,önerme,,32
+sabah.kanit.1,Siparişten bardağa üç dakika.,Order to cup in three minutes.,docs/01-oz/brif.json,,,
+sabah.kanit.2,Her sabah 06:30,Every morning at 6:30,docs/01-oz/brif.json,,,
+sabah.marka,Demli,Demli,marka,,,
+sabah.vo.1,Sabahlar hep telaşla başlar.,Mornings always start in a rush.,docs/01-oz/brif.json,seslendirme,,
+sabah.vo.2,Bir fincan için on dakika ayır.,Take ten minutes for one cup.,docs/01-oz/brif.json,seslendirme,,
+sabah.vo.3,Çekirdekler her sabah taze kavrulur.,Beans are roasted fresh every morning.,docs/01-oz/brif.json,seslendirme,,
+bumper.onerme,Sabahın on dakikası senin,The first ten minutes are yours,docs/01-oz/brif.json,önerme,,32
+bumper.marka,Demli Kahve,Demli Kahve,marka,,,

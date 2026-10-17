@@ -11,4 +11,5 @@ Tek kişilik stüdyonun oyun projeleri. Her proje kendi klasöründe, kendi `CLA
 
 - `main` korunur; her iş bir dalda yapılır ve PR ile birleşir.
 - Kırk Oda çekirdeği her PR'da GitHub Actions'ta test edilir (`.github/workflows/kirk-oda-core.yml`); oyuncu metni yasak sözcük denetiminden geçer (`.github/workflows/kirk-oda-metin.yml`).
+- Platform modülleri (`platform/marka`, `metin`, `medya`, `sablonlar/animasyon`) ve `ornekler/` her PR'da test edilir ve örnek projeler üretilir (`.github/workflows/platform.yml`).
 - Oyuna giren ikili varlıklar Git LFS ile izlenir (`.gitattributes`); kaynak dosyalar (`.blend`, ham ses, kurgu projeleri) depoya girmez. Bilgisayarda bir kez `git lfs install` gerekir.

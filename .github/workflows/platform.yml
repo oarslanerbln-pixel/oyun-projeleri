@@ -1,0 +1,50 @@
+name: Platform testleri
+
+# Mimari §4.5 mantığın platform/ci altında workflow_call olarak durmasını öneriyor; ancak GitHub
+# yeniden kullanılabilir iş akışlarını yalnız .github/workflows altından çağırabiliyor. Bu yüzden
+# şimdilik tek iş akışı burada; modül başına çağırıcılara bölünmesi ikinci projeyle gelir.
+on:
+  pull_request:
+    paths:
+      - "platform/**"
+      - "ornekler/**"
+      - "kirk-oda/tools/metin-denetimi/**"
+      - "kirk-oda/localization/**"
+      - ".github/workflows/platform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "platform/**"
+      - "ornekler/**"
+      - "kirk-oda/tools/metin-denetimi/**"
+      - "kirk-oda/localization/**"
+      - ".github/workflows/platform.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Platform (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Birim testleri (marka, metin, medya, animasyon)
+        run: |
+          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon; do
+            echo "::group::$d"
+            python -m unittest discover -s "$d/testler" -v
+            echo "::endgroup::"
+          done
+      - name: Örnek projeleri denetle ve üret
+        run: |
+          for p in ornekler/*/proje.json; do
+            python platform/sablonlar/animasyon/animasyon.py uret "$p" -o "$RUNNER_TEMP/cikti/$(basename "$(dirname "$p")")"
+          done

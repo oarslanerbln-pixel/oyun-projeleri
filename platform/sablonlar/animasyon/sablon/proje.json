@@ -1,0 +1,14 @@
+{
+  "kimlik": "{{kimlik}}",
+  "tur": "animasyon",
+  "marka": "{{yol}}/marka/marka.json",
+  "diller": ["tr"],
+  "metin": {
+    "tablolar": ["{{yol}}/metin/metin.csv"],
+    "sozlukler": ["platform/metin/temel.tsv"]
+  },
+  "brif": "{{yol}}/docs/01-oz/brif.json",
+  "kurgular": [
+    { "ad": "tanitim", "cekimler": "{{yol}}/docs/04-yapi/cekimler.csv", "fps": 30, "teslim": ["dikey", "kare"] }
+  ]
+}

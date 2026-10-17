@@ -1,0 +1,39 @@
+{
+  "$description": "Demli Kahve marka kiti (örnek, uydurma marka)",
+  "kimlik": "demli-kahve",
+  "ad": "Demli Kahve",
+  "renk": {
+    "ana": { "$type": "color", "$value": "#3b2418" },
+    "ana-ustu": { "$type": "color", "$value": "#f7efe4" },
+    "vurgu": { "$type": "color", "$value": "#e0a243" },
+    "vurgu-ustu": { "$type": "color", "$value": "#2a1a11" },
+    "zemin": { "$type": "color", "$value": "#f7efe4" },
+    "metin": { "$type": "color", "$value": "#2a1a11" },
+    "isik": {
+      "sicak": { "$type": "color", "$value": "#ffb36b" }
+    }
+  },
+  "ciftler": [
+    { "on": "metin", "zemin": "zemin" },
+    { "on": "ana-ustu", "zemin": "ana" },
+    { "on": "vurgu-ustu", "zemin": "vurgu" }
+  ],
+  "yazi": {
+    "baslik": { "aile": { "$type": "fontFamily", "$value": "Fraunces" }, "agirlik": { "$type": "fontWeight", "$value": 700 } },
+    "govde": { "aile": { "$type": "fontFamily", "$value": "Inter" }, "agirlik": { "$type": "fontWeight", "$value": 400 } }
+  },
+  "logo": { "metin": "DEMLİ" },
+  "hareket": {
+    "giris": { "$type": "duration", "$value": "400ms" },
+    "cikis": { "$type": "duration", "$value": "250ms" },
+    "egri": { "$type": "cubicBezier", "$value": [0.2, 0, 0, 1] }
+  },
+  "ses": {
+    "ton": ["sıcak", "sakin", "kendinden emin"],
+    "yasak": ["acele", "kahve molası"]
+  },
+  "prompt": {
+    "uslup": "Sabah ışığı, yan pencereden sıcak ışık, sığ alan derinliği, el yapımı seramik, buhar.",
+    "negatif": ["plastik bardak", "kalabalık", "neon"]
+  }
+}

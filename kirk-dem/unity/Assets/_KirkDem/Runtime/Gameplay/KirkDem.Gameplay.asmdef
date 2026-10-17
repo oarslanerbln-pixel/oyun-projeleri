@@ -1,0 +1,14 @@
+{
+    "name": "KirkDem.Gameplay",
+    "rootNamespace": "KirkDem.Gameplay",
+    "references": [ "KirkDem.Core", "KirkDem.Data" ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -8,6 +8,7 @@ Bu klasör Kırk Dem'in (Unity 6, URP, 5–8 saatlik anlatı-bulmaca) tek kayna�
 - Söylenmeyecekler listesi (dünya kitabı, "Senaryo omurgası" sonu) oyun içi metin, altyazı, başarım adı, Steam metni ve sinematik için mutlaktır.
 - Kavram adları (nefs, hâl, makam, tayy, bast, ân, keramet) yalnız `docs/` içinde ve kod yorumlarında geçer; oyuncunun görebileceği hiçbir yerde geçmez. Kodda teknik adlar kullanılır (`FoldedSlow`, `Tidal`, `BreathHeld`…).
 - Gerçek kişi, tarikat, veli, kam ya da efsane kahramanı adı hiçbir yerde kullanılmaz. Tek özel ad babanın adıdır (`DURSUN`, `docs/01-senaryo-kilidi/diyalog-ilkeleri.md`).
+- Yapay zekâ çıktısı yalnız K-18'in üç sınıfında ve beş yasağın dışında kullanılır; oyuna giren her çıktı `art/flow-manifest.csv` dosyasına yazılır.
 - Olmayanlar: savaş, ölüm ekranı, envanter, harita, görev listesi, başarım bildirimi, puan, seviye, yetenek ağacı. Bunlardan birini ekleyen bir öneri reddedilir.
 - Her işitsel ipucunun görsel ve dokunsal eşi vardır (ADR 0007). Yalnız sese dayanan bir mekanik kabul edilmez.
 - Yeni mekanik eklenmez; her halka tek fikri derinleştirir. Bir odanın bulmacası halkanın fikrine uymuyorsa oda yanlıştır, fikir değil.
@@ -26,9 +27,11 @@ Halkalar `toprak su nefes golge ayna sessizlik an`; odalar `R{halka}-{oda:00}` (
 | Sistemler, veri modeli, oda kiti, ses, ADR'ler | `docs/03-mimari/` |
 | Çalışma yöntemi, model ve eklenti yönlendirmesi | `docs/04-calisma-yontemi.md` |
 | Acımasız analiz: bulgular ve uygulananlar | `docs/05-acimasiz-analiz.md` |
-| Karar kaydı: 17 karar, gerekçe ve geri dönüş tetikleyicisi | `docs/06-karar-kaydi.md` |
+| Karar kaydı: 18 karar, gerekçe ve geri dönüş tetikleyicisi | `docs/06-karar-kaydi.md` |
 | Hassasiyet okuması brifi | `docs/07-hassasiyet-okumasi.md` |
 | Kapanış ve dikey dilim planı, hafta hafta | `docs/08-dikey-dilim-plani.md` |
+| Flow ile oyun içi varlıklar: sınıflar, yasaklar, promptlar | `docs/02-sanat-kitabi/flow-oyun-ici-varliklar.md` |
+| Flow hazırlık araçları ve yapay zekâ manifesti | `tools/flow/flow.sh`, `art/flow-manifest.csv` |
 | Çekirdek için Unity'siz test projesi | `tools/core-tests/` |
 | Unity kod iskeleti (saf C# çekirdek + Unity kabuk + EditMode testleri) | `unity/Assets/_KirkDem/` |
 

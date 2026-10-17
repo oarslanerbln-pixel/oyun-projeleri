@@ -1,0 +1,21 @@
+{
+  "id": "demli-kahve",
+  "name": "Demli Kahve",
+  "colors": {
+    "primary": "#3b2418",
+    "on_primary": "#f7efe4",
+    "accent": "#e0a243",
+    "on_accent": "#2a1a11",
+    "background": "#f7efe4",
+    "text": "#2a1a11"
+  },
+  "typography": {
+    "heading": { "family": "Fraunces", "weight": 700 },
+    "body": { "family": "Inter", "weight": 400 }
+  },
+  "voice": {
+    "tone": ["sıcak", "sakin", "kendinden emin"],
+    "forbidden": ["en iyi", "mucize", "bir numara"]
+  },
+  "logo": { "text": "DEMLİ" }
+}

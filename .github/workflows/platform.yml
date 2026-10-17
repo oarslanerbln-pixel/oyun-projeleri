@@ -36,9 +36,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - name: Birim testleri (marka, metin, medya, animasyon)
+      - name: Birim testleri (marka, metin, medya, animasyon, uretim)
         run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon; do
+          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim; do
             echo "::group::$d"
             python -m unittest discover -s "$d/testler" -v
             echo "::endgroup::"
@@ -47,4 +47,10 @@ jobs:
         run: |
           for p in ornekler/*/proje.json; do
             python platform/sablonlar/animasyon/animasyon.py uret "$p" -o "$RUNNER_TEMP/cikti/$(basename "$(dirname "$p")")"
+          done
+      - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
+        run: |
+          for p in ornekler/*/proje.json; do
+            python platform/uretim/uretim.py plan "$p"
+            python platform/uretim/uretim.py denetle "$p"
           done

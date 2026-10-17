@@ -3,7 +3,8 @@
 Belgedeki sütunlar: `cekim, sure_sn, metin_anahtari, gorsel, kamera, gecis,
 odak_x, odak_y, sinif, durum`. Animatik için eklenen isteğe bağlı sütunlar:
 `ekran` (ekrandaki yazının metin anahtarı), `zemin` ve `on` (marka renk adları),
-`logo` ve `cagri` (`evet` ise o çekimde logo / CTA görünür).
+`logo` ve `cagri` (`evet` ise o çekimde logo / CTA görünür). Üretim için:
+`anahtar_kare` (YZ görüntüden-video çekiminin başlangıç karesi, depo köküne göre).
 
 `metin_anahtari` seslendirme ve altyazıdır; `ekran` ekrana basılan yazıdır.
 İkisi de metin tablosuna bağlanır, metnin kendisi bu dosyada yazılmaz.
@@ -20,7 +21,7 @@ from marka import CONTRAST_LARGE, Marka, contrast_ratio
 from metin import HATA, UYARI, Bulgu, Tablo
 
 COLUMNS = ("cekim", "sure_sn", "metin_anahtari", "gorsel", "kamera", "gecis",
-           "odak_x", "odak_y", "sinif", "durum", "ekran", "zemin", "on", "logo", "cagri")
+           "odak_x", "odak_y", "sinif", "durum", "ekran", "zemin", "on", "logo", "cagri", "anahtar_kare")
 REQUIRED = ("cekim", "sure_sn")
 GECISLER = ("kesme", "erime", "kayma")
 DURUMLAR = ("animatik", "uretim", "onay", "kilit")
@@ -50,6 +51,7 @@ class Cekim:
     on: str = "metin"
     logo: bool = False
     cagri: bool = False
+    anahtar_kare: str = ""
 
 
 @dataclass(frozen=True)
@@ -144,6 +146,7 @@ def oku(path: str | Path) -> tuple[list[Cekim], list[Bulgu]]:
                 odak_x=odak[0], odak_y=odak[1], sinif=sinif, durum=durum,
                 ekran=row.get("ekran", ""), zemin=row.get("zemin") or "zemin", on=row.get("on") or "metin",
                 logo=row.get("logo") == "evet", cagri=row.get("cagri") == "evet",
+                anahtar_kare=row.get("anahtar_kare", ""),
             ))
     if not cekimler and not b:
         b.append(Bulgu(HATA, path.name, "en az bir çekim gerekli"))

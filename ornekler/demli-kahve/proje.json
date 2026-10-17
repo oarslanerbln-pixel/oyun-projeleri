@@ -1,0 +1,17 @@
+{
+  "kimlik": "demli-kahve-sabah",
+  "tur": "animasyon",
+  "marka": "ornekler/demli-kahve/marka/marka.json",
+  "diller": ["tr", "en"],
+  "metin": {
+    "tablolar": ["ornekler/demli-kahve/metin/metin.csv"],
+    "sozlukler": ["platform/metin/temel.tsv"]
+  },
+  "brif": "ornekler/demli-kahve/docs/01-oz/brif.json",
+  "kurgular": [
+    { "ad": "sabah-14", "cekimler": "ornekler/demli-kahve/docs/04-yapi/cekimler-sabah-14.csv", "fps": 30,
+      "teslim": ["dikey", "kare", "dikey-akis"] },
+    { "ad": "bumper-6", "cekimler": "ornekler/demli-kahve/docs/04-yapi/cekimler-bumper-6.csv", "fps": 25,
+      "teslim": ["youtube-bumper"] }
+  ]
+}

@@ -36,3 +36,9 @@ TestResults/
 # İşletim sistemi
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+
+# Platform şablonlarının üretilmiş çıktısı (yeniden üretilir)
+cikti/

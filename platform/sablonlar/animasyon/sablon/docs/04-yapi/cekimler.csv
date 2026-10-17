@@ -1,0 +1,4 @@
+cekim,sure_sn,metin_anahtari,ekran,gorsel,kamera,gecis,odak_x,odak_y,sinif,durum,zemin,on,logo,cagri
+C01,2,,tanitim.acilis,logo açılışı,sabit,erime,0.5,0.5,,animatik,ana,ana-ustu,evet,
+C02,3,tanitim.vo.1,tanitim.onerme,ürün yakın plan,yavaş itme,kesme,0.5,0.4,,animatik,,,,
+C03,2.5,,,ürün ve logo,sabit,kayma,0.5,0.5,,animatik,,,evet,evet

@@ -1,0 +1,6 @@
+cekim,sure_sn,metin_anahtari,ekran,gorsel,kamera,gecis,odak_x,odak_y,sinif,durum,zemin,on,logo,cagri
+C01,2,,sabah.saat,kol saatine bakan el; pencereden sabah ışığı,sabit,erime,0.55,0.45,,animatik,ana,ana-ustu,evet,
+C02,3,sabah.vo.1,sabah.soru,tezgâhta unutulmuş soğuk fincan,yavaş itme,kesme,0.4,0.55,B,animatik,,,,
+C03,3,sabah.vo.2,sabah.onerme,pencere kenarında oturan kişi; buhar,yavaş çekme,erime,0.6,0.4,,animatik,ana,ana-ustu,,
+C04,3,sabah.vo.3,sabah.kanit.2,kavurma makinesi; çekirdekler,yavaş itme,kesme,0.5,0.5,B,animatik,,,,
+C05,3,,sabah.marka,dükkân cephesi ve logo,sabit,kayma,0.5,0.35,,animatik,,,evet,evet

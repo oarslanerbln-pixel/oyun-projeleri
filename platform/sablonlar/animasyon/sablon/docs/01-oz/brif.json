@@ -1,0 +1,9 @@
+{
+  "hedef": "Neyi değiştirmek istiyoruz? (örn. deneme kaydını üç ayda %20 artırmak)",
+  "kitle": "Kime konuşuyoruz?",
+  "icgoru": "Kitlenin söylemeden bildiği gerçek ne?",
+  "onerme": "Tek cümlelik önerme",
+  "olcut": "Hangi sayıyla ölçeceğiz?",
+  "cagri": "Şimdi dene",
+  "kanitlar": ["Önermeyi destekleyen kanıt"]
+}

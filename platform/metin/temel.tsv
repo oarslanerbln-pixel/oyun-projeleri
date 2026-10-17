@@ -1,0 +1,12 @@
+# Stüdyonun hiçbir işte kullanmayacağı ifadeler. Her proje bu listeyi devralır.
+# kimlik	seviye	dil	desen	gerekçe
+# seviye: HATA denetimi düşürür; UYARI yalnız yazar. desen: küçük harfe çevrilmiş metinde tam sözcük olarak aranan düzenli ifade.
+# Liste büyür, küçülmez. Bir satırın kaldırılması karar kaydında gerekçe ister.
+TEMEL-EN-IYI	HATA	tr	en iyi(si|sidir)?	Kanıtsız üstünlük iddiası; karşılaştırmalı reklam kuralları kanıt ister
+TEMEL-BIR-NUMARA	HATA	tr	bir numara|1 numara	Kanıtsız üstünlük iddiası
+TEMEL-MUCIZE	HATA	tr	mucize(vi)?	Abartılı ve doğrulanamaz vaat
+TEMEL-GARANTI	UYARI	tr	garanti(li)?	Garanti hukuki bir taahhüttür; kapsamı yazılı değilse kullanmayın
+TEMEL-YUZDE-YUZ	UYARI	*	%\s?100|100\s?%	Mutlak iddia; ölçümle destekleyin ya da kaldırın
+TEMEL-BEST	HATA	en	the best|best ever|number one|no\. 1	Unsubstantiated superiority claim
+TEMEL-MIRACLE	HATA	en	miracle|miraculous	Exaggerated, unverifiable promise
+TEMEL-GUARANTEED	UYARI	en	guarantee(d)?	A guarantee is a legal commitment; state its scope or drop it

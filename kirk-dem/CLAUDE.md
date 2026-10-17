@@ -28,6 +28,7 @@ Halkalar `toprak su nefes golge ayna sessizlik an`; odalar `R{halka}-{oda:00}` (
 | Acımasız analiz: bulgular ve uygulananlar | `docs/05-acimasiz-analiz.md` |
 | Karar kaydı: 17 karar, gerekçe ve geri dönüş tetikleyicisi | `docs/06-karar-kaydi.md` |
 | Hassasiyet okuması brifi | `docs/07-hassasiyet-okumasi.md` |
+| Kapanış ve dikey dilim planı, hafta hafta | `docs/08-dikey-dilim-plani.md` |
 | Çekirdek için Unity'siz test projesi | `tools/core-tests/` |
 | Unity kod iskeleti (saf C# çekirdek + Unity kabuk + EditMode testleri) | `unity/Assets/_KirkDem/` |
 

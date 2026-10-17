@@ -18,6 +18,7 @@ kirk-dem/
     05-acimasiz-analiz.md    Uzman gözüyle bulgular ve uygulananlar
     06-karar-kaydi.md        17 karar: gerekçe, geri dönüş tetikleyicisi, 14 aylık takvim
     07-hassasiyet-okumasi.md İki okuyucuya gidecek brif: ad, baba adı, imam, sırlar
+    08-dikey-dilim-plani.md  19 Ekim → 10 Ocak, hafta hafta: iş, kim, hangi model, bitti ölçütü
   unity/Assets/_KirkDem/     Kod: saf C# çekirdek, ScriptableObject veri, Unity kabuk, EditMode testleri
   tools/core-tests/          Çekirdeği Unity olmadan derleyip test eden .NET projesi (CI bunu koşar)
 ```
@@ -31,6 +32,7 @@ kirk-dem/
 3. `docs/03-mimari/README.md` — kod nasıl bölünür.
 4. `docs/04-calisma-yontemi.md` — nasıl çalışılır, hangi modelle, hangi eklentiyle.
 5. `docs/06-karar-kaydi.md` — neye karar verildi, neden, ne olursa geri dönülür.
+6. `docs/08-dikey-dilim-plani.md` — pazartesi ne yapılacak.
 
 ## Üretim planındaki yer
 

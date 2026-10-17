@@ -58,6 +58,13 @@ namespace KirkDem.Core
         GuardianSeen,  // bekçi bir kez görülür
     }
 
+    /// <summary>Nefes halkası girişi (sistemler.md §14): basılı tut ya da aç/kapa.</summary>
+    public enum BreathInputMode
+    {
+        Hold,
+        Toggle,
+    }
+
     public enum StoneGesture
     {
         Lift,  // yukarı taşı → Dönüş

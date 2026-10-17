@@ -28,7 +28,7 @@ namespace KirkDem.Core.Tests
         [Test]
         public void Kule_KirkDemleTamamlanir()
         {
-            var g = new GameState(5);
+            var g = new GameState(6);
             foreach (var room in g.Rooms.All) g.SolveRoom(room.RoomId, 220f);
             for (int r = 1; r <= RingCatalog.RingCount; r++)
                 while (g.InstallDem((RingId)r)) { }

@@ -12,7 +12,7 @@ Bu klasördeki dokümanlar:
 | `ses-mimarisi.md` | Ton sistemi, makam birikimi, taş perdesi eşlemesi, Sessizlik'te kanal devri |
 | `adr/` | Mimari kararlar (ADR) |
 
-Kod iskeleti: `kirk-dem/unity/Assets/_KirkDem/`. **Bu ortamda Unity ve dotnet yok; kod derlenmedi.** İlk Unity açılışında derleme ve EditMode testleri doğrulanır (bkz. `unity/Assets/_KirkDem/README.md`).
+Kod iskeleti: `kirk-dem/unity/Assets/_KirkDem/`. **Çekirdek (`KirkDem.Core`) Unity olmadan derlenir ve test edilir:** `tools/core-tests`, C# 9 (Unity 6 ile aynı), uyarılar hata sayılır; GitHub Actions her PR'da koşturur. Data ve Gameplay katmanları 17 Ekim 2026'da asgari bir UnityEngine taklidine karşı hatasız derlendi; gerçek doğrulama ilk Unity açılışındadır.
 
 ## Katmanlar ve bağımlılık yönü
 

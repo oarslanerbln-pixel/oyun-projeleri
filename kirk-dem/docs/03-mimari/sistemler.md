@@ -171,7 +171,7 @@ Kulede yuvaya dokunuldu → `InstallDem(ring)` (takılı dem).
 **Core:** `TowerState`, `TowerFloor`, `Inscription`.
 
 **Kat durumu.** `IsLit : bool?` — `null` (sır henüz kararlaşmadı), `true` (saklandı, yanıyor), `false` (söylendi, karardı). `Installed / Capacity` dönüş.
-**Kitabe.** `Inscription { TotalLetters, Remaining }`. `TotalLetters` = babanın adının harf sayısı (senaryo kilidinden). `RemoveLetter()` Ayna halkasında her kayıt değişikliğinde; `Clear()` Sessizlik ilk odasında ad verilince. `IsEmpty`.
+**Kitabe (karar K-16).** `Inscription { TotalLetters = 6, Remaining }` (DURSUN). Ayna'da her kayıt değişikliği bir harf siler, R5-04'te geri alma bir harf getirir (`RecordLedger`). Sessizlik ilk odasının ilk gelişinde kırk yıl geçer ve kitabe boşalır: saatçi adı unutmuştur (`GameState.CommitFortyYears`). İkinci gelişte ad duvara yazılırsa (`GameState.GiveName`) kitabe boş kalır; yazılmazsa terk çağında kitabe dolu okunur (`GameState.ExitRing`). Adın nasıl geri geldiği söylenmez. Sonlardan önce kitabe her zaman ya dolu ya boştur.
 **Menü.** Kule sahnesi ana menüdür: devam = kapağa in; seçenekler = çark odası; çıkış = kapıdan çık. Metin menüsü yok (ayarlar hariç; ayarlar erişilebilirlik gereği klasik metin arayüzüdür, ADR-0007).
 
 **Okunabilirlik.** Kat ışıkları ve kitabe meydandan görülür. Kırkıncı odaya inmeden sonların koşulu bu görünümden okunur; arayüz yok.
@@ -218,9 +218,9 @@ Kulede yuvaya dokunuldu → `InstallDem(ring)` (takılı dem).
 
 ## 12. Save
 
-Tek slot. Halka çıkışında (kasabaya dönüş anı) otomatik; ölüm olmadığı için ara kayıt yok. Geri yükleme kasabada başlar (en son çağ, meydan). Kaydedilen: `GameState` (TownClock, SecretLedger, TowerState, MakamTracker, RoomProgress[40], Inscription, nameGiven, FortyYearLeapApplied, ayarlar). JSON (`JsonUtility` ya da System.Text.Json; Core sınıfları serileştirilebilir düz veri tutar). Manuel kayıt menüsü yok; "kapat" her zaman güvenlidir çünkü kasabada yapılan her eylem anında kaydedilir (eylemle ölçülen zaman geri gelmez — kayıt da öyle).
+Tek slot. Halka çıkışında (kasabaya dönüş anı) ve oda içinde her kilometre taşında (`RoomProgress.Milestone`, karar K-13) otomatik; ölüm olmadığı için başka ara kayıt yok. Geri yükleme kasabada başlar (en son çağ, meydan). Kaydedilen: `GameState` (TownClock, SecretLedger, TowerState, MakamTracker, RoomProgress[40], Inscription, nameGiven, FortyYearLeapApplied, ayarlar). JSON (`JsonUtility` ya da System.Text.Json; Core sınıfları serileştirilebilir düz veri tutar). Manuel kayıt menüsü yok; "kapat" her zaman güvenlidir çünkü kasabada yapılan her eylem anında kaydedilir (eylemle ölçülen zaman geri gelmez — kayıt da öyle).
 
-**Kenar.** Oda içinde çıkılırsa oyun halka başından değil, o halkada çözülmüş odalar korunarak halka sahnesinden devam eder (`RoomProgress` oda bazında kaydedilir; oda içi ara durum kaydedilmez).
+**Kenar.** Oda içinde çıkılırsa oyun o odanın son kilometre taşından devam eder; kilometre taşları geri alınamaz adımlardır, bu yüzden "deneyip geri alma" yolu açılmaz. Su ve Gölge odalarında zaman çizelgesi (`RoomTimeline`) kilometre taşında sıfırdan başlar.
 
 ---
 

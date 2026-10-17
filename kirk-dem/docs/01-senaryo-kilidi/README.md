@@ -15,9 +15,10 @@ Sekme değişirse bu klasör güncellenir; bu klasörde alınan bir karar sekmey
 | `anlatici-misralari.md` | Açılış (3 dörtlük), Kökler, üç son, kayıt yönergesi |
 | `diyalog-ilkeleri.md` | 9 ilke, babanın adı (açık karar), Kırılma 1 ve 2 sahneleri, konuşma bütçesi |
 
-## Depodan sekmeye taşınacak açık kararlar
+## Depodan sekmeye taşınan kararlar (17 Ekim 2026, `docs/06-karar-kaydi.md`)
 
-- [ ] Babanın adı (DURSUN / SABRİ) ve kitabe harf sayısı (6).
-- [ ] Hâl kestirmesi olan 18 oda (tablolardaki `Hâl (depo)` sütunu).
-- [ ] Üç son mısraları.
-- [ ] Toprak 9→7 kesintisinde hangi odaların gideceği (R1-05, R1-06).
+- [x] Babanın adı DURSUN, kitabe 6 harf (K-06); kitabenin dört çağdaki hali (K-16).
+- [x] Muhtarın sır cümlesi "defter"e bağlandı (K-10).
+- [x] Toprak 9 oda kalır; kesinti yalnız ölçüme bağlı (K-04).
+- [ ] Hâl kestirmesi olan 18 oda (tablolardaki `Hâl (depo)` sütunu): dikey dilimde Toprak'ın üç odasıyla sınanır, sonra sekmeye taşınır.
+- [ ] Üç son mısraları: anlatıcı kaydından önce kulakla sınanır.

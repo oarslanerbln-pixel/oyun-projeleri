@@ -286,6 +286,22 @@ Kural: Köpek ile gölgesi hiçbir karede aynı anda net okunmaz; ya köpek odak
 
 ---
 
+### 6.6 Varlık ekonomisi (karar K-15)
+
+Kırk bekçi tek kişi için en büyük modelleme yüküdür. Kural: bekçiler silüet + ışıklı göz, yüz hattı yok; her bekçi en çok bir iş günü.
+
+| Rig | Bekçiler | Ayrım nasıl yapılır |
+| --- | --- | --- |
+| Dörtbacaklı | Geyik, keçi, kaplumbağa, kirpi (Toprak) | Ölçek, boynuz/kabuk/diken eki, doku |
+| Kuş | Turna, baykuş (Toprak) | Kanat açıklığı, duruş |
+| Sürü | Arı, karınca (Toprak) | Tek model + GPU parçacık; davranış sürüde |
+| Yılan | Yılan (Toprak) | Kemik zinciri, tek model |
+| Çocuk | Su'nun 8 çocuğu | Saç, kıyafet, el nesnesi (sapan, testi, örgü) |
+| İhtiyar | Nefes'in 7 ihtiyarı | Kasabalı modellerinin bir kuşak eski kıyafeti; göz ışığı sönük |
+| Saatçi | Gölge'nin 6 yaşı | Tek model; ölçek, duruş, saç; 7 ve 17 yaş için ayrı oran blend shape'i |
+
+Ayna'nın yansımaları yeni model değildir: kasabalı modellerinin ters shader'lı (gümüş, negatif ışık) kopyasıdır. Kırk yıl çağında yalnız ebe (değirmencinin kızı) ve imam yaşlı varyant ister; çobanın ve muhtarın oğulları babalarının genç modelidir (§6.3). Toplam benzersiz karakter modeli: saatçi, köpek, 7 kasabalı, 2 yaşlı varyant, 7 rig = 18.
+
 ## 7. Ses görünürlüğü
 
 ### 7.1 Ses çizgisi

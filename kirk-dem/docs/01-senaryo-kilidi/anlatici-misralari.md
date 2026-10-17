@@ -48,7 +48,7 @@ Son kare üstüne metin yok; sessizlik 6 saniye, sonra oyun.
 
 Sözsüz. Oyun içi sabit kamera, mürekkep efekti. Yalnız doğal ses: rüzgâr, kar, köpeğin nefesi; Kırk yıl'da bir de mezarlık kuşu.
 
-## Kökler (30–40 sn, Flow; Sessizlik'in dördüncü odasından sonra, Ân'a inerken)
+## Kökler (30–40 sn, oyun içi kamera + mürekkep; Sessizlik'in dördüncü odasından sonra, Ân'a inerken)
 
 Tek mısra, videonun ortasında, sonrası sessizlik.
 
@@ -56,7 +56,7 @@ Tek mısra, videonun ortasında, sonrası sessizlik.
 | --- | --- |
 | Kökü bilen çok, ağacı gören yok. | Many know the roots; no one has seen the tree. |
 
-## Üç son (45–60 sn her biri, Flow) — (depo)
+## Üç son (45–60 sn her biri, oyun içi; karar K-05) — (depo)
 
 Her sonda yağmur yağar, başka yerden duyulur. Anlatıcı her sonda iki mısra söyler; ikinci mısra üçünde de aynıdır. Aynı ölçü, aynı "derler" sesi.
 
@@ -67,7 +67,7 @@ Her sonda yağmur yağar, başka yerden duyulur. Anlatıcı her sonda iki mısra
 | Dağıtış (taşı gömer) | Taş taş sökmüş kuleyi, taşı gömmüş, / Toprak susmuş derler, çan hiç çalmamış. | Stone by stone he took the tower down and buried the stone; / the earth went quiet, they say, and the bell never rang. |
 | Ortak son mısra | Yağmur yağmış derler, soran olmamış. | Rain fell, they say, and no one asked where from. |
 
-Görsel: Dönüş — meydana yağmur, kitabe boş, köpek kapıda, kulede bir çocuk çarkın başında. Kalış — kasabanın gözünden, kapak kapalı, kule çalışır ama akrep yerinde, kapağa yağan yağmur. Dağıtış — sökülen kule, mezarlıkta taşsız bir tümsek, yağmur tümseğe, zaman akıp akmadığı belli olmayan bir sabah.
+Sonlar oyunun kendi sahnesinde gerçek zamanlı oynar; böylece oyuncunun yaktığı katlar, kitabenin hali, ışığı yanan evler ve çanın makamı görüntüde olur. Görsel: Dönüş — meydana yağmur, kitabe boş, köpek kapıda, kulede bir çocuk çarkın başında. Kalış — kasabanın gözünden, kapak kapalı, kule çalışır ama akrep yerinde, kapağa yağan yağmur. Dağıtış — sökülen kule, mezarlıkta taşsız bir tümsek, yağmur tümseğe, zaman akıp akmadığı belli olmayan bir sabah.
 
 ## Jenerik
 

@@ -8,17 +8,18 @@ namespace KirkDem.Core.Tests
         public void Perde_SaklananEksiSoylenen()
         {
             var s = new StoneState();
-            s.Recalculate(keptCount: 5, toldCount: 2);
+            s.Recalculate(keptCount: 4, toldCount: 1);
             Assert.AreEqual(3, s.RawPitch);
-            Assert.AreEqual(3f / 7f, s.NormalizedPitch, 1e-5f);
+            Assert.AreEqual(3f / 6f, s.NormalizedPitch, 1e-5f);
         }
 
         [Test]
         public void Uclar_EksiBirVeArtiBir()
         {
             var s = new StoneState();
-            s.Recalculate(7, 0); Assert.AreEqual(1f, s.NormalizedPitch, 1e-5f);
-            s.Recalculate(0, 7); Assert.AreEqual(-1f, s.NormalizedPitch, 1e-5f);
+            s.Recalculate(6, 0); Assert.AreEqual(1f, s.NormalizedPitch, 1e-5f);
+            s.Recalculate(0, 6); Assert.AreEqual(-1f, s.NormalizedPitch, 1e-5f);
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => s.Recalculate(4, 3), "S7 sayılmaz: en çok 6 sır");
         }
 
         [Test]
@@ -53,10 +54,10 @@ namespace KirkDem.Core.Tests
         [Test]
         public void Ledger_IleZincir()
         {
-            var g = new GameState(inscriptionLetters: 5);
+            var g = new GameState(inscriptionLetters: 6);
             g.Secrets.Reveal(RingId.Toprak);
             g.TellSecret(RingId.Toprak);
-            Assert.AreEqual(-1f / 7f, g.Stone.NormalizedPitch, 1e-5f);
+            Assert.AreEqual(-1f / 6f, g.Stone.NormalizedPitch, 1e-5f);
             Assert.AreEqual(false, g.Tower.Floor(RingId.Toprak).IsLit);
 
             g.Secrets.Reveal(RingId.Su);

@@ -1,6 +1,6 @@
 # Kırk Dem — Google Flow Üslup Kitabı
 
-Durum: Taslak v0.1 · Bağlı belgeler: `README.md` (sanat kitabı), `halka-konseptleri.md`, dünya kitabı "Sinematikler" bölümü · Kapsam: Açılış efsanesi, Kökler, üç son (Flow); Bir yıl ve Kırk yıl oyun içi kameradan (Flow değil).
+Durum: Taslak v0.1 · Bağlı belgeler: `README.md` (sanat kitabı), `halka-konseptleri.md`, dünya kitabı "Sinematikler" bölümü · Kapsam (karar K-05, 17 Ekim 2026): **Flow yalnız açılış efsanesi.** Açılışın 12 anahtar karesi illüstratörden gelir, Flow yalnız hareket verir (image-to-video). Bir yıl, Kırk yıl, Kökler ve üç son oyun içi kameradan, mürekkep efektiyle (§5, madde 3). Aşağıdaki 15 sabit kare promptu illüstratör brifi ve Flow yedek planı olarak kalır; Kökler ve son kareleri artık oyun içi kadraj referansıdır.
 
 ## 0. Anlatım ilkesi (dünya kitabından)
 
@@ -73,7 +73,7 @@ Bir kare şu beşini geçerse arşive girer:
 
 ## 3. Klip üretim kuralları
 
-1. **8 saniyelik parçalar.** Her sahne 8 sn'lik kliplere bölünür. Açılış 90–120 sn → 12–15 klip; Kökler 30–40 sn → 4–5 klip; her son 45–60 sn → 6–8 klip. Toplam ≈ 40–50 klip, her biri 3–4 varyant → 120–200 üretim üst sınır. Dünya kitabındaki 60–80 tahmini iyimserdir; kredi üslup kitabı aşamasında ölçülür ve yetmezse önce açılış ve üç son yapılır, Kökler oyun içi kameraya alınır (dünya kitabı kararı).
+1. **8 saniyelik parçalar.** Açılış 90–120 sn → 12–15 klip, her biri illüstratör karesinden başlar, 3–4 varyant → 36–60 üretim. Kökler ve üç son Flow'dan çıktığı için (K-05) toplam kredi ilk tahminin yaklaşık beşte biridir.
 2. **Başlangıç karesi zinciri.** Her klibin başlangıç görseli ya onaylı bir sabit kare ya da önceki klibin son karesidir (Resolve'dan PNG dışa aktarılır). Böylece bir sahne içinde süreklilik, sahneler arası ise "sayfa çevirme" hissi kalır.
 3. **Hareket promptu asgari.** Hareket yönergesi tek cümle, tek eylem: `The lantern light slowly brightens.` / `The dog turns its head toward the hatch.` / `Rain begins to fall on the square only.` İki eylem birden istenmez.
 4. **Kamera hareketi.** Yalnız üç izin: çok yavaş ileri (push-in), çok yavaş aşağı (tilt-down, Kökler), sabit. Pan, zoom-out, el kamerası yok. Promptta: `Camera: static.` ya da `Camera: extremely slow push-in.`
@@ -98,7 +98,9 @@ Bir kare şu beşini geçerse arşive girer:
 | 7 | 16 | 07 Kasaba kuleyi kurmayı öğrenir | Taşlar elden ele | Mısra 6 |
 | 8 | 8–16 | 01 Kule, kar gecesi (duran) | Hiç hareket; kar yağar | Sessizlik; son kare: bugün, kar, duran çan |
 
-### 4.2 Kökler (30–40 sn, 40. oda öncesi)
+### 4.2 Kökler (30–40 sn, Sessizlik'in ikinci çıkışından sonra) — oyun içi
+
+Karar K-05 ile Flow'dan çıktı. Aşağıdaki çizelge oyun içi kamera planıdır: kök şaftı Blender'da modellenir, kamera yavaş iner, Resolve'da §5.3 mürekkep hattından geçer.
 
 | Sıra | Süre | Kare | Hareket | Anlatıcı |
 | --- | --- | --- | --- | --- |
@@ -106,7 +108,9 @@ Bir kare şu beşini geçerse arşive girer:
 | 2 | 16 | 10 Kökler, aşağı | Çok yavaş tilt-down; kökler incelir | Tek mısra |
 | 3 | 8 | 09 Taş, yakın | Taşın iç ışığı belirir | — |
 
-### 4.3 Üç son (45–60 sn her biri)
+### 4.3 Üç son (45–60 sn her biri) — oyun içi
+
+Karar K-05 ile Flow'dan çıktı. Sonlar oyunun kendi sahnesinde, oyuncunun durumuyla çekilir: hangi kule katları yanıyor, kitabe dolu mu, hangi evlerde ışık var, çan hangi makamı çalıyor. Önceden üretilmiş bir klip bunları gösteremez. Gerçek zamanlı oynatılır (video değil), mürekkep görünümü bir URP Renderer Feature ile verilir; kadrajlar aşağıdaki kare sırasını izler.
 
 | Son | Kareler sırayla | Son kare |
 | --- | --- | --- |
@@ -134,12 +138,12 @@ Bir kare şu beşini geçerse arşive girer:
 Steam, yapay zekâ ile üretilen içeriğin mağaza sayfasında açıklanmasını ister. Görseller bu kapsamdadır; senaryo, mısralar, seslendirme, kurgu ve oyun içi 3D içerik insan işidir ve öyle yazılır. Nihai metin yayın adımında (üretim planı 11) hukuki okumadan geçer.
 
 **TR (taslak):**
-> Bu oyundaki açılış efsanesi, "Kökler" ara sahnesi ve üç son sinematiğinin resimli kareleri, geliştiricinin yazdığı ve yönettiği promptlarla yapay zekâ görüntü/video üretim aracı (Google Flow) kullanılarak oluşturulmuş, ardından geliştirici tarafından elle seçilmiş, renk düzenlemesi yapılmış ve kurgulanmıştır. Oyunun senaryosu, diyalogları, anlatıcı mısraları, seslendirmeleri, müziği/ses tasarımı ve oyun içi tüm 3D içerik (mekânlar, karakterler, animasyonlar) yapay zekâ kullanılmadan üretilmiştir. Oyun içinde çalışma anında yapay zekâ içerik üretimi yoktur.
+> Bu oyunun yaklaşık iki dakikalık açılış efsanesinde, bir illüstratörün elle çizdiği resimlere yapay zekâ video aracı (Google Flow) ile hareket verilmiştir; klipler geliştirici tarafından seçilmiş, renk düzenlemesi yapılmış ve kurgulanmıştır. Oyunun geri kalanı, diğer bütün ara sahneler ve sonlar dahil, senaryosu, diyalogları, anlatıcı mısraları, seslendirmeleri, ses tasarımı ve tüm 3D içeriğiyle yapay zekâ kullanılmadan üretilmiştir. Oyun içinde çalışma anında yapay zekâ içerik üretimi yoktur.
 
 **EN (taslak):**
-> The illustrated frames of this game's opening legend, the "Roots" interlude and the three ending cinematics were generated with an AI image/video tool (Google Flow) from prompts written and directed by the developer, then hand-selected, color-graded and edited by the developer. The game's story, dialogue, narrator verses, voice recordings, sound design and all in-game 3D content (environments, characters, animation) were made without AI. The game does not generate any content with AI at runtime.
+> In this game's two-minute opening legend, hand-drawn illustrations by a human artist were animated with an AI video tool (Google Flow); the clips were selected, color-graded and edited by the developer. Everything else in the game, including every other cutscene and all three endings, its story, dialogue, narrator verses, voice recordings, sound design and all 3D content, was made without AI. The game does not generate any content with AI at runtime.
 
-Not: "Bir yıl" ve "Kırk yıl" videoları oyun içi kameradan çekildiği için bildirime girmez; metinde bilerek sayılmamıştır. Eğer Flow kredisi yetmez ve Kökler de oyun içi çekilirse metinden "Kökler" çıkarılır.
+Not: İllüstratör kareleri gelmezse (K-05 geri dönüş tetikleyicisi) metin "kareler yapay zekâ ile üretilip elle rötuşlandı" diye güncellenir.
 
 ---
 

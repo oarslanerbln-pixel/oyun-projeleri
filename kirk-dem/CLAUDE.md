@@ -25,7 +25,10 @@ Halkalar `toprak su nefes golge ayna sessizlik an`; odalar `R{halka}-{oda:00}` (
 | Palet, ışık, kamera, karakter, Flow üslup kitabı | `docs/02-sanat-kitabi/` |
 | Sistemler, veri modeli, oda kiti, ses, ADR'ler | `docs/03-mimari/` |
 | Çalışma yöntemi, model ve eklenti yönlendirmesi | `docs/04-calisma-yontemi.md` |
-| Acımasız analiz: uygulanan düzenlemeler ve bekleyen kararlar | `docs/05-acimasiz-analiz.md` |
+| Acımasız analiz: bulgular ve uygulananlar | `docs/05-acimasiz-analiz.md` |
+| Karar kaydı: 17 karar, gerekçe ve geri dönüş tetikleyicisi | `docs/06-karar-kaydi.md` |
+| Hassasiyet okuması brifi | `docs/07-hassasiyet-okumasi.md` |
+| Çekirdek için Unity'siz test projesi | `tools/core-tests/` |
 | Unity kod iskeleti (saf C# çekirdek + Unity kabuk + EditMode testleri) | `unity/Assets/_KirkDem/` |
 
 ## Kod kuralları
@@ -33,7 +36,8 @@ Halkalar `toprak su nefes golge ayna sessizlik an`; odalar `R{halka}-{oda:00}` (
 - `KirkDem.Core` UnityEngine'e bağımlı olamaz (`noEngineReferences: true`). Kural kararı Core'da verilir; MonoBehaviour'lar yalnız sunar ve iletir.
 - Zincirleme etkilerin tek yeri `GameState`. Sır → kat → taş zinciri başka yerde tekrarlanmaz.
 - Veri ScriptableObject'tedir; kodda sabit oda/kasabalı listesi yazılmaz (`RingCatalog` dışında).
-- Core değişince `Tests/EditMode` testleri güncellenir ve Unity Test Runner'da çalıştırılır. Başka sürekli test yoktur; doğrulama kapıları `docs/04-calisma-yontemi.md` içindedir.
+- Core değişince `Tests/EditMode` testleri güncellenir ve `dotnet test kirk-dem/tools/core-tests` yeşil olmadan commit edilmez. Aynı testler GitHub Actions'ta her PR'da ve Unity Test Runner'da koşar. Core C# 9 ile sınırlıdır (Unity 6).
+- Bir karar değişirse önce `docs/06-karar-kaydi.md` güncellenir, sonra ona bağlı dokümanlar ve kod.
 - Türkçe: dokümanlar, yorumlar, commit mesajı gövdesi. İngilizce: tanımlayıcılar, dosya adları (kod), commit başlığı serbest.
 - Model kimliği, oturum bağlantısı gibi şeyler commit'e, PR'a ya da varlığa yazılmaz.
 

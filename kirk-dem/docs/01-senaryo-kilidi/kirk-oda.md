@@ -17,7 +17,7 @@ Ana sekme beş noktayı açık bırakıyordu; kilit her birinde tek seçim yapar
 **(depo) Ek kararlar, bu PR ile:**
 
 6. **Hâl kestirmeleri.** Dünya kitabı "bazı odalar" der; aşağıdaki tablolarda `Hâl` sütunu öneridir: 18 odada bir kestirme, üç türden (duvar titrer / oda zamanı bir kez kasabayla eşitlenir / bekçi bir kez görülür). Hiçbir oda hâl'e bağlı değildir. Uzun yol üç kez seçilince çana bir nota eklenir (`MakamTracker`); en çok 6 nota.
-7. **Kitabe harf sayısı.** Babanın adı altı harf (`diyalog-ilkeleri.md`, açık karar). Ayna'nın beş odası en çok beş harf siler, R5-04 bir harfi geri getirebilir; kalan harfleri kırk yıl siler. Kırılma 2'de kitabe her durumda boştur (dünya kitabı).
+7. **Kitabe (K-06, K-16).** Babanın adı DURSUN, altı harf. Ayna'nın beş odası en çok beş harf siler, R5-04 bir harfi geri getirebilir; kırk yıl kitabeyi boşaltır, Kırılma 2'de kitabe her durumda boştur (dünya kitabı). Ad R6-01'in ikinci gelişinde yazılırsa kitabe boş kalır; yazılmazsa terk çağında kitabe dolu okunur.
 
 ## Halka 1 — Toprak (9 oda, 2–4 dk) · "Beklemek"
 
@@ -35,7 +35,7 @@ Diorama: kasabanın tarlası. Dere, taş duvar, incir, kovan, kuyu. İçeride bi
 | R1-08 (8) | Baykuş eşyayı yalnız gece alır; oyuncu gündüzü geçirip doğru vakti bekler, süre değil an önemlidir. | Beklenen anın doğruluğu | Baykuş | Muhtarın mührü | Bekçi bir kez görülür |
 | R1-09 (9) | Karıncalar ekmeği tarlanın bir ucundan öbürüne taşır; oyuncu önce yolun başında, sonra sonunda bekler. | Bekleyişlerin sırası: önce burada, sonra orada | Karınca | Fırının ekmeği | — |
 
-Halkanın sırrı (çobanınki, S1) 9. odadan sonra belirir. Çıkışta kasabada günler geçmiştir; çağ hâlâ bugündür. Toprak 9'dan 7'ye inerse R1-05 ve R1-06 kesilir (depo önerisi).
+Halkanın sırrı (çobanınki, S1) 9. odadan sonra belirir. Çıkışta kasabada günler geçmiştir; çağ hâlâ bugündür. **(depo, K-04)** Toprak 9 oda kalır; her oda en çok 3 dakika. K3'te "Su 8'e varış" medyanı 1 sa 45 dk'yı aşarsa R1-05 ve R1-06 kesilir.
 
 ## Halka 2 — Su (8 oda, 2–4 dk) · "Geri sarmak"
 

@@ -15,13 +15,15 @@ Bir alt katmandaki değişiklik üst katmana aykırıysa üst katman değişmez,
 | Kapı | Ne zaman | Ne doğrulanır | Ölçüt | Model |
 | --- | --- | --- | --- | --- |
 | K0 Senaryo kilidi | Bu PR | 40 oda × 7 sır × 4 çağ birbirini tutuyor mu; söylenmeyecekler ihlali var mı | Çapraz okuma listesi (aşağıda) temiz | Fable 5.1 tek okuma |
-| K1 Dikey dilim | 3. adım sonu (6. hafta) | Dinleme, dem, sır, taş; Toprak'ın 3 odası tam kalitede **ve** Su, Gölge, Ayna'dan birer gri kutu oda (ADR 0009: `RoomTimeline`, `InputRecorder`, `RecordEdit`) | 5 oyuncu: dinleme anlaşılıyor, ilk sır (S1) en az 4 oyuncu tarafından söylenebildi ya da bilinçli saklandı; üç gri kutu çalışıyor | Opus 5.5 |
-| K2 Üçüncü halka | Nefes bitince (yaklaşık 14. hafta) | Oda kiti verimi (halka başına ≤ 2,5 hafta), bedel eğrisi, çukur hissi | Kendi oynayışı + 2 oyuncu | Opus 5.5 |
-| K3 Tam oyun | 10. adım | Bitirme oranı, son dağılımı, kaybolma noktaları | 10 oyuncu, ≥ 3 yabancı | Opus 5.5 |
+| K1 Dikey dilim | 10 Ocak 2027 (8 hafta) | Dinleme, dem, sır, taş; Toprak'ın 3 odası tam kalitede **ve** Su, Gölge, Ayna'dan birer gri kutu oda (ADR 0009: `RoomTimeline`, `InputRecorder`, `RecordEdit`) | 5 oyuncu: dinleme anlaşılıyor, ilk sır (S1) en az 4 oyuncu tarafından söylenebildi ya da bilinçli saklandı; üç gri kutu çalışıyor | Opus 5.5 |
+| K2 Üçüncü halka | Nefes bitince (Nisan 2027 sonu) | Oda kiti verimi (halka başına ≤ 2,5 hafta), bedel eğrisi, çukur hissi | Kendi oynayışı + 2 oyuncu | Opus 5.5 |
+| K3 Tam oyun | Kasım 2027 | Bitirme oranı, son dağılımı, kaybolma noktaları | 10 oyuncu, ≥ 3 yabancı | Opus 5.5 |
 
 Aralarda test yok; EditMode testleri yalnız `KirkDem.Core` değiştiğinde koşar (saniyeler sürer). Oyun içi hata ayıklama ihtiyaç oldukça yapılır, takvime bağlanmaz.
 
-**Takvim notu (analiz Ü1).** Dünya kitabının 10 ayı iyimserdir; `docs/05-acimasiz-analiz.md` 14–16 ay önerir ve 6. adımı (yedi halka) halka başına 3 haftaya çeker. Karar kullanıcıya aittir; bu doküman iki takvimi de taşıyabilir, K2 kapısında ölçülen halka hızı hangisinin geçerli olduğunu söyler.
+**Takvim (karar K-02).** 14 ay üretim, çıkış Ocak 2028 sonu, demo Haziran 2027 Steam Next Fest. Dönem dönem iskelet `06-karar-kaydi.md` içindedir. K2'de ölçülen halka hızı 2 haftanın altındaysa çıkış Kasım 2027'ye çekilir.
+
+**Sürekli güvence.** Tek otomatik test çekirdektir: `tools/core-tests` her PR'da GitHub Actions'ta koşar, saniyeler sürer. Yerelde: `dotnet test kirk-dem/tools/core-tests`.
 
 **K0 çapraz okuma listesi:** her sırrın söylenebileceği çağda sahibi hayatta mı · her Toprak eşyasının vereni bugün çağında kasabada mı · Ayna değişiklikleri kitabe harf sayısını (6) aşmıyor mu · her hâl kestirmesi olmadan oda çözülüyor mu · hiçbir bekçi/sır/mısra bir kavramın adını söylüyor mu · üç sonun koşulları `EndingResolver` ile birebir mi.
 
@@ -61,7 +63,7 @@ Kurallar:
 | **Unity (resmî eklenti)** — `new-unity-project`, `unity-cli`, `urp-postprocessing`, `localization`, `audio-setup-mixers`, `shader-graph-create-custom-node`, `unity-package-management` | 3. adım: proje kurulumu, URP Volume (sanat kitabı §3.5 değerleri), TR/EN, mixer yapısı (ses mimarisi §mixer), ses çizgisi/taş dalgası shader düğümleri | Unity yalnız kullanıcının bilgisayarında; bulut oturumunda çalışmaz. Unity MCP bağlantısı için Claude masaüstü oturumu ya da bilgisayarın bu oturuma bağlanması gerekir. |
 | **unity-perf** — `csharp-zero-gc`, `unity-performance`, `code-standards` | 10. adım cila; Core için GC bütçesi | Erken kullanılmaz. |
 | **design** — `design-critique`, `accessibility-review` | Sanat kitabı ve erişilebilirlik katmanının dış gözle okunması (K1 öncesi) | |
-| **Clipkit** | Sinematik animatikleri (açılış, Kökler, üç son) Flow'a gitmeden zamanlama provası | Açılış animatiği bu PR ile hazır (bkz. README). |
+| **Clipkit** | Açılış efsanesinin animatiği: illüstratör karelerinden önce zamanlama ve mısra provası | Kilit sekmesindeki üç dörtlükle kuruldu (bkz. README). |
 | **Three.js görüntüleyici** | Dünya ekseni ve kamera kademeleri için hızlı 3D blokaj | Bu oturumda bir blokaj gösterildi; Blender'a geçmeden önce ölçek kararı için. |
 | **Figma `generate_image`** | 7 halka konsept karesi için hızlı eskiz | Bir Figma dosya anahtarı ister ve ücretli kredi tüketir; Flow üslup kitabı öncesi yalnız karşılaştırma amaçlı. |
 | **Claude Docs** | Dünya kitabı ve "Senaryo kilidi" sekmesi | Depo kanonik kaynaktır; doc özet ve bağlantı taşır. |

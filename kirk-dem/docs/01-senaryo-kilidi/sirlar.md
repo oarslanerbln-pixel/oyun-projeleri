@@ -9,7 +9,7 @@ Her sır ekranda tek cümle olarak belirir ve silinir; aşağıdaki cümleler oy
 | S1 | Toprak / R1-09 | Kuzu sürüde; sen her gece dünkü sayıyı sayıyorsun. | The lamb is in the flock; every night you count yesterday's number. | Çoban | Saymayı bırakır ve o gece uyur; sabah kuzu sürüdedir. Kırk yıl sonra oğlu çobandır. |
 | S2 | Su / R2-08 | Değirmencinin kızı yedi yaşındayken defterini okudu. | The miller's daughter read your book when she was seven. | Ebe | Kızı çırak alır; nişan kızın kendi eliyle bozulur. Defter ölümünde iki yolda da kıza kalır, ama bu yolda elden ele verilir. |
 | S3 | Nefes / R3-07 | Dere kurumadı; değirmen onu içiyor. | The stream did not dry; the mill is drinking it. | Değirmenci | Çarkı geceleri durdurur, aylar içinde dere geri gelir; uyur. Değirmen kırk yıl sonra yine durmuştur, bu kez kendisi durdurmuştur. |
-| S4 | Gölge / R4-06 | Yanlış yazdığın gün yok; kasaba senin yazdığın günü yaşıyor. | There is no day you wrote wrong; the town lives the day you write. | Muhtar | Defteri meydana asar, kapaktaki taşı kaldırtır; kuleyi yine sevmez ama korkmaz. Defter kasabanın tek takvimi olur. |
+| S4 | Gölge / R4-06 | Defterindeki günler yanlış değil; kasaba senin yazdığın günü yaşıyor. | The days in your book are not wrong; the town lives the day you write. | Muhtar | Defteri meydana asar, kapaktaki taşı kaldırtır; kuleyi yine sevmez ama korkmaz. Defter kasabanın tek takvimi olur. |
 | S5 | Ayna / R5-05 | Fincanı otuz yıl önce, ilk gece sen yıkadın. | You washed the cup thirty years ago, on the first night. | Kahveci | O akşam kepengi kapatır, fincanı vitrine koyar. Bekleme biter; kimi beklediği yine söylenmez. |
 | S6 | Sessizlik / R6-01, ilk geliş | Ebe seni nişanından önce seçmişti. | The midwife chose you before your engagement. | Değirmencinin kızı (kırk yıl sonra ebe) | Kırk yılda ilk kez güler; defteri kapatıp son sayfasını boş bırakır ve masada açık bırakır. Terk edilmiş çağda defter oradadır. |
 | S7 | Ân / R7-01 | Değnek kuleden eskidir. | The staff is older than the tower. | İmam | Söylenemez: Ân'dan sonra yalnız son gelir ve imamın derdi yoktur. Taş onu saymaz; bu cümleyi oyundan oyuncu çıkarır. |
@@ -40,7 +40,9 @@ Arayüzsüzdür: oyuncu kişinin yanında "dinle" tuşunu basılı tutar; saatç
 - **Kalış** her zaman açık.
 - 3 saklı / 3 söylenmiş: yalnız Kalış açıktır. Ad verilmemişse Dönüş hiçbir sayımda açılmaz.
 
-Kodda: `EndingResolver.Majority = 4`, sayım `SecretLedger.KeptCount/ToldCount` S1–S6 üzerinden (`CountedSecrets = 6`).
+Kodda: `EndingResolver.Majority = 4`, sayım `SecretLedger.KeptCount/ToldCount` S1–S6 üzerinden (`CountedSecrets = 6`). Eşik ölçüme bağlıdır: K3'te oyuncuların %35'inden fazlası Ân'a tek seçenekle gelirse Dağıtış eşiği 3'e iner (karar K-03).
+
+S4 cümlesi 17 Ekim 2026'da "defter" nesnesine bağlandı (karar K-10); önceki hali: "Yanlış yazdığın gün yok; kasaba senin yazdığın günü yaşıyor."
 
 ## Kule katları ve taş (depo)
 

@@ -52,7 +52,16 @@ namespace KirkDem.Core
             return true;
         }
 
+        /// <summary>Ayna'da bir değişiklik geri alındı (R5-04): bir harf geri gelir.</summary>
+        public bool RestoreLetter()
+        {
+            if (Remaining == TotalLetters) return false;
+            Remaining++;
+            return true;
+        }
+
         public void Clear() => Remaining = 0;
+        public void Fill() => Remaining = TotalLetters;
         public void Restore(int remaining) => Remaining = Math.Max(0, Math.Min(TotalLetters, remaining));
     }
 
@@ -100,7 +109,7 @@ namespace KirkDem.Core
             FloorChanged?.Invoke(ring);
         }
 
-        /// <summary>Sessizlik ilk odası: ad verildi. Kitabe boşalır, baba hiçbir çağda anılmaz.</summary>
+        /// <summary>Sessizlik ilk odası, ikinci geliş: ad verildi. Kitabe boş kalır, baba hiçbir çağda anılmaz.</summary>
         public void GiveName()
         {
             NameGiven = true;

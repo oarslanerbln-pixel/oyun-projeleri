@@ -38,6 +38,16 @@ namespace KirkDem.Data
         public float focalLengthMm = 35f;
     }
 
+    /// <summary>Köpeğin ipucu kademesi. Hiçbiri cevabı vermez, yalnız yönü.</summary>
+    public enum HintCue { LookAt, SitBeside, PointNose }
+
+    [Serializable]
+    public sealed class HintStepDef
+    {
+        public HintCue cue;
+        public string targetId;   // RoomRoot altındaki nesnenin kimliği
+    }
+
     [Serializable]
     public sealed class RecordEditDef
     {

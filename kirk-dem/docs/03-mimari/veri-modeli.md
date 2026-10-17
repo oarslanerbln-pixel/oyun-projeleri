@@ -53,7 +53,10 @@ Alanlar `camelCase`; Unity `[SerializeField]`. Tüm metinler Localization anahta
 | breathSeconds | float | yalnız Nefes |
 | recordEdits | RecordEditDef[] | yalnız Ayna: hangi kasaba kaydını değiştirir |
 | cameraRig | CameraRigDef | pozisyon, hedef, FOV |
-| estimatedMinutes | int | 2–4 dış, daha uzun iç |
+| estimatedMinutes | int | Kilit sekmesindeki süre; Toprak ve Su'da en çok 3 (K-04) |
+| hintSteps | HintStepDef[] | 2–3 kademe: `LookAt`, `SitBeside`, `PointNose` + hedef nesne; Sessizlik'te boş |
+| hintDelaySeconds | float | varsayılan 150; oyuncu ayarıyla 60–300 |
+| milestoneCount | int | oda içi geri alınamaz adım sayısı (K-13) |
 
 ### GuardianDefinition
 | Alan | Tür | Açıklama |
@@ -132,11 +135,12 @@ Core'daki `GameState` düz, serileştirilebilir veridir; SO'lara referans vermez
 ```
 GameState {
   era, vakit, seasonIndex, fortyYearLeapApplied,
-  secrets: { S1..S7 → Undecided|Told|Kept },
+  secrets: { S1..S7 → Undecided|Told|Kept },   // S7 gösterilir, sayılmaz
   floors:  { ring → carried, installed, isLit? },
-  inscriptionRemaining, nameGiven,
+  inscriptionRemaining, nameGiven, silenceExits,
+  recordEdits: [recordId…],                    // Ayna (RecordLedger)
   makam: { pendingCount, notes[] },
-  rooms:  { R.. → solved, halOffered, halUsed, demCollected },
+  rooms:  { R.. → solved, halOffered, halUsed, demCollected, milestone },
   videosSeen[], settings
 }
 ```

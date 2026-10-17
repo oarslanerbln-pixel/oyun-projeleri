@@ -1,0 +1,38 @@
+# Unity (kirk-dem/unity bir Unity projesine dönüştüğünde)
+/kirk-dem/unity/[Ll]ibrary/
+/kirk-dem/unity/[Tt]emp/
+/kirk-dem/unity/[Oo]bj/
+/kirk-dem/unity/[Bb]uild/
+/kirk-dem/unity/[Bb]uilds/
+/kirk-dem/unity/[Ll]ogs/
+/kirk-dem/unity/[Uu]ser[Ss]ettings/
+/kirk-dem/unity/[Mm]emoryCaptures/
+/kirk-dem/unity/[Rr]ecordings/
+/kirk-dem/unity/*.csproj
+/kirk-dem/unity/*.sln
+/kirk-dem/unity/*.slnx
+/kirk-dem/unity/.vs/
+/kirk-dem/unity/.idea/
+/kirk-dem/unity/.vscode/
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+crashlytics-build.properties
+
+# Kaynak dosyalar depoya girmez (karar K-17): ayrı, yedekli klasörde tutulur
+*.blend
+*.blend1
+*.blend[0-9]
+*.aup3
+*.drp
+*.drp.bak
+
+# .NET
+bin/
+obj/
+TestResults/
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db

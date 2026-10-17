@@ -14,9 +14,9 @@ Bu dosya senaryo kilidi sekmesinde olmayan uygulama katmanıdır: konuşma kural
 8. **Saygı.** İmam hiçbir inanç cümlesi söylemez; ikindiyi gölgeyle ölçmesi gösterilir, anlatılmaz. Hiçbir sahne bir inancı doğrulamaz ya da yalanlamaz.
 9. **Altyazı eşi.** Her konuşmanın altyazısı vardır; ses ipuçlarının da ("su damlıyor", "çark takılıyor"). Altyazı metni diyalog metninden ayrı tabloda tutulur.
 
-## Babanın adı — açık karar
+## Babanın adı — karar K-06
 
-Kilit sekmesi adı seçmez; ebe adı "eski ebenin defterinden" okur. Depo önerisi: **DURSUN**, altı harf. Türkçede hem ad hem dilektir; kule için de Kalış sonu için de yankı verir; İngilizce oyuncu için yalnız bir addır. Yedek: **SABRİ** (beş harf; Ayna'nın beş odası harfleri bitirir, kırk yıla harf kalmaz; ikinci sırada). İki ad da gerçek bir veli ya da tarihi kişiyle örtüşmez. Karar hassasiyet okumasına bırakılır; dünya kitabının açık kararlar listesine eklenmelidir.
+Kilit sekmesi adı seçmez; ebe adı "eski ebenin defterinden" okur. Karar (17 Ekim 2026): **DURSUN**, altı harf. Türkçede hem ad hem dilektir; kule için de Kalış sonu için de yankı verir; İngilizce oyuncu için yalnız bir addır. Yedek: **SABRİ** (beş harf; Ayna'nın beş odası harfleri bitirir, kırk yıla harf kalmaz; ikinci sırada). DURSUN çok yaygın bir addır; aynı adı taşıyan bilinen bir erken Osmanlı din adamı olduğu için hassasiyet okumasında ayrıca sorulur (`docs/07-hassasiyet-okumasi.md`, soru S3). Okuma itiraz ederse SABRİ.
 
 Ad yalnız üç yerde geçer: kitabede (görsel), ebenin ağzında (Kırılma 2), oyuncunun yazdığı anda (Sessizlik, sessiz). Anlatıcı adı hiç söylemez. Kodda `GameRoot.inscriptionLetters = 6`.
 

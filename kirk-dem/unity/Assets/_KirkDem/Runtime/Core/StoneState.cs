@@ -3,12 +3,13 @@ using System;
 namespace KirkDem.Core
 {
     /// <summary>
-    /// Taşın perdesi: saklanan − söylenen, 7'ye bölünmüş (−1..+1). Ölçek ahlaki değil müzikaldir.
+    /// Taşın perdesi: saklanan − söylenen, sayılan sır sayısına (6) bölünmüş (−1..+1). S7 sayılmaz.
+    /// Ölçek ahlaki değil müzikaldir.
     /// Audio, Haptics ve Presentation aynı NormalizedPitch değerini PitchMap üzerinden okur.
     /// </summary>
     public sealed class StoneState
     {
-        public int RawPitch { get; private set; }          // −7..+7
+        public int RawPitch { get; private set; }          // −6..+6
         public float NormalizedPitch { get; private set; } // −1..+1
         public bool IsSwinging { get; set; }               // sallanmazken ses vermez
 
@@ -17,10 +18,11 @@ namespace KirkDem.Core
         public void Recalculate(int keptCount, int toldCount)
         {
             int raw = keptCount - toldCount;
-            if (raw < -RingCatalog.SecretCount || raw > RingCatalog.SecretCount)
-                throw new ArgumentOutOfRangeException(nameof(keptCount), "kept + told 7'yi aşamaz.");
+            const int n = SecretLedger.CountedSecrets;
+            if (keptCount < 0 || toldCount < 0 || keptCount + toldCount > n)
+                throw new ArgumentOutOfRangeException(nameof(keptCount), "kept + told sayılan sır sayısını (6) aşamaz.");
             RawPitch = raw;
-            float normalized = raw / (float)RingCatalog.SecretCount;
+            float normalized = raw / (float)n;
             if (Math.Abs(normalized - NormalizedPitch) > 1e-6f)
             {
                 NormalizedPitch = normalized;

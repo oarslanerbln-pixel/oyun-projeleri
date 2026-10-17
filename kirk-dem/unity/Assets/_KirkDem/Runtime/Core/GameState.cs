@@ -12,12 +12,14 @@ namespace KirkDem.Core
         public StoneState Stone { get; } = new StoneState();
         public MakamTracker Makam { get; } = new MakamTracker();
         public RoomProgressLedger Rooms { get; } = new RoomProgressLedger();
+        public RecordLedger Records { get; }
 
         public RingId CurrentRing { get; private set; } = RingId.None;
 
         public GameState(int inscriptionLetters)
         {
             Tower = new TowerState(inscriptionLetters);
+            Records = new RecordLedger(Tower.Inscription);
             Secrets.Decided += OnSecretDecided;
         }
 
@@ -64,19 +66,42 @@ namespace KirkDem.Core
             if (room.TookLongPath) Makam.RegisterLongPath(ringBaseHz);
         }
 
-        /// <summary>Halka bitti, kasabaya çıkış: sır gösterilir, çağ geçer. Ân'dan çıkış yok.</summary>
+        /// <summary>
+        /// Halka bitti, kasabaya çıkış: sır gösterilir, çağ geçer. Ân'dan çıkış yok.
+        /// Sessizlik'in ikinci çıkışında (terk) kitabe okunur hale gelir: ad verilmediyse dolu, verildiyse boş (karar K-16).
+        /// </summary>
         public void ExitRing(RingId ring)
         {
             Secrets.Reveal(ring);
             Clock.OnRingExit(ring);
+            if (ring == RingId.Sessizlik && Clock.Era == EraId.Terk && !Tower.NameGiven)
+                Tower.Inscription.Fill();
             CurrentRing = RingId.None;
         }
 
-        /// <summary>Sessizlik ilk odası: tek hamle. Kırk yıl geçer; ad verildiyse kitabe boşalır.</summary>
-        public void CommitSilenceFirstRoom(bool giveName)
+        /// <summary>Ayna: odada bir kayıt değiştirildi. Kitabeden bir harf silinir.</summary>
+        public bool EditRecord(string recordId) => Records.Apply(recordId);
+
+        /// <summary>Ayna R5-04: bir değişiklik geri alındı. Bir harf geri gelir.</summary>
+        public bool UndoRecord(string recordId) => Records.Undo(recordId);
+
+        /// <summary>
+        /// Sessizlik ilk odası, ilk geliş: kapı kapanır, kırk yıl geçer. Saatçi adı unutur; kitabe boşalır
+        /// (dünya kitabı, Kırılma 2). Yalnız bir kez işler.
+        /// </summary>
+        public bool CommitFortyYears()
         {
-            Clock.ApplyFortyYearLeap();
-            if (giveName) Tower.GiveName();
+            if (!Clock.ApplyFortyYearLeap()) return false;
+            Tower.Inscription.Clear();
+            return true;
+        }
+
+        /// <summary>Sessizlik ilk odası, ikinci geliş: ad duvara yazıldı. Yalnız kırk yıldan sonra.</summary>
+        public bool GiveName()
+        {
+            if (!Clock.FortyYearLeapApplied || Tower.NameGiven) return false;
+            Tower.GiveName();
+            return true;
         }
 
         /// <summary>

@@ -17,6 +17,20 @@ Kasabada zaman saniyeyle değil eylemle ölçülür: her konuşma, her sır söy
 
 **Terk çağının sahnelenmesi (depo, analiz N3).** Boş kasabada serbest dolaşım anti-klimaks riskidir. Terk tek bir rotadır, 3–4 dakika: kapak → meydan (değnek ve yürüyen gölgesi) → kahve (yarı açık kepenk, fotoğraflar) → ebenin evi (defter) → kapak. Köpek önden gider ve her durakta durur; oyuncu geri dönemez (kapılar arkasından kapanır, Gölge'de verilen korku). Dem takılacak kule çalışır; taş son kez sallanır. Sonra Kökler videosu.
 
+## Yedi dönüşün açılış kadrajı (depo, karar K-14)
+
+Her dönüş, saatçi kapaktan çıktığında kameranın kendiliğinden gösterdiği tek bir kadrajla açılır: bir değişim ve o halkanın sırrının sahibi görüş hattında. Kadraj 4–6 saniye sürer, sonra kontrol oyuncuya geçer ve dolaşım serbesttir. Kadrajın sözü yoktur.
+
+| Dönüş | Çağ | Açılış kadrajı: tek değişim | Sır sahibi nerede |
+| --- | --- | --- | --- |
+| 1 Toprak | bugun, günler | Kar yarı erimiş; meydanda çoban sürüyü sayıyor, sayı tutmuyor | Çoban kapakla meydan arasındaki tek yolda; taş kendiliğinden çeker (sistemler.md §4, ilk sırrın öğretilmesi) |
+| 2 Su | bir-yil, bir yıla yakın | Kapağın başında taş yığını; muhtar sırtı dönük (Kırılma 1) | Ebe kendi kapısının önünde; değirmencinin kızı o kapının iki adım ötesinde |
+| 3 Nefes | bir-yil, neredeyse hiç | Kadraj 2. dönüşle aynı; değişen tek şey değirmen çarkının sesi. Çukur bilinçlidir | Değirmenci çarkın başında, uykusuz |
+| 4 Gölge | bir-yil, mevsimler | Meydanın ağaçları başka mevsimde; muhtar defteriyle kapağın taşına bakıyor | Muhtar meydanda, defter koltuğunun altında |
+| 5 Ayna | bir-yil, yıllar | Kahvenin duvarı: değiştirilen fotoğraf; imam değneğin başında, fotoğrafa bakıyor ve susuyor | Kahveci tezgâhta uyukluyor |
+| 6 Sessizlik (1) | kirk-yil | Kapağın başında yaşlı bir kadın, dizinde defter (Kırılma 2) | Ebe (değirmencinin kızı) kapağın başında; konuşma bitmeden inilemez |
+| 7 Sessizlik (4) | terk | Meydan boş; değnek dikili, gölgesi yürüyor | Kimse; köpek önden gider (aşağıdaki terk rotası) |
+
 ## Yedi kasabalı
 
 | Kişi | Bugün | Bir yıla yakın sonra | Kırk yıl sonra | Terk edilmiş | Derdi |

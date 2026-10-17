@@ -11,6 +11,9 @@ namespace KirkDem.Core
         public bool HalUsed { get; private set; }
         public bool DemCollected { get; private set; }
 
+        /// <summary>Oda içi kilometre taşı (0 = giriş). Sessiz kontrol noktası ve köpek ipucu zamanlayıcısı bunu okur.</summary>
+        public int Milestone { get; private set; }
+
         /// <summary>Uzun yol: hâl sunuldu, kullanılmadı, oda çözüldü.</summary>
         public bool TookLongPath => Solved && HalOffered && !HalUsed;
 
@@ -19,15 +22,23 @@ namespace KirkDem.Core
         public void OfferHal() => HalOffered = true;
         public void UseHal() { if (HalOffered) HalUsed = true; }
         public void Solve() => Solved = true;
+
+        /// <summary>Bulmacada geri alınamaz bir adım atıldı. Yalnız ileri gider.</summary>
+        public bool ReachMilestone(int milestone)
+        {
+            if (milestone <= Milestone) return false;
+            Milestone = milestone;
+            return true;
+        }
         public void CollectDem() { if (Solved) DemCollected = true; }
 
-        public void Restore(bool solved, bool halOffered, bool halUsed, bool demCollected)
+        public void Restore(bool solved, bool halOffered, bool halUsed, bool demCollected, int milestone = 0)
         {
-            Solved = solved; HalOffered = halOffered; HalUsed = halUsed; DemCollected = demCollected;
+            Solved = solved; HalOffered = halOffered; HalUsed = halUsed; DemCollected = demCollected; Milestone = milestone;
         }
     }
 
-    /// <summary>Kırk odanın ilerlemesi. Oda içi ara durum kaydedilmez; oda bazında kaydedilir.</summary>
+    /// <summary>Kırk odanın ilerlemesi. Oda içinde yalnız kilometre taşı kaydedilir (ADR-0006, karar K-13).</summary>
     public sealed class RoomProgressLedger
     {
         readonly Dictionary<string, RoomProgress> _rooms = new Dictionary<string, RoomProgress>(RingCatalog.TotalRooms);

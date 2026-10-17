@@ -1,6 +1,6 @@
 # `_KirkDem` — Unity kod iskeleti
 
-> **Durum: derlenmedi.** Bu klasör Unity ve dotnet bulunmayan bir ortamda yazıldı. İlk Unity açılışında derleme hataları beklenir ve orada düzeltilir; mimari ve sözleşmeler bağlayıcı, satırlar değil.
+> **Durum (17 Ekim 2026):** `Runtime/Core` ve `Tests/EditMode` Unity olmadan derlenip test edildi: 45 test yeşil, C# 9, uyarılar hata sayılarak (`kirk-dem/tools/core-tests`, `dotnet test`). `Runtime/Data` ve `Runtime/Gameplay` asgari bir UnityEngine taklidine karşı hatasız derlendi; gerçek Unity API'lerine karşı doğrulama ilk Unity açılışındadır.
 
 ## Klasör yapısı
 

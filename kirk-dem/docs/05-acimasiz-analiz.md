@@ -82,12 +82,19 @@ Risk: 6. adımda takvim iki katına çıkar, ses/cila/pazarlama adımları ezili
 | N3 terk rotası | `docs/01-senaryo-kilidi/kasaba-halki.md` |
 | N4 ad önerisi | `docs/01-senaryo-kilidi/diyalog-ilkeleri.md` |
 
-## Karar bekleyenler (kullanıcıya)
+## Kararlar (17 Ekim 2026)
 
-- [ ] Ü1: 10 ay mı, 14–16 ay mı; bekçi sadeleştirmesi.
-- [ ] Ü3: Flow kapsamını açılışa indirmek; illüstratör.
-- [ ] O4: Dağıtış eşiği 3 mü 4 mü, ya da tek seçenek sahnelemesi.
-- [ ] O5: Toprak 7 oda varsayılan.
-- [ ] N2: Muhtarın sır cümlesi.
-- [ ] N5: Ad okumasının zamanı.
-- [ ] C1: Erken Steam sayfası.
+Kullanıcı kararları yönetmene bıraktı. Tamamı gerekçe ve geri dönüş tetikleyicisiyle `06-karar-kaydi.md` içindedir.
+
+- [x] Ü1 → K-02: 14 ay, çıkış Ocak 2028 sonu; K-15: bekçiler 7 rig üzerinde.
+- [x] Ü3 → K-05: Flow yalnız açılış; Kökler ve üç son oyun içi; açılış kareleri illüstratörden.
+- [x] Ü4 → K-09: fiyat kararı Next Fest demo verisi ve K3 ile.
+- [x] T3 → K-13: oda içi kilometre taşı kaydı (kod: `RoomProgress.Milestone`).
+- [x] O4 → K-03: eşik 4 kalır, ölçüme bağlı.
+- [x] O5 → K-04: Toprak 9 oda, oda başına 3 dk tavan, ölçüme bağlı kesinti.
+- [x] O6 → K-14: yedi dönüşün açılış kadrajı.
+- [x] N2 → K-10: muhtarın sırrı "defter"e bağlandı.
+- [x] N5 → K-07: hassasiyet okuması 14 Kasım'a kadar; brif `07-hassasiyet-okumasi.md`.
+- [x] C1 → K-11: Steam sayfası Şubat 2027.
+- [x] C2 → K-12: beş dil altyazı.
+- [x] Yeni bulgu → K-16: kanonda kitabenin terk çağındaki hali tanımsızdı; karara bağlandı.

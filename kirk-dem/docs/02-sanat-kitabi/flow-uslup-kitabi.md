@@ -1,6 +1,6 @@
 # Kırk Dem — Google Flow Üslup Kitabı
 
-Durum: Taslak v0.1 · Bağlı belgeler: `README.md` (sanat kitabı), `halka-konseptleri.md`, dünya kitabı "Sinematikler" bölümü · Kapsam (karar K-05, 17 Ekim 2026): **Flow yalnız açılış efsanesi.** Açılışın 12 anahtar karesi illüstratörden gelir, Flow yalnız hareket verir (image-to-video). Bir yıl, Kırk yıl, Kökler ve üç son oyun içi kameradan, mürekkep efektiyle (§5, madde 3). Aşağıdaki 15 sabit kare promptu illüstratör brifi ve Flow yedek planı olarak kalır; Kökler ve son kareleri artık oyun içi kadraj referansıdır.
+Durum: Taslak v0.1 · Bağlı belgeler: `README.md` (sanat kitabı), `halka-konseptleri.md`, dünya kitabı "Sinematikler" bölümü · Kapsam (karar K-05 ve K-18, 17 Ekim 2026): **Bu belge yalnız açılış efsanesi içindir.** Açılışın 12 anahtar karesi Flow'da ilk geçiş olarak üretilir, illüstratör üstüne boyar, Flow hareketi verir (image-to-video). Oyunun 3D dünyasına giren Flow varlıkları ayrı belgededir: `flow-oyun-ici-varliklar.md`. Bir yıl, Kırk yıl, Kökler ve üç son oyun içi kameradan, mürekkep efektiyle (§5, madde 3). Aşağıdaki 15 sabit kare promptu illüstratör brifi ve Flow yedek planı olarak kalır; Kökler ve son kareleri artık oyun içi kadraj referansıdır.
 
 ## 0. Anlatım ilkesi (dünya kitabından)
 
@@ -138,12 +138,12 @@ Karar K-05 ile Flow'dan çıktı. Sonlar oyunun kendi sahnesinde, oyuncunun duru
 Steam, yapay zekâ ile üretilen içeriğin mağaza sayfasında açıklanmasını ister. Görseller bu kapsamdadır; senaryo, mısralar, seslendirme, kurgu ve oyun içi 3D içerik insan işidir ve öyle yazılır. Nihai metin yayın adımında (üretim planı 11) hukuki okumadan geçer.
 
 **TR (taslak):**
-> Bu oyunun yaklaşık iki dakikalık açılış efsanesinde, bir illüstratörün elle çizdiği resimlere yapay zekâ video aracı (Google Flow) ile hareket verilmiştir; klipler geliştirici tarafından seçilmiş, renk düzenlemesi yapılmış ve kurgulanmıştır. Oyunun geri kalanı, diğer bütün ara sahneler ve sonlar dahil, senaryosu, diyalogları, anlatıcı mısraları, seslendirmeleri, ses tasarımı ve tüm 3D içeriğiyle yapay zekâ kullanılmadan üretilmiştir. Oyun içinde çalışma anında yapay zekâ içerik üretimi yoktur.
+> Bu oyunda yapay zekâ (Google Flow) iki yerde kullanılmıştır. (1) Yaklaşık iki dakikalık açılış efsanesinin resimleri yapay zekâ ile taslak olarak üretilmiş, bir illüstratör tarafından elle boyanmış ve yapay zekâ video aracıyla hareketlendirilmiştir. (2) Bazı uzak arka plan resimleri ile yağmur, kar, toz ve mürekkep gibi doku katmanları yapay zekâ ile üretilip geliştirici tarafından düzenlenmiştir. Karakterler, mekânlar, bulmacalar, senaryo, diyaloglar, anlatıcı mısraları, seslendirmeler, ses tasarımı ve oyundaki bütün yazılar yapay zekâ kullanılmadan, insan eliyle yapılmıştır. Oyun çalışırken yapay zekâ ile içerik üretmez.
 
 **EN (taslak):**
-> In this game's two-minute opening legend, hand-drawn illustrations by a human artist were animated with an AI video tool (Google Flow); the clips were selected, color-graded and edited by the developer. Everything else in the game, including every other cutscene and all three endings, its story, dialogue, narrator verses, voice recordings, sound design and all 3D content, was made without AI. The game does not generate any content with AI at runtime.
+> This game uses AI (Google Flow) in two places. (1) The illustrations of the two-minute opening legend were drafted with AI, hand-painted over by an illustrator, and animated with an AI video tool. (2) Some distant background paintings and texture layers such as rain, snow, dust and ink were generated with AI and edited by the developer. The characters, environments, puzzles, story, dialogue, narrator verses, voice recordings, sound design and every piece of text in the game were made by hand, without AI. The game does not generate any content with AI at runtime.
 
-Not: İllüstratör kareleri gelmezse (K-05 geri dönüş tetikleyicisi) metin "kareler yapay zekâ ile üretilip elle rötuşlandı" diye güncellenir.
+Not: İllüstratör bulunamazsa (K-05 geri dönüş tetikleyicisi) birinci madde "yapay zekâ ile üretilip geliştirici tarafından elle rötuşlandı" diye güncellenir. Bildirimin dayanağı `kirk-dem/art/flow-manifest.csv` dosyasıdır; manifestte olmayan bir yapay zekâ çıktısı oyuna giremez.
 
 ---
 

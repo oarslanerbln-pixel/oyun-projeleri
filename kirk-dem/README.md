@@ -16,11 +16,13 @@ kirk-dem/
     03-mimari/               Sistemler, veri modeli, oda kiti, ses mimarisi, 8 ADR
     04-calisma-yontemi.md    Doğrulama kapıları, haftalık ritim, model ve eklenti yönlendirmesi
     05-acimasiz-analiz.md    Uzman gözüyle bulgular ve uygulananlar
-    06-karar-kaydi.md        17 karar: gerekçe, geri dönüş tetikleyicisi, 14 aylık takvim
+    06-karar-kaydi.md        18 karar: gerekçe, geri dönüş tetikleyicisi, 14 aylık takvim
     07-hassasiyet-okumasi.md İki okuyucuya gidecek brif: ad, baba adı, imam, sırlar
+  art/flow-manifest.csv      Oyuna giren her yapay zekâ çıktısının kaydı (Steam bildiriminin dayanağı)
     08-dikey-dilim-plani.md  19 Ekim → 10 Ocak, hafta hafta: iş, kim, hangi model, bitti ölçütü
   unity/Assets/_KirkDem/     Kod: saf C# çekirdek, ScriptableObject veri, Unity kabuk, EditMode testleri
   tools/core-tests/          Çekirdeği Unity olmadan derleyip test eden .NET projesi (CI bunu koşar)
+  tools/flow/flow.sh         Flow çıktılarını Unity'ye hazırlar: ses atma, dikişsiz döngü, atlas, kenar saydamlığı, parlaklık
 ```
 
 `unity/` bir Unity projesi değil, bir Unity projesine kopyalanacak `Assets/_KirkDem/` klasörüdür. Çekirdek Unity olmadan derlenir ve test edilir (`dotnet test tools/core-tests`, 45 test); Data ve Gameplay katmanlarının gerçek doğrulaması ilk Unity açılışındadır.
@@ -38,7 +40,7 @@ kirk-dem/
 
 | # | Adım | Durum |
 | --- | --- | --- |
-| 0 | Kararlar | 17 karar verildi (`docs/06-karar-kaydi.md`); takvim 14 ay, çıkış Ocak 2028 sonu |
+| 0 | Kararlar | 18 karar verildi (`docs/06-karar-kaydi.md`); takvim 14 ay, çıkış Ocak 2028 sonu |
 | 1 | Senaryo kilidi | Claude Docs sekmesinde kilitli; depo kopyası + uygulama katmanı burada; hassasiyet okuması 14 Kasım'a kadar |
 | 2 | Sanat kitabı | Taslak tamam; Flow üslup kitabı kareleri üretilmedi |
 | 3 | Dikey dilim | Çekirdek derleniyor ve test ediliyor; ADR 0009 yapı taşları (`RoomTimeline`, `Tide`, `ReverseRecorder`, `RecordLedger`, `HintTimer`) kodda; Unity projesi açılmadı |

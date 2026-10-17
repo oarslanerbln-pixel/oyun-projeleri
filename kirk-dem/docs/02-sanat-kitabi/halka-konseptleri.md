@@ -132,15 +132,15 @@ Hepsi aynı kadrajdan: efsane kamerası (B1 ile aynı nokta), 16:9 oyun içi. Ku
 - Mevsim belirsiz (sonbahar sonu hissi). White Balance −12, Tint +3, Saturation −30, Contrast −10, Vignette 0.35, Film Grain 0.2.
 - Yıpranma 0.6: üç çökmüş çatı, iki kapatılmış pencere, dere sığ, değirmen çarkı duruyor. Mezarlık (sol arka, batı) belirgin büyümüş: taş sayısı 70.
 - Meydanda tek kişi: ebe (değirmencinin kızı, kır saç, solmuş yeşil yemeni), kule kapısında bekler (Kırılma 2: "ebe kapağın başında bekler").
-- Kahve kapalı, kepenk inik; ama penceresinde içeriden hafif ışık (kahveci çok yaşlı, hâlâ içeride).
+- Kahveci ölmüştür (senaryo kilidi). Kahve iki varyant ister: S5 söylendiyse kepenk inik, fincan vitrinde; saklandıysa kepenk açık, içeride kimse yok, fincan rafta.
 - Kule gölgesi uzun, meydanı boydan boya keser.
-- Kitabe: Ayna'da silinen harfler kadar boşluk. Bu karede harf sayısı senaryoya bağlı; brif iki varyant ister (yarı dolu / boş).
+- Kitabe boştur: kırk yıl kitabeyi boşaltmıştır (karar K-16). Tek varyant.
 
 ### C4. Terk edilmiş — "Gri-mavi"
 
 - White Balance −30, Saturation −50, Contrast −15, Vignette 0.40, Grain 0.25.
 - Yıpranma 1.0: on bir çökmüş çatı, bir yıkılmış duvar, otlar meydanı yarı örtmüş, değirmen çarkı düşmüş dere kenarında yatıyor. Kahve çerçeveleri yerde (içeriden görünmez; dış karede yalnız açık kapı ve karanlık).
-- Kimse yok. Köpek yok. Kule kapısı kapalı mı açık mı sona bağlı (Kalış: kapak kapalı, kule çalışır ama akrep ilerlemez → çark pencereleri ışır, meydan boş; Dağıtış: kule sökülmüş, yalnız zemin katı duruyor, meydanda taş yığını; Dönüş: kule tam çalışır, çan sallanır, meydanda yağmur).
+- Kimse yok. Terk rotasında köpek önden yürür (`kasaba-halki.md`); son sahnelerde Kalış'ta köpek yoktur. Kule kapısı kapalı mı açık mı sona bağlı (Kalış: kapak kapalı, kule çalışır ama akrep ilerlemez → çark pencereleri ışır, meydan boş; Dağıtış: kule sökülmüş, yalnız zemin katı duruyor, meydanda taş yığını; Dönüş: kule tam çalışır, çan sallanır, meydanda yağmur).
 - Yağmur: üç sonda da yağar, yalnız başka yerden duyulur (dünya kitabı). Görsel karşılığı: yağmur kadrajda ya kapağa (Kalış), ya gömülen taşın mezarına (Dağıtış), ya meydana (Dönüş) düşer; başka hiçbir yerde ıslaklık yok. Yağmurun yerel olduğu kadrajdan okunur ama vurgulanmaz.
 - Kule gölgesi: Dönüş'te meydanda hareket eder (zaman akar); Kalış'ta sabittir; Dağıtış'ta kule yok, gölge yok.
 

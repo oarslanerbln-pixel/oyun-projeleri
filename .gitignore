@@ -1,19 +1,19 @@
-# Unity (kirk-dem/unity bir Unity projesine dönüştüğünde)
-/kirk-dem/unity/[Ll]ibrary/
-/kirk-dem/unity/[Tt]emp/
-/kirk-dem/unity/[Oo]bj/
-/kirk-dem/unity/[Bb]uild/
-/kirk-dem/unity/[Bb]uilds/
-/kirk-dem/unity/[Ll]ogs/
-/kirk-dem/unity/[Uu]ser[Ss]ettings/
-/kirk-dem/unity/[Mm]emoryCaptures/
-/kirk-dem/unity/[Rr]ecordings/
-/kirk-dem/unity/*.csproj
-/kirk-dem/unity/*.sln
-/kirk-dem/unity/*.slnx
-/kirk-dem/unity/.vs/
-/kirk-dem/unity/.idea/
-/kirk-dem/unity/.vscode/
+# Unity (kirk-oda/unity bir Unity projesine dönüştüğünde)
+/kirk-oda/unity/[Ll]ibrary/
+/kirk-oda/unity/[Tt]emp/
+/kirk-oda/unity/[Oo]bj/
+/kirk-oda/unity/[Bb]uild/
+/kirk-oda/unity/[Bb]uilds/
+/kirk-oda/unity/[Ll]ogs/
+/kirk-oda/unity/[Uu]ser[Ss]ettings/
+/kirk-oda/unity/[Mm]emoryCaptures/
+/kirk-oda/unity/[Rr]ecordings/
+/kirk-oda/unity/*.csproj
+/kirk-oda/unity/*.sln
+/kirk-oda/unity/*.slnx
+/kirk-oda/unity/.vs/
+/kirk-oda/unity/.idea/
+/kirk-oda/unity/.vscode/
 *.pidb.meta
 *.pdb.meta
 *.mdb.meta

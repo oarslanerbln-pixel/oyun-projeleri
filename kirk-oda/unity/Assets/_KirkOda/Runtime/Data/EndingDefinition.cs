@@ -1,0 +1,16 @@
+using KirkOda.Core;
+using UnityEngine;
+
+namespace KirkOda.Data
+{
+    [CreateAssetMenu(menuName = "Kirk Oda/Ending", fileName = "Ending_")]
+    public sealed class EndingDefinition : ScriptableObject
+    {
+        public string id;              // donus, kalis, dagitis
+        public EndingId ending;
+        public StoneGesture gesture;   // Lift, Hold, Bury
+        public string videoId;         // son-{id}
+        public EraId finalEra;         // Dönüş/Dağıtış: Terk; Kalış: KirkYil
+        public TownStateOverride[] finalTownState;
+    }
+}

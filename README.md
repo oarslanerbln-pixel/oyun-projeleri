@@ -4,6 +4,7 @@ Tek kişilik stüdyonun oyun projeleri. Her proje kendi klasöründe, kendi `CLA
 
 | Proje | Durum | Klasör |
 | --- | --- | --- |
+| Stüdyo platformu — animasyon, oyun ve marka işi için ortak altyapı (marka kiti, metin denetimi, medya hattı, yapay zekâ kaydı, şablonlar) | Mimari taslağı | [`platform/`](platform/docs/mimari.md) |
 | Kırk Oda (İng. Forty Rooms) — Toroslarda bir saat kulesi, altında kırk odalı mağara; 5–6 saatlik anlatı ve bulmaca oyunu (Unity 6) | Ön üretim: kararlar verildi, dikey dilime hazırlık | [`kirk-oda/`](kirk-oda/README.md) |
 
 ## Depo kuralları

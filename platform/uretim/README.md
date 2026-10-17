@@ -8,6 +8,7 @@ python3 platform/uretim/uretim.py calistir ornekler/demli-kahve/proje.json      
 python3 platform/uretim/uretim.py plan     ornekler/demli-kahve/proje.json --saglayici veo-lite   # başka sağlayıcıyla tahmin
 python3 platform/uretim/uretim.py denetle  ornekler/demli-kahve/proje.json            # lisans kapısı (V3)
 python3 platform/medya/turev.py klip.mp4 dikey.mp4 dikey --odak 0.6 0.4               # oran türevi + loudness
+python3 platform/sablonlar/animasyon/animasyon.py render ornekler/demli-kahve/proje.json   # klip + yazı katmanı → MP4
 ```
 
 ## Ayar (`proje.json`)
@@ -54,4 +55,3 @@ Mimarideki `dosya, sinif, model, tarih, prompt, kullanildigi_yer, kaynak_ozeti, 
 - Klipleri makineler arasında paylaşmak için bulut depolama (R2/S3); bugün dosya yalnız üretildiği makinede.
 - `veo-lite` (taslak) ve `yerel-wan`/`runpod-wan` (ComfyUI API) bağdaştırıcıları.
 - Kalite kapısı: üretilen klipten birkaç kare çıkarıp marka ve hata denetimi (Claude ile); bugün onay elle `durum=onay`.
-- `manifest.json` → Remotion/Clipkit kod katmanı render'ı; `turev.py` ile oran türevleri.

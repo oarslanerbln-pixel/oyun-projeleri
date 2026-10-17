@@ -5,9 +5,11 @@ Kullanım:
   animasyon.py denetle <proje.json>
   animasyon.py uret <proje.json> [-o <çıktı>]     varsayılan çıktı: <proje>/cikti/
   animasyon.py yeni <klasör> [--ad "Marka Adı"]  şablondan yeni proje
+  animasyon.py render <proje.json> [-o <çıktı>] [--kurgu AD] [--teslim AD] [--dil tr] [--muzik dosya] [--yazdir]
+                                                 MP4; varsayılan çıktı: <proje>/cikti/render/
 
 Çıkış kodu: 0 temiz (uyarı olabilir), 1 doğrulama hatası, 2 kullanım hatası.
-Yalnız Python standart kitaplığı.
+Yalnız Python standart kitaplığı; render ayrıca ffmpeg ister.
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _yollar  # noqa: E402,F401
 import cizim  # noqa: E402
 import proje as proje_mod  # noqa: E402
+import render as render_mod  # noqa: E402
 from metin import HATA, has_errors  # noqa: E402
 
 _TR = str.maketrans("çğıöşüâîû", "cgiosuaiu")
@@ -56,6 +59,31 @@ def cmd_uret(args) -> int:
     for k in p.kurgular:
         for a in k.teslim:
             print(f"  animatik: {out / k.ad / a.ad / 'animatik.html'}")
+    return 0
+
+
+def cmd_render(args) -> int:
+    p, b = proje_mod.yukle(args.proje)
+    if p is None or has_errors(b):
+        _rapor(b)
+        print("Render yapılmadı: önce hataları düzeltin.")
+        return 1
+    out = Path(args.out) if args.out else p.klasor / "cikti" / "render"
+    kok = proje_mod.depo_koku(Path(args.proje).resolve().parent)
+    try:
+        yazilan, rb = render_mod.render(p, kok, out, args.kurgu, args.teslim, args.dil,
+                                        Path(args.muzik) if args.muzik else None, args.yazdir)
+    except (RuntimeError, FileNotFoundError) as e:
+        print(f"Render başarısız: {e}", file=sys.stderr)
+        return 1
+    _rapor(b + rb)
+    if has_errors(rb):
+        return 1
+    for f in yazilan:
+        bilgi = render_mod.olcum(f)
+        v = next(s for s in bilgi["streams"] if s["codec_type"] == "video")
+        izler = ", ".join(sorted({s["codec_type"] for s in bilgi["streams"]}))
+        print(f"  {f} · {v['width']}x{v['height']} · {float(bilgi['format']['duration']):.2f} sn · {izler}")
     return 0
 
 
@@ -96,6 +124,15 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("proje")
     p.add_argument("-o", "--out")
     p.set_defaults(func=cmd_uret)
+    p = sub.add_parser("render", help="doğrula ve her kurgu × ön ayar için MP4 yaz (ffmpeg)")
+    p.add_argument("proje")
+    p.add_argument("-o", "--out")
+    p.add_argument("--kurgu", help="yalnız bu kurgu")
+    p.add_argument("--teslim", help="yalnız bu ön ayar")
+    p.add_argument("--dil", help="ekran yazısının dili (varsayılan: projenin ilk dili)")
+    p.add_argument("--muzik", help="müzik dosyası; ön ayarın LUFS değerine çekilir")
+    p.add_argument("--yazdir", action="store_true", help="ffmpeg komutlarını çalıştırmadan yaz")
+    p.set_defaults(func=cmd_render)
     p = sub.add_parser("yeni", help="şablondan yeni proje")
     p.add_argument("klasor")
     p.add_argument("--ad")

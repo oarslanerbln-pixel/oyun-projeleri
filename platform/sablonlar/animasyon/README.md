@@ -1,11 +1,13 @@
 # platform/sablonlar/animasyon
 
-Animasyon videosu hattının depoda yaşayan ilk yarısı (mimari §5.1): **brif → metin → çekim listesi → animatik**. Animatik zamanlamayı ve yerleşimi V1 kapısında onaylatmak içindir; son görüntü depo dışındaki araçlarda yapılır.
+Animasyon videosu hattı (mimari §5.1): **brif → metin → çekim listesi → animatik → render**. Animatik zamanlamayı ve yerleşimi V1 kapısında onaylatmak içindir; render aynı zaman çizelgesinden teslime hazır MP4 çıkarır. El yapımı uzun animasyon yine depo dışındaki araçlarda yapılır.
 
 ```sh
 python3 platform/sablonlar/animasyon/animasyon.py yeni musteriler/acme --ad "Acme"
 python3 platform/sablonlar/animasyon/animasyon.py denetle musteriler/acme/proje.json
 python3 platform/sablonlar/animasyon/animasyon.py uret musteriler/acme/proje.json   # → musteriler/acme/cikti/
+python3 platform/sablonlar/animasyon/animasyon.py render musteriler/acme/proje.json --muzik muzik.wav
+#   → musteriler/acme/cikti/render/<kurgu>/<ön ayar>/<kimlik>-<kurgu>-<ön ayar>-<dil>.mp4
 ```
 
 Örnek: [`ornekler/demli-kahve/`](../../../ornekler/demli-kahve) (14 sn dikey/kare/4:5 + 6 sn bumper, TR/EN).
@@ -60,6 +62,23 @@ Karelerde kılavuz katmanı (görsel notu, kamera, YZ sınıfı, güvenli alan, 
 
 `manifest.json` Clipkit, DaVinci (EDL/FCPXML) ve Unity Timeline bağdaştırıcılarının girdisidir; bağdaştırıcılar faz 3'te ilk gerçek işle yazılır.
 
+## Render (`animasyon.py render`)
+
+Her kurgu × teslim ön ayarı için bir MP4. Yalnız Python standart kitaplığı ve ffmpeg (librsvg ile derli; Ubuntu ve Homebrew paketleri öyle). `--kurgu`, `--teslim`, `--dil` (ekran yazısının dili; varsayılan ilk dil), `--muzik`, `--yazdir` (ffmpeg komutlarını yalnız yazar).
+
+| Katman | Nereden |
+| --- | --- |
+| Arka plan | `sinif=C` ise `yz-kaydi.csv`'de o çekime (`kurgu/çekim`) yazılmış en son video; yoksa `anahtar_kare` görseli; yoksa marka renklerinden yavaş dönen degrade (yer tutucu). Kaynak odak noktasına göre ön ayarın oranına kırpılır (`medya/turev.py`). |
+| Kamera | `kamera` notunda `itme` → %6 yaklaşma, `çekme` → %6 uzaklaşma; odak noktasına doğru, yalnız arka planda. |
+| Yazı | Animatik karesinin saydam katmanı (`cekim_svg(katman=True)`): logo, ekran yazısı, seslendirme satırı, CTA. Markanın `hareket.giris` süresiyle belirir. Görüntü üstünde okunurluk için zemin renginde %35 örtü. |
+| Geçiş | `kesme` doğrudan, `erime` çapraz geçiş, `kayma` sağdan kayma; süre animatikle aynı (giriş süresi, çekimin üçte birini geçmez). Toplam süre ve kare sayısı çekim listesiyle birebir. |
+| Ses | `--muzik` verilirse kurgu boyuna kesilir, sonu 1 sn kısılır, ön ayarın `lufs` değerine çekilir (-14 LUFS). Verilmezse sessiz stereo iz; `lufs: null` ön ayarda ses yok. |
+| Altyazı | Projenin her dili için yumuşak altyazı izi (mov_text, dil etiketli). Ekrana basılı satır `--dil`'deki seslendirme metnidir. |
+
+YZ klibi olmayan `sinif=C` çekimi köşede **"YZ C03 · yer tutucu"** etiketiyle basılır ve render UYARI verir: bu çıktı taslaktır. Gerçek klip `platform/uretim` ile üretilip kayda düştüğünde aynı komut onu kullanır. Teslimden önce lisans kapısı: `uretim.py denetle`.
+
+Yazı tipi fontconfig ile çözülür; marka yazı tipi makinede kurulu değilse sans-serif'e düşer (CI'da Fraunces ve Inter yok).
+
 ## Kod
 
 | Dosya | Görev |
@@ -68,5 +87,6 @@ Karelerde kılavuz katmanı (görsel notu, kamera, YZ sınıfı, güvenli alan, 
 | `proje.py` | `proje.json` + brif; bütün katmanları birlikte yükler ve doğrular |
 | `cekimler.py` | Çekim listesi, zaman çizelgesi, kurgu denetimleri |
 | `cizim.py` | SVG kareler, animatik, manifest, altyazı |
+| `render.py` | Çekim listesi + YZ kaydı → MP4 (ffmpeg) |
 | `sablon/` | `yeni` komutunun kopyaladığı proje iskeleti |
 | `_yollar.py` | Kardeş modülleri (`marka`, `metin`, `medya`) yükler; `platform` adı Python paketi olamaz (standart kitaplığı gölgeler) |

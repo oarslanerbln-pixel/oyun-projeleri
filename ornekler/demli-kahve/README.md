@@ -6,6 +6,8 @@ Uydurma bir kahve markası için 14 sn dikey/kare/4:5 tanıtım ve 6 sn YouTube 
 python3 platform/sablonlar/animasyon/animasyon.py denetle ornekler/demli-kahve/proje.json
 python3 platform/sablonlar/animasyon/animasyon.py uret ornekler/demli-kahve/proje.json
 # → ornekler/demli-kahve/cikti/sabah-14/dikey/animatik.html
+python3 platform/sablonlar/animasyon/animasyon.py render ornekler/demli-kahve/proje.json
+# → ornekler/demli-kahve/cikti/render/sabah-14/dikey/demli-kahve-sabah-sabah-14-dikey-tr.mp4 (C03 yer tutucu)
 ```
 
 | Katman | Dosya |

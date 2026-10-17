@@ -57,7 +57,9 @@ def timecode(seconds: float, sep: str = ",") -> str:
     return f"{h:02d}:{m:02d}:{s:02d}{sep}{ms:03d}"
 
 
-def cekim_svg(z: Zamanli, a: OnAyar, p: Proje, dil: str) -> str:
+def cekim_svg(z: Zamanli, a: OnAyar, p: Proje, dil: str, katman: bool = False) -> str:
+    """Çekimin karesi. `katman=True` render için yalnız yazı katmanını verir:
+    zemin ve kılavuz yok, arka plan saydam (altına klip ya da yer tutucu gelir)."""
     c, m = z.cekim, p.marka
     w, h = a.genislik, a.yukseklik
     base = min(w, h)
@@ -67,7 +69,7 @@ def cekim_svg(z: Zamanli, a: OnAyar, p: Proje, dil: str) -> str:
     bg, fg = m.renk_al(c.zemin), m.renk_al(c.on)
     head, body = m.yazi["baslik"], m.yazi["govde"]
 
-    parts = [f'<rect width="{w}" height="{h}" fill="{bg}"/>']
+    parts = [] if katman else [f'<rect width="{w}" height="{h}" fill="{bg}"/>']
 
     # Kılavuz katmanı: görsel notu, kırpma odağı, güvenli alan (animatikte gizlenebilir).
     note = base * 0.022
@@ -115,7 +117,7 @@ def cekim_svg(z: Zamanli, a: OnAyar, p: Proje, dil: str) -> str:
         parts.append(_text(lines, cx, y, size, fg, head.aile, head.agirlik))
 
     # Kamera hareketi yalnız içeriği ölçekler; zemin ve kılavuz yerinde kalır.
-    parts += ["</g>", guide_layer]
+    parts += ["</g>"] if katman else ["</g>", guide_layer]
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" '
             f'data-cekim="{escape(c.cekim)}">' + "".join(parts) + "</svg>\n")
 

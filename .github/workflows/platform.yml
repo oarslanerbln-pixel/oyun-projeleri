@@ -27,7 +27,7 @@ jobs:
   test:
     name: Platform (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       matrix:
         python: ["3.10", "3.12"]
@@ -36,6 +36,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - name: ffmpeg (render ve türev testleri; Ubuntu paketi librsvg ile derli)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
       - name: Birim testleri (marka, metin, medya, animasyon, uretim)
         run: |
           for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim; do
@@ -53,4 +55,10 @@ jobs:
           for p in ornekler/*/proje.json; do
             python platform/uretim/uretim.py plan "$p"
             python platform/uretim/uretim.py denetle "$p"
+          done
+      - name: Örnek projelerin render'ı (bumper; YZ klibi yoksa yer tutucu)
+        run: |
+          for p in ornekler/*/proje.json; do
+            python platform/sablonlar/animasyon/animasyon.py render "$p" --teslim youtube-bumper \
+              -o "$RUNNER_TEMP/render/$(basename "$(dirname "$p")")"
           done

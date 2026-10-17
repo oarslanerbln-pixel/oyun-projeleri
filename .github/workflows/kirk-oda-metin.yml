@@ -1,0 +1,40 @@
+name: Kırk Oda oyuncu metni denetimi
+
+# Karar K-19: oyuncunun gördüğü her metin yasak sözcük listesine karşı denetlenir.
+on:
+  pull_request:
+    paths:
+      - "kirk-oda/localization/**"
+      - "kirk-oda/magaza/**"
+      - "kirk-oda/tools/metin-denetimi/**"
+      - ".github/workflows/kirk-oda-metin.yml"
+  push:
+    branches: [main]
+    paths:
+      - "kirk-oda/localization/**"
+      - "kirk-oda/magaza/**"
+      - "kirk-oda/tools/metin-denetimi/**"
+      - ".github/workflows/kirk-oda-metin.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  metin:
+    name: Yasak sözcük denetimi
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Denetleyicinin öz testi
+        run: python3 -I kirk-oda/tools/metin-denetimi/denetle.py --self-test
+      - name: Oyuncu metni ve mağaza metinleri
+        run: |
+          files="kirk-oda/localization/oyuncu-metni.csv"
+          if [ -d kirk-oda/magaza ]; then
+            files="$files $(find kirk-oda/magaza -type f \( -name '*.md' -o -name '*.txt' -o -name '*.csv' \) | tr '\n' ' ')"
+          fi
+          python3 -I kirk-oda/tools/metin-denetimi/denetle.py $files

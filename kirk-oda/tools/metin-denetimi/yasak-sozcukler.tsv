@@ -1,0 +1,23 @@
+# kimlik	seviye	dil	desen	gerekçe
+# seviye: HATA denetimi düşürür; UYARI yalnız yazar. desen: küçük harfe çevrilmiş metinde tam sözcük olarak aranan düzenli ifade.
+# Liste büyür, küçülmez (karar K-19). Bir satırın kaldırılması karar kaydında gerekçe ister.
+TR-DEM	HATA	tr	dem|demi|demler|demleri|demlerin|demlerini|demde|demden	Cemdeki "dem"; oyunda nesnenin adı "kor"
+TR-DEMIN	UYARI	tr	demin	"Demin" (az önce) olabilir; cemdeki "dem" ile karışmasın diye başka sözcük seçin
+TR-CEM	HATA	tr	cem|cemi|cemde|cemden|ceme|cemler|cemevi|cemevleri	Alevi-Bektaşi ibadeti
+TR-KIRKLAR	HATA	tr	kırklar\w*	Kırklar Cemi anlatısı
+TR-KIRKMAKAM	HATA	tr	kırk\s+makam\w*|dört\s+kapı\w*	"Dört kapı kırk makam" öğretisi
+TR-SEMAH	HATA	tr	semah\w*	Ritüel dans
+TR-DEYIS	HATA	tr	deyiş\w*|duaz\w*|gülbank\w*	Dini şiir ve dua türleri
+TR-UNVAN	HATA	tr	pir|pirler\w*|piri|pirin|mürşi[dt]\w*|musahip\w*|rehberlik\w*|zakir\w*|dedelik\w*	Yol ve ocak unvanları
+TR-DEDE	UYARI	tr	dede|dedem|deden|dedesi|dedeler\w*	Alevi unvanı olabilir; büyükbaba anlamındaysa bile başka sözcük düşünün
+TR-ERKAN	HATA	tr	erkân\w*|erkan\w*	Ritüel düzeni
+TR-OCAK	UYARI	tr	ocak\w*	Alevi soy ocağı olabilir; mutfak ocağıysa bağlam açık olmalı
+TR-KISI	HATA	tr	hızır\w*|kerbela\w*|muharrem\w*|zülfikar\w*|düldül\w*|hünkâr\w*|bektaş\w*|alevi\w*|kızılbaş\w*|abdal\w*	Kutsal kişi, olay ve topluluk adları
+TR-KURUM	HATA	tr	dergâh\w*|dergah\w*|tekke\w*|derviş\w*|şeyh\w*|tarikat\w*|cemaat\w*	Tarikat kurumları
+TR-KAVRAM	HATA	tr	keramet\w*|veli|veliler\w*|velinin|nefs\w*|tayy\w*|bast\w*|ân-ı	Dünya kitabı: kavram adları oyunda geçmez
+TR-KAVRAM2	UYARI	tr	makam\w*|hâl|nefes	Kavram adı ya da Alevi-Bektaşi şiir türü olabilir; bağlamı kontrol edin
+TR-SOZ	UYARI	tr	eyvallah|hü|aşk\s+olsun|muhabbet\w*|lokma\w*|saz|bağlama	Cem dilinde yaygın ifadeler
+TR-AD	UYARI	tr	ali|hasan|hüseyin	Kutsal kişi adı olabilir; oyunda özel ad yalnız Dursun
+EN-ALEVI	HATA	en	alevi\w*|bektash\w*|cemevi|cem|semah|qizilbash|kizilbash	Alevi-Bektashi terms
+EN-SUFI	HATA	en	dervish\w*|sheikh\w*|tekke\w*|sufi\w*|saint\w*|miracle\w*|the\s+forty	Religious order and sainthood terms
+EN-DEM	HATA	en	dem	Untranslated "dem"

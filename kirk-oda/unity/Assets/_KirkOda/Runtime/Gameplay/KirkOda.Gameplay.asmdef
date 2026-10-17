@@ -1,0 +1,14 @@
+{
+    "name": "KirkOda.Gameplay",
+    "rootNamespace": "KirkOda.Gameplay",
+    "references": [ "KirkOda.Core", "KirkOda.Data" ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

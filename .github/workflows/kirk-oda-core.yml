@@ -1,0 +1,35 @@
+name: Kırk Oda çekirdek testleri
+
+on:
+  pull_request:
+    paths:
+      - "kirk-oda/unity/Assets/_KirkOda/Runtime/Core/**"
+      - "kirk-oda/unity/Assets/_KirkOda/Tests/**"
+      - "kirk-oda/tools/core-tests/**"
+      - ".github/workflows/kirk-oda-core.yml"
+  push:
+    branches: [main]
+    paths:
+      - "kirk-oda/unity/Assets/_KirkOda/Runtime/Core/**"
+      - "kirk-oda/unity/Assets/_KirkOda/Tests/**"
+      - "kirk-oda/tools/core-tests/**"
+      - ".github/workflows/kirk-oda-core.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  core-tests:
+    name: KirkOda.Core (C# 9, NUnit 3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DOTNET_NOLOGO: "1"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Test
+        run: dotnet test kirk-oda/tools/core-tests --nologo --logger "console;verbosity=normal"

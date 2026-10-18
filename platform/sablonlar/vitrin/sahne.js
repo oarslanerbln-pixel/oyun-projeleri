@@ -34,7 +34,8 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffe
 renderer.setPixelRatio(1);
 renderer.setSize(W, H);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+// kitap kapağı bir baskı: ACES renkleri kaydırır, Neutral tonları korur
+renderer.toneMapping = A.urun.tur === 'kitap' && !A.urun.model ? THREE.NeutralToneMapping : THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -57,10 +58,13 @@ const fonMat = new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false,
   uniforms: { ust: { value: karis(R.ana, '#000000', 0.55) }, alt: { value: karis(R.ana, R.isik, 0.18) }, isik: { value: 0 } },
   vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);} ',
+  // titreşim (dither): 8 bit çıktıda yumuşak degrade halka halka bantlaşmasın
   fragmentShader: `uniform vec3 ust; uniform vec3 alt; uniform float isik; varying vec3 vP;
+    float h12(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
     void main(){ float k = smoothstep(-0.15, 0.55, vP.y); vec3 c = mix(alt, ust, k);
       float hale = exp(-pow(length(vP.xy - vec2(0.0, 0.12)) * 2.2, 2.0)); c += alt * hale * (0.35 + 0.5 * isik);
-      gl_FragColor = vec4(c, 1.0);\n#include <colorspace_fragment>\n}`,
+      gl_FragColor = vec4(c, 1.0);\n#include <colorspace_fragment>\n
+      gl_FragColor.rgb += (h12(gl_FragCoord.xy) + h12(gl_FragCoord.yx + 7.1) - 1.0) / 255.0; }`,
 });
 scene.add(new THREE.Mesh(new THREE.SphereGeometry(90, 48, 24), fonMat));
 scene.fog = new THREE.Fog(karis(R.ana, '#000000', 0.35), 14, 40);
@@ -192,6 +196,135 @@ function kutuKur() {
   ODAK = { on: [0, h * 0.5, d / 2], ust: [0, h, 0], yan: [w / 2, h * 0.5, 0], alt: [0, h * 0.08, d / 2] };
 }
 
+// ---------- kitap: sert kapaklı, kapak görseli önde, sırt yuvarlak, sayfa bloğu krem; ön kapak sırttan açılır ----------
+const KITAP = { kapak: null, yapraklar: [] };
+const SAYFA = A.urun.sayfa || '#F3EDE1';
+
+function gorselYukle(yol) {
+  return new Promise((ok, red) => new THREE.TextureLoader().load(yol, ok, undefined, () => red(new Error(`kapak yüklenemedi: ${yol}`))));
+}
+
+function uretilmisKapak(gen, yuk) {
+  // kapak görseli verilmezse marka renkleriyle düz bir kapak: başlık, ince vurgu çizgisi, alt satır
+  const s = 1600 / yuk, cw = Math.round(gen * s), ch = 1600;
+  const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  const x = c.getContext('2d'), e = A.urun;
+  x.fillStyle = e.govde || R.ana; x.fillRect(0, 0, cw, ch);
+  x.textAlign = 'center'; x.fillStyle = R.anaUstu;
+  const sig = (metin, boy, ag, y, renk_) => {
+    if (!metin) return; x.font = `${ag} ${boy}px Vitrin`; x.fillStyle = renk_;
+    let b = boy; while (x.measureText(metin).width > cw * 0.8 && b > 8) { b *= 0.95; x.font = `${ag} ${b}px Vitrin`; }
+    x.fillText(metin, cw / 2, y);
+  };
+  sig(e.ust, cw * 0.05, 500, ch * 0.16, R.vurgu);
+  sig(e.etiket, cw * 0.14, 800, ch * 0.44, R.anaUstu);
+  x.fillStyle = R.vurgu; x.fillRect(cw * 0.42, ch * 0.48, cw * 0.16, ch * 0.006);
+  sig(e.alt, cw * 0.045, 500, ch * 0.56, R.anaUstu);
+  return new THREE.CanvasTexture(c);
+}
+
+function sayfaKenari(boyuna) {
+  // sayfa bloğunun kesik kenarı: krem zemin üstünde ince yaprak çizgileri (kalınlık yönünde)
+  const c = document.createElement('canvas'); c.width = boyuna ? 64 : 1024; c.height = boyuna ? 1024 : 64;
+  const x = c.getContext('2d'); x.fillStyle = SAYFA; x.fillRect(0, 0, c.width, c.height);
+  const r = rng(9), n = boyuna ? c.width : c.height;
+  for (let i = 0; i < n; i += 2) {
+    x.fillStyle = `rgba(90,70,40,${0.05 + r() * 0.07})`;
+    if (boyuna) x.fillRect(i, 0, 1, c.height); else x.fillRect(0, i, c.width, 1);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+
+function icSayfa(gen, yuk) {
+  // kapak açılınca görünen ilk sayfa: başlık ve satır izleri (okunur metin değil, sayfa hissi)
+  const s = 1024 / yuk, cw = Math.round(gen * s), ch = 1024;
+  const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  const x = c.getContext('2d'); x.fillStyle = SAYFA; x.fillRect(0, 0, cw, ch);
+  x.fillStyle = 'rgba(40,32,24,0.78)'; x.fillRect(cw * 0.16, ch * 0.14, cw * 0.46, ch * 0.022);
+  x.fillStyle = R.vurgu; x.fillRect(cw * 0.16, ch * 0.185, cw * 0.1, ch * 0.006);
+  const r = rng(21);
+  for (let y = ch * 0.25; y < ch * 0.88; y += ch * 0.032) {
+    if (r() < 0.1) { y += ch * 0.02; continue; } // paragraf boşluğu
+    x.fillStyle = 'rgba(40,32,24,0.22)'; x.fillRect(cw * 0.16, y, cw * (0.6 + r() * 0.08), ch * 0.008);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+
+async function kitapKur() {
+  let doku = null;
+  if (A.urun.kapak) doku = await gorselYukle(A.urun.kapak);
+  const oran = doku ? doku.image.width / doku.image.height : 0.68;
+  const h = 3.1, w = h * oran, d = 0.44, kal = 0.045, tas = 0.04; // kalınlık, kapak taşması
+  OLCU = { w, h, d };
+  if (!doku) doku = uretilmisKapak(w, h);
+  doku.colorSpace = THREE.SRGBColorSpace; doku.anisotropy = 16;
+  doku.minFilter = THREE.LinearMipmapLinearFilter; doku.generateMipmaps = true;
+  const sirtRenk = A.urun.govde ? renk(A.urun.govde) : kenarRengi(doku);
+  const karton = new THREE.MeshPhysicalMaterial({ color: sirtRenk, roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.5 });
+  const ic = new THREE.MeshStandardMaterial({ color: renk(SAYFA).multiplyScalar(0.97), roughness: 0.9 });
+  const onYuz = new THREE.MeshPhysicalMaterial({ map: doku, roughness: 0.42, clearcoat: 0.35, clearcoatRoughness: 0.4 });
+  const sayfaYan = new THREE.MeshStandardMaterial({ map: sayfaKenari(true), roughness: 0.95 });
+  const sayfaUst = new THREE.MeshStandardMaterial({ map: sayfaKenari(false), roughness: 0.95 });
+  const sayfaOn = new THREE.MeshStandardMaterial({ map: icSayfa(w - tas * 2, h - tas * 2), roughness: 0.92 });
+  const kitap = new THREE.Group(); urun.add(kitap);
+  const x0 = -w / 2; // sırt çizgisi
+
+  // arka kapak
+  const arka = new THREE.Mesh(new RoundedBoxGeometry(w, h, kal, 2, 0.012), karton);
+  arka.position.set(0, h / 2, -d / 2 + kal / 2); arka.castShadow = arka.receiveShadow = true; kitap.add(arka);
+  // sayfa bloğu (sırttan biraz içeride, kapaklardan taşmaz)
+  const bw = w - tas - 0.03, bh = h - tas * 2, bd = d - kal * 2 - 0.004;
+  const blok = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), [sayfaYan, karton, sayfaUst, sayfaUst, ic, ic]);
+  blok.position.set(x0 + 0.03 + bw / 2, h / 2, 0); blok.castShadow = blok.receiveShadow = true; kitap.add(blok);
+  // yuvarlak sırt
+  const sirt = new THREE.Mesh(new THREE.CylinderGeometry(d / 2, d / 2, h, 40, 1, true, Math.PI, Math.PI), karton);
+  sirt.position.set(x0, h / 2, 0); sirt.scale.set(0.45, 1, 1); sirt.castShadow = true; kitap.add(sirt);
+
+  // ön kapak: sırttan menteşeli; dış yüzde kapak görseli, iç yüzde krem forza
+  const mentese = new THREE.Group(); mentese.position.set(x0, 0, d / 2 - kal / 2); kitap.add(mentese);
+  const kapak = new THREE.Mesh(new RoundedBoxGeometry(w, h, kal, 2, 0.012), [karton, karton, karton, karton, karton, ic]);
+  kapak.position.set(w / 2, h / 2, 0); kapak.castShadow = kapak.receiveShadow = true; mentese.add(kapak);
+  const baski = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.012, h - 0.012), onYuz);
+  baski.position.set(w / 2, h / 2, kal / 2 + 0.0015); mentese.add(baski);
+  KITAP.kapak = mentese;
+  // kapakla birlikte hafifçe kalkan birkaç yaprak
+  for (let i = 0; i < 1; i++) {
+    const y = new THREE.Group(); y.position.set(x0 + 0.03, 0, d / 2 - kal - 0.004 - i * 0.003); kitap.add(y);
+    const yp = new THREE.Mesh(new THREE.PlaneGeometry(bw, bh), i === 0
+      ? new THREE.MeshStandardMaterial({ map: sayfaOn.map, roughness: 0.92, side: THREE.DoubleSide })
+      : new THREE.MeshStandardMaterial({ color: renk(SAYFA), roughness: 0.92, side: THREE.DoubleSide }));
+    yp.position.set(bw / 2, h / 2, 0); yp.castShadow = true; y.add(yp); y.visible = false;
+    KITAP.yapraklar.push(y);
+  }
+  ODAK = { on: [0, h * 0.5, d / 2], ust: [0, h, 0], yan: [w / 2, h * 0.5, 0], alt: [0, h * 0.08, d / 2],
+           ic: [x0 + 0.03 + bw * 0.5, h * 0.55, d / 2 - kal] };
+}
+
+function kenarRengi(doku) {
+  // kapak görselinin sol kenarından sırt rengi: kitap sırtı kapakla aynı renkte görünür
+  const img = doku.image, c = document.createElement('canvas'); c.width = 8; c.height = 64;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, Math.max(1, img.width * 0.04), img.height, 0, 0, 8, 64);
+  const v = x.getImageData(0, 0, 8, 64).data; let r = 0, g = 0, b = 0;
+  for (let i = 0; i < v.length; i += 4) { r += v[i]; g += v[i + 1]; b += v[i + 2]; }
+  const n = v.length / 4;
+  return new THREE.Color().setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
+}
+
+function kitapAc(t) {
+  // "ic" odaklı özellik boyunca kapak sırttan açılır, yapraklar arkasından kalkar; sonra kapanır
+  if (!KITAP.kapak) return;
+  let a = 0;
+  for (const o of ozellikler) {
+    if (o.odak !== 'ic') continue;
+    a = Math.max(a, inOutCubic(prog(t, o.bas - 0.2, 0.9)) * (1 - inOutCubic(prog(t, o.son - 0.55, 0.7))));
+  }
+  KITAP.kapak.rotation.y = -118 * D2R * a;
+  for (const [i, y] of KITAP.yapraklar.entries()) {
+    const p = clamp(a * 1.25 - i * 0.12); // öndeki yaprak en çok kalkar
+    y.visible = p > 0.001; y.rotation.y = -(22 - i * 10) * D2R * smooth(p);
+  }
+}
+
 async function modelKur(yol) {
   // dışarıdan glTF/GLB: tabanı kaideye oturur, yüksekliği 3.2 birime ölçeklenir
   const gltf = await new GLTFLoader().loadAsync(yol);
@@ -233,6 +366,7 @@ function cekirdekKur() {
 const POZ = {
   giris: [-28, 4, 1.32, 0.45], acilis: [-12, 9, 1.0, 0.47],
   on: [16, 4, 0.88, 0.50], ust: [-24, 17, 0.86, 0.56], yan: [50, 6, 0.92, 0.46], alt: [-8, 1, 0.90, 0.40],
+  ic: [22, 10, 1.42, 0.50], // açık kitap iki kat geniş: kamera geri çekilir
   final: [0, 7, 1.0, 0.47],
 };
 const ozellikler = A.ozellikler;
@@ -309,6 +443,20 @@ function ozellikCiz(t) {
   }
 }
 
+function girisCiz(t) {
+  // açılış sorusu: ışık açılmadan önce büyük, kısa bir cümle; ürün yükselirken söner
+  if (!A.giris) return;
+  const gs = A.giris_son, g = Math.min(outCubic(prog(t, 0.2, 0.45)), 1 - inOutCubic(prog(t, gs - 0.25, 0.45)));
+  if (g <= 0.001) return;
+  const y = DIKEY ? H * (W / H > 0.7 ? 0.83 : 0.80) : H * 0.52;
+  const x = DIKEY ? W / 2 : W * 0.66;
+  cx.globalAlpha = g;
+  yaz(A.giris, 92 * U * (0.94 + 0.06 * g), 800, x, y + (1 - g) * 24 * U, R.anaUstu, 'center', -1 * U, DIKEY ? W * 0.88 : W * 0.5);
+  cx.fillStyle = R.vurgu; const cw_ = 120 * U * outCubic(prog(t, 0.45, 0.5));
+  cx.fillRect(x - cw_ / 2, y + 36 * U, cw_, 5 * U);
+  cx.globalAlpha = 1;
+}
+
 function finalCiz(t) {
   const g1 = outCubic(prog(t, F.bas + 0.15, 0.6)), g2 = outCubic(prog(t, F.bas + 0.55, 0.55)), g3 = outBack(prog(t, F.bas + 0.9, 0.5), 1.4);
   if (g1 <= 0) return;
@@ -332,10 +480,19 @@ function finalCiz(t) {
   cx.globalAlpha = 1;
 }
 
+// ±1–2 düzeylik sabit gren: kenar kararmasının 8 bit degradesi halka halka bantlaşmasın
+const GREN = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d'), v = x.createImageData(256, 256), r = rng(77);
+  for (let i = 0; i < v.data.length; i += 4) { const k = r() < 0.5 ? 0 : 255; v.data[i] = v.data[i + 1] = v.data[i + 2] = k; v.data[i + 3] = Math.round(r() * 4); }
+  x.putImageData(v, 0, 0); return cx.createPattern(c, 'repeat');
+})();
+
 function vinyet() {
   const g = cx.createRadialGradient(W * URUN_EKRAN.x, H * URUN_EKRAN.y, Math.min(W, H) * 0.3, W / 2, H / 2, Math.hypot(W, H) * 0.62);
   g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.42)');
   cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  cx.fillStyle = GREN; cx.fillRect(0, 0, W, H);
 }
 
 // ---------- kare ----------
@@ -360,6 +517,7 @@ function kare(t) {
   const finD = inOutCubic(prog(t, F.bas - 0.3, 1.1));
   urun.rotation.y = lerp(donus + salin, 360 * Math.round((donus + salin) / 360), finD) * D2R;
   urun.scale.setScalar(lerp(0.92, 1, yuksel));
+  kitapAc(t);
 
   // parlama taraması: girişte ve finalde ürünün önünden soldan sağa
   const tar = (t0, d) => { const p = prog(t, t0, d); return p > 0 && p < 1 ? [p, Math.sin(Math.PI * p)] : null; };
@@ -390,6 +548,7 @@ function kare(t) {
   cx.globalAlpha = 1; cx.clearRect(0, 0, W, H);
   cx.drawImage(renderer.domElement, 0, 0);
   vinyet();
+  girisCiz(t);
   ozellikCiz(t);
   finalCiz(t);
   // açılış ve kapanışta kısa karartma
@@ -406,6 +565,7 @@ window.kare = t => { kare(t); return tuval.toDataURL('image/png').split(',')[1];
   }
   if (A.urun.model) await modelKur(A.urun.model);
   else if (A.urun.tur === 'kutu') kutuKur();
+  else if (A.urun.tur === 'kitap') await kitapKur();
   else paketKur();
   if (A.urun.sus === 'kahve-cekirdegi') cekirdekKur();
   kare(0);

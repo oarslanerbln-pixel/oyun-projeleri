@@ -7,7 +7,7 @@
 `stil.py <komut> vitrin.json --stil urun-vitrini` aynı komutlara iletilir.
 
 Görüntü three.js ile başsız Chromium'da çizilir (render.mjs), müzik ve efektler numpy ile sentezlenir; ücretli servis yok.
-Renkler marka.json'dan gelir; ürün kodla kurulur (`urun.tur`: paket, kutu) ya da `urun.model` ile glTF/GLB dosyasından yüklenir.
+Renkler marka.json'dan gelir; ürün kodla kurulur (`urun.tur`: paket, kutu, kitap) ya da `urun.model` ile glTF/GLB dosyasından yüklenir.
 Zamanlar müzik ızgarasına oturtulur: giriş → her özellik bir bölüm → final (logo + çağrı).
 """
 from __future__ import annotations
@@ -25,11 +25,12 @@ import marka as marka_mod  # noqa: E402
 FPS, SR = 30, motor.SR
 BOYUTLAR = motor.BOYUTLAR
 VARSAYILAN_FORMAT = ['9x16']
-URUN_TURLERI = ('paket', 'kutu')
-ODAKLAR = ('on', 'ust', 'yan', 'alt')
+URUN_TURLERI = ('paket', 'kutu', 'kitap')
+ODAKLAR = ('on', 'ust', 'yan', 'alt', 'ic')  # ic: yalnız kitap (kapak açılır, sayfalar görünür)
+KAPAK_UZANTI = ('.png', '.jpg', '.jpeg', '.webp')
 SUSLER = (None, 'kahve-cekirdegi')
 # yazı sınırları (karakter): yerleşim taşmasın
-SINIR = {'ozellik': 18, 'ozellik_alt': 32, 'logo': 12, 'cagri': 18, 'final_alt': 28, 'etiket': 10, 'urun_ust': 16, 'urun_alt': 26}
+SINIR = {'giris': 24, 'ozellik': 18, 'ozellik_alt': 32, 'logo': 18, 'cagri': 18, 'final_alt': 28, 'etiket': 10, 'urun_ust': 16, 'urun_alt': 26}
 EN_AZ_BOLUM = 1.4  # bir özelliğin ekranda kalacağı en kısa süre (sn)
 
 
@@ -125,9 +126,20 @@ def denetle(s: dict, senaryo: Path, ses_dizini: Path, render=True):
             hata.append(f'urun.model: glTF (.glb/.gltf) bekleniyor ({mp.suffix})')
     elif u.get('tur', 'paket') not in URUN_TURLERI:
         hata.append(f'urun.tur: "{u.get("tur")}" tanımsız ({", ".join(URUN_TURLERI)}) ya da urun.model verin')
+    kitap = not u.get('model') and u.get('tur') == 'kitap'
+    if u.get('kapak'):
+        kp = yol_coz(u['kapak'], senaryo)
+        if not kitap:
+            hata.append('urun.kapak: yalnız urun.tur "kitap" ile kullanılır')
+        elif not kp.exists():
+            hata.append(f'urun.kapak: {u["kapak"]} yok')
+        elif kp.suffix.lower() not in KAPAK_UZANTI:
+            hata.append(f'urun.kapak: görsel bekleniyor ({", ".join(KAPAK_UZANTI)})')
+        else:
+            uyari.extend(kapak_uyarisi(kp))
     if u.get('sus') not in SUSLER:
         hata.append(f'urun.sus: "{u.get("sus")}" tanımsız (kahve-cekirdegi ya da boş)')
-    if not u.get('model'):
+    if not u.get('model') and not (kitap and u.get('kapak')):
         etiket = u.get('etiket') or (m.logo_metin if m else '')
         if not etiket:
             hata.append('urun.etiket: paket üstündeki ad gerekli (yoksa marka logo.metin)')
@@ -144,6 +156,9 @@ def denetle(s: dict, senaryo: Path, ses_dizini: Path, render=True):
         sinir(hata, f'ozellikler[{i}].alt', o.get('alt'), SINIR['ozellik_alt'])
         if o.get('odak', 'on') not in ODAKLAR:
             hata.append(f'ozellikler[{i}].odak: "{o.get("odak")}" tanımsız ({", ".join(ODAKLAR)})')
+        elif o.get('odak') == 'ic' and not kitap:
+            hata.append(f'ozellikler[{i}].odak: "ic" yalnız urun.tur "kitap" ile (kapak açılır)')
+    sinir(hata, 'giris', s.get('giris'), SINIR['giris'])
     z = zamanla(s)
     if oz and z['bolum'] < EN_AZ_BOLUM:
         hata.append(f'{len(oz)} özellik için süre kısa: bölüm {z["bolum"]:.2f} sn, en az {EN_AZ_BOLUM} sn; süreyi artırın ya da özellik çıkarın')
@@ -166,6 +181,17 @@ def denetle(s: dict, senaryo: Path, ses_dizini: Path, render=True):
                     if yasak.lower() in str(x.get(alan, '')).lower():
                         hata.append(f'marka yasağı: "{yasak}" geçiyor ({x.get(alan)})')
     return hata, uyari, m
+
+
+def kapak_uyarisi(yol: Path) -> list[str]:
+    """Kapak görseli küçükse ekranda yumuşak görünür: 9:16'da kitap kapağı ~900 px boya çıkar."""
+    try:
+        from PIL import Image
+        with Image.open(yol) as im:
+            w, h = im.size
+    except Exception:  # PIL yoksa ya da okunamıyorsa denetim render'a bırakılır
+        return []
+    return [f'urun.kapak: {w}x{h} px küçük; en az 1000 px boy önerilir (yoksa kapak yumuşak görünür)'] if h < 1000 else []
 
 
 def sinir(hata, ad, deger, azami):
@@ -202,6 +228,11 @@ def ayar(s: dict, senaryo: Path, m, W: int, H: int) -> dict:
         mp = yol_coz(u['model'], senaryo)
         model = f'/model/{mp.name}'
         dosyalar[model] = str(mp)
+    kapak = None
+    if u.get('kapak'):
+        kp = yol_coz(u['kapak'], senaryo)
+        kapak = f'/kapak/kapak{kp.suffix.lower()}'
+        dosyalar[kapak] = str(kp)
     r = m.renk
     return {
         'W': W, 'H': H, 'fps': FPS, 'sure': z['sure'], 'giris_son': z['giris_son'],
@@ -209,7 +240,9 @@ def ayar(s: dict, senaryo: Path, m, W: int, H: int) -> dict:
                  'isik': r.get('isik.sicak', r['vurgu']), 'zemin': r['zemin'], 'metin': r['metin']},
         'urun': {'tur': u.get('tur', 'paket'), 'model': model, 'model_boy': u.get('model_boy'),
                  'etiket': u.get('etiket') or m.logo_metin or m.ad, 'ust': u.get('ust'), 'alt': u.get('alt'),
-                 'agirlik': u.get('agirlik'), 'govde': u.get('govde'), 'sus': u.get('sus')},
+                 'agirlik': u.get('agirlik'), 'govde': u.get('govde'), 'sus': u.get('sus'), 'kapak': kapak,
+                 'sayfa': u.get('sayfa')},
+        'giris': s.get('giris'),
         'ozellikler': [{'metin': o['metin'], 'alt': o.get('alt'), 'odak': o.get('odak', 'on'), **zz}
                        for o, zz in zip(s.get('ozellikler', []), z['ozellikler'])],
         'final': {'bas': z['final'], 'logo': f.get('logo') or m.logo_metin or m.ad, 'cagri': f.get('cagri'), 'alt': f.get('alt')},

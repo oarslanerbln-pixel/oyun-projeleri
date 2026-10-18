@@ -127,6 +127,11 @@ class TestUretim(Tmp):
                 self.assertTrue((cikti / f'test-{ad}-kapak.png').exists())
                 self.assertFalse((cikti / 'is' / 'ses.wav').exists())
 
+    def test_uret_tek_adim_mevcut_seslendirmeyle(self):
+        yol = senaryo_kur(self.kok)
+        self.assertEqual(stil.main(['uret', str(yol), '--stil', 'izometrik', '--format', '1x1', '--olcek', '0.1']), 0)
+        self.assertTrue((self.kok / 'cikti' / 'test-izometrik-1x1.mp4').exists())
+
     def test_kare_saf_fonksiyon(self):
         """Aynı t iki kez aynı kareyi verir (stop-motion titremesi de t'ye bağlı)."""
         import skia

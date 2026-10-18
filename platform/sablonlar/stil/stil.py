@@ -4,6 +4,7 @@
     python3 platform/sablonlar/stil/stil.py seslendir senaryo.json [--saglayici elevenlabs --ses <id>]
     python3 platform/sablonlar/stil/stil.py kare      senaryo.json --stil izometrik --an 1.5 4.7 [--format 16x9]
     python3 platform/sablonlar/stil/stil.py render    senaryo.json --stil izometrik [--format 9x16 16x9]
+    python3 platform/sablonlar/stil/stil.py uret      senaryo.json --stil izometrik   # seslendirme yoksa üretir, sonra render
 `--stil kinetik` aynı komutu kinetik şablona iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
 Çıktı varsayılanı senaryonun yanındaki `cikti/` klasörü; seslendirme `cikti/seslendirme/` (üç stilde ortak).
 """
@@ -27,18 +28,26 @@ def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     alt = ap.add_subparsers(dest='komut', required=True)
-    for ad in ('denetle', 'seslendir', 'kare', 'render'):
+    for ad in ('denetle', 'seslendir', 'kare', 'render', 'uret'):
         p = alt.add_parser(ad)
         p.add_argument('senaryo'); p.add_argument('-o', '--cikti'); p.add_argument('--stil', choices=TUM_STILLER)
-        if ad == 'seslendir':
+        if ad in ('seslendir', 'uret'):
             p.add_argument('--saglayici', default='piper'); p.add_argument('--ses')
         if ad == 'kare':
             p.add_argument('--an', type=float, nargs='+', required=True)
             p.add_argument('--format', default='9x16', choices=sorted(motor.BOYUTLAR))
-        if ad == 'render':
+        if ad in ('render', 'uret'):
             p.add_argument('--format', nargs='+', default=['9x16', '16x9'], choices=sorted(motor.BOYUTLAR))
             p.add_argument('--olcek', type=float, default=1.0, help='hızlı prova için çözünürlük çarpanı (örn. 0.25)')
     a = ap.parse_args(argv)
+    if a.komut == 'uret':  # tek adım: seslendirme yoksa üret, sonra render (üç stilde aynı)
+        ortak = [a.senaryo] + (['-o', a.cikti] if a.cikti else []) + (['--stil', a.stil] if a.stil else [])
+        cikti = a.cikti or os.path.join(os.path.dirname(os.path.abspath(a.senaryo)), 'cikti')
+        if not os.path.exists(os.path.join(cikti, 'seslendirme', 'seslendirme.json')):
+            ses = ['--saglayici', a.saglayici] + (['--ses', a.ses] if a.ses else [])
+            r = main(['seslendir'] + ortak + ses)
+            if r: return r
+        return main(['render'] + ortak + ['--format'] + a.format + ['--olcek', str(a.olcek)])
     with open(a.senaryo, encoding='utf-8') as f:
         s = json.load(f)
     stil_ad = a.stil or s.get('stil')

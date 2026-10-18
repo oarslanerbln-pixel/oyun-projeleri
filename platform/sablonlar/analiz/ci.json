@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/analiz.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/analiz.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/analiz"
+      ]
+    }
+  ]
+}

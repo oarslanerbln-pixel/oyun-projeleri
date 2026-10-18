@@ -23,3 +23,5 @@ Aynı metnin [gölge oyunu şablonuyla](../../platform/sablonlar/golge_oyunu/REA
 python3 platform/sablonlar/golge_oyunu/golge_oyunu.py seslendir ornekler/kucuk-aliskanliklar/golge-oyunu.json
 python3 platform/sablonlar/golge_oyunu/golge_oyunu.py render    ornekler/kucuk-aliskanliklar/golge-oyunu.json
 ```
+
+Aynı konu 3D olarak: [`oyuncak.json`](oyuncak.json), [oyuncak şablonu](../../platform/sablonlar/oyuncak/README.md) (aynı satırlar ve zamanlar; `oyuncak.py seslendir` ve `render`).

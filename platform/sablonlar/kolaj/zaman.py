@@ -11,7 +11,7 @@ from pathlib import Path
 
 TURLER = ("fis", "esitlik", "kapanis")
 GECISLER = ("kesme", "yirt", "kaydir")
-NESNELER = ("bardak", "kupa", "simit", "cekirdek")
+NESNELER = ("bardak", "kupa", "simit", "cekirdek", "kase", "tabak")
 ROLLER = ("zemin", "kagit", "gazete", "murekkep", "vurgu", "ikinci", "marka")
 VARSAYILAN_PALET = {"zemin": "#C9A67A", "kagit": "#FBF8F1", "gazete": "#E9E3D5", "murekkep": "#221A16",
                     "vurgu": "#D63A2C", "ikinci": "#E0A243", "marka": "#3B2418"}
@@ -23,7 +23,7 @@ HARF_ARALIK = 0.055  # `son` verilmezse harfler bu aralıkla düşer
 ZAMAN_ALANLARI = {
     "fis": ["nesne.t", "kalem_t", "kalem_son", "toplam_t", "cember_t", "damga.t", "damga.son"],
     "esitlik": ["nesne.t", "ust.t", "ust.son", "esit_t", "alt.t", "alt.son", "nesne2.t", "cizgi_t"],
-    "kapanis": ["marka.t", "marka.son", "alt.t", "nesne.t", "damga_t"],
+    "kapanis": ["logo.t", "marka.t", "marka.son", "alt.t", "nesne.t", "damga_t"],
 }
 
 
@@ -130,6 +130,9 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
                 h.append(f"{ad}: {alan} sayı olmalı")
             elif not sh["bas"] <= v < sh["_son"]:
                 h.append(f"{ad}: {alan}={v} sahnenin dışında ({sh['bas']}–{sh['_son']})")
+        lg = sh.get("logo")
+        if lg is not None and not (Path(s["_klasor"]) / lg.get("gorsel", "")).is_file():
+            h.append(f"{ad}: logo.gorsel bulunamadı: {lg.get('gorsel')}")
         for k in ("nesne", "nesne2"):
             n = sh.get(k)
             if n is None:
@@ -139,6 +142,11 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
                     h.append(f"{ad}: {k}.gorsel bulunamadı: {n['gorsel']}")
             elif n.get("tur") not in NESNELER:
                 h.append(f"{ad}: {k}.tur {', '.join(NESNELER)} olmalı (ya da gorsel: dosya.png)")
+        for j, kalem in enumerate(sh.get("kalemler") or []):
+            if not (isinstance(kalem, str) or (isinstance(kalem, list) and len(kalem) == 2 and all(isinstance(x, str) for x in kalem))):
+                h.append(f"{ad}: kalemler[{j}] \"METİN\" ya da [\"METİN\", \"FİYAT\"] olmalı")
+        if sh.get("isaret", "=") not in ("=", "+"):
+            h.append(f"{ad}: isaret '=' ya da '+' olmalı")
         for k in ("ust", "alt", "damga", "marka"):
             y = sh.get(k)
             if isinstance(y, dict) and "son" in y and y["son"] < y.get("t", 0):
@@ -207,6 +215,8 @@ def ses_olaylari(s: dict) -> list[tuple[float, str]]:
             o += [(a, "damga") for a in kelime_anlari(sh.get("marka"))]
             if al(sh, "alt.t") is not None:
                 o.append((sh["alt"]["t"], "bant"))
+            if al(sh, "logo.t") is not None:
+                o.append((sh["logo"]["t"], "damga"))
             if "damga_t" in sh:
                 o.append((sh["damga_t"], "damga"))
     return sorted(o)

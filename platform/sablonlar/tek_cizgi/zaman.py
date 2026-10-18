@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROLLER = ("zemin", "murekkep", "vurgu", "kapanis")
 VARSAYILAN_PALET = {"zemin": "#F6EFE3", "murekkep": "#2B211C", "vurgu": "#D9532B", "kapanis": "#F2C14E"}
-SEKIL_ADLARI = ("kruvasan", "fincan", "tabak", "basak", "saat", "canta", "kalp")  # sekiller.SEKILLER ile aynı
+SEKIL_ADLARI = ("kruvasan", "fincan", "tabak", "basak", "saat", "canta", "kase", "sapka", "daire", "kalp")  # sekiller.SEKILLER ile aynı
 DONUSUM_SN = 0.62   # bir biçimden ötekine dönüşüm süresi
 CIZIM_SN = 1.35     # ilk sahnede çizginin soldan çizilerek gelmesi
 IRIS_SN = 0.45      # zemin rengi değişimi (şeklin merkezinden açılan düz renk daire)
@@ -100,6 +100,16 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
                 h.append(f"{ad}: {k} rolü bilinmiyor")
         if "zemin" in sh and sh["zemin"] not in ROLLER:
             h.append(f"{ad}: zemin rolü bilinmiyor")
+        if "gorsel" in sh:
+            g = sh["gorsel"]
+            if sh.get("sekil") != "daire":
+                h.append(f"{ad}: gorsel yalnız `daire` şekliyle kullanılır (fotoğraf çizginin çizdiği dairenin içine açılır)")
+            elif not (isinstance(g, dict) and g.get("dosya") and isinstance(g.get("t"), (int, float))):
+                h.append(f"{ad}: gorsel {{dosya, t}} olmalı")
+            elif not (Path(s.get("_klasor", ".")) / g["dosya"]).is_file():
+                h.append(f"{ad}: gorsel dosyası bulunamadı: {g['dosya']}")
+            elif not (sh["bas"] <= g["t"] < sh["_son"]):
+                h.append(f"{ad}: gorsel t={g['t']} sahnenin içinde değil ({sh['bas']}–{sh['_son']})")
         for k in ("yazi", "baslik", "alt"):
             if k in sh:
                 y = sh[k]
@@ -193,6 +203,8 @@ def ses_olaylari(s: dict) -> list[tuple[float, str, float, float, dict]]:
     for an, _ in zemin_degisimleri(s):
         o.append((an - 0.05, "kayma", 0.4, -0.2, {"sure": IRIS_SN + 0.1}))
     for sh in s["sahneler"]:
+        if "gorsel" in sh:
+            o.append((sh["gorsel"]["t"], "parilti", 0.3, 0.0, {}))
         if "yazi" in sh:
             o.append((sh["yazi"]["t"], "pop", 0.3, 0.2, {}))
         if "baslik" in sh:

@@ -1,4 +1,4 @@
-"""Kolaj nesneleri: dergiden kesilmiş "fotoğraf" gibi görünen, kodla çizilmiş kahve ürünleri.
+"""Kolaj nesneleri: dergiden kesilmiş "fotoğraf" gibi görünen, kodla çizilmiş kahve ve yemek ürünleri.
 
 Her nesne bir siluet, gri tonlu bir ışık/gölge çizimi ve düz spot renk alanları verir; `kagit.kesik_resim`
 bunları yarım ton baskıya çevirip makasla keser. Telifli görsel yok. Gerçek ürün fotoğrafı için senaryoda
@@ -145,5 +145,72 @@ def cekirdek(u: float, P: dict):
     return w, h, sil, gri, spot
 
 
-NESNELER = {"bardak": bardak, "kupa": kupa, "simit": simit, "cekirdek": cekirdek}
-HUCRE = {"bardak": 9.0, "kupa": 9.0, "simit": 9.5, "cekirdek": 6.5}
+YESIL = "#6E9B4F"  # maydanoz, biber: paletten bağımsız
+
+
+def kase(u: float, P: dict):
+    """Çorba kâsesi, hafif yukarıdan: kenar, çorba yüzeyi (mercimek rengi), tereyağlı pul biber gezdirmesi, maydanoz."""
+    w, h = 520 * u, 330 * u
+    govde = skia.Op(_oval(0, -130 * u, w, 290 * u), skia.Path.Rect(skia.Rect(-1, -140 * u, w + 1, 80 * u)), skia.PathOp.kDifference_PathOp)
+    agiz = _oval(0, 30 * u, w, 130 * u)
+    ayak = _yol((w * 0.33, 276 * u), (w * 0.67, 276 * u), (w * 0.64, 322 * u), (w * 0.36, 322 * u))
+    corba = _oval(24 * u, 44 * u, w - 24 * u, 116 * u)
+    sil = skia.Op(skia.Op(govde, agiz, skia.PathOp.kUnion_PathOp), ayak, skia.PathOp.kUnion_PathOp)
+    rnd = random.Random(23)
+
+    def gri(cv):
+        cv.drawPath(ayak, _yatay(w * 0.33, w * 0.67, [0.45, 0.7, 0.5]))
+        cv.drawPath(govde, _yatay(0, w, SILINDIR))
+        cv.drawPath(agiz, skia.Paint(AntiAlias=True, Color=_gri(0.94)))
+        cv.drawPath(corba, _dikey(44 * u, 116 * u, [0.5, 0.68, 0.74]))
+        for i in range(3):  # gezdirilen tereyağı: kıvrık koyu izler
+            p = skia.Path(); x0 = w * (0.3 + 0.16 * i); y0 = 62 * u + 14 * u * (i % 2)
+            p.moveTo(x0, y0); p.cubicTo(x0 + 40 * u, y0 - 16 * u, x0 + 70 * u, y0 + 26 * u, x0 + 110 * u, y0 + 8 * u)
+            cv.drawPath(p, skia.Paint(AntiAlias=True, Color=_gri(0.3), Style=skia.Paint.kStroke_Style, StrokeWidth=9 * u,
+                                      StrokeCap=skia.Paint.kRound_Cap))
+    maydanoz = skia.Path()
+    for _ in range(22):
+        x, y = rnd.uniform(0.3, 0.7) * w, rnd.uniform(58, 102) * u
+        maydanoz.addOval(skia.Rect(x - 6 * u, y - 3.5 * u, x + 6 * u, y + 3.5 * u))
+    spot = [(govde, P["vurgu"]), (skia.Op(agiz, corba, skia.PathOp.kDifference_PathOp), karistir(P["vurgu"], "#FFFFFF", 0.55)),
+            (corba, P["ikinci"])]
+    return w, h, sil, gri, spot, [(maydanoz, YESIL)]
+
+
+def tabak(u: float, P: dict):
+    """Şef tabağı, yukarıdan: kenarı bantlı tabak, pilav tepesi, et parçaları, domates ve biber."""
+    w, h = 600 * u, 360 * u
+    tab = _oval(0, 60 * u, w, 360 * u)
+    ic = _oval(58 * u, 94 * u, w - 58 * u, 326 * u)
+    pilav = skia.Op(_oval(96 * u, 128 * u, 300 * u, 262 * u), _oval(114 * u, 74 * u, 282 * u, 206 * u), skia.PathOp.kUnion_PathOp)
+    et = skia.Path()
+    for x0, y0, x1, y1 in ((306, 128, 410, 196), (372, 168, 482, 238), (300, 200, 398, 268)):
+        et.addRRect(skia.RRect.MakeRectXY(skia.Rect(x0 * u, y0 * u, x1 * u, y1 * u), 30 * u, 30 * u))
+    domates = skia.Path()
+    for x, y, r in ((196, 284, 30), (252, 296, 26), (420, 274, 28)):
+        domates.addCircle(x * u, y * u, r * u)
+    biber = skia.Path(); biber.moveTo(330 * u, 150 * u)
+    biber.cubicTo(380 * u, 120 * u, 450 * u, 132 * u, 492 * u, 168 * u); biber.cubicTo(450 * u, 152 * u, 390 * u, 150 * u, 330 * u, 150 * u)
+    sil = skia.Op(tab, pilav, skia.PathOp.kUnion_PathOp)
+    rnd = random.Random(29)
+
+    def gri(cv):
+        cv.drawPath(tab, skia.Paint(AntiAlias=True, Color=_gri(0.82)))
+        cv.drawPath(ic, _dikey(94 * u, 326 * u, [0.97, 0.9]))
+        cv.drawPath(pilav, _dikey(74 * u, 262 * u, [0.95, 0.82, 0.6]))
+        for _ in range(60):  # pirinç taneleri
+            x, y = rnd.uniform(120, 280) * u, rnd.uniform(96, 250) * u
+            m = skia.Matrix.RotateDeg(rnd.uniform(0, 180)); m.postTranslate(x, y)
+            o = skia.Path(); o.addOval(skia.Rect(-7 * u, -2.6 * u, 7 * u, 2.6 * u)); o.transform(m)
+            cv.save(); cv.clipPath(pilav, skia.ClipOp.kIntersect, True)
+            cv.drawPath(o, skia.Paint(AntiAlias=True, Color=_gri(0.62))); cv.restore()
+        cv.drawPath(et, _dikey(128 * u, 268 * u, [0.42, 0.3, 0.2]))
+        cv.drawPath(domates, skia.Paint(AntiAlias=True, Color=_gri(0.55)))
+        cv.drawPath(biber, skia.Paint(AntiAlias=True, Color=_gri(0.4)))
+    spot = [(skia.Op(tab, ic, skia.PathOp.kDifference_PathOp), P["vurgu"]), (pilav, karistir(P["ikinci"], "#FFFFFF", 0.55)),
+            (et, P["marka"]), (domates, P["vurgu"])]
+    return w, h, sil, gri, spot, [(biber, YESIL)]
+
+
+NESNELER = {"bardak": bardak, "kupa": kupa, "simit": simit, "cekirdek": cekirdek, "kase": kase, "tabak": tabak}
+HUCRE = {"bardak": 9.0, "kupa": 9.0, "simit": 9.5, "cekirdek": 6.5, "kase": 9.0, "tabak": 9.0}

@@ -193,6 +193,33 @@ class Cizici:
             self.halka(cv, t, ws[0]["t"] - 0.04, cx, cy, 120 * u, 520 * u, P["vurgu"], 14)
         sz = sh.get("punto", 230) * u
         n = len(ws)
+        g = sh.get("gorsel")
+        if g:  # gerçek ürün fotoğrafı (saydam PNG): kelimeler üstte (yatayda solda), fotoğraf büyük ve net
+            img = self.logo_resmi(g["dosya"])
+            gx, gy = (cx + self.W * 0.21, cy) if self.GENIS else (cx, cy + 250 * u)
+            gw = min(img.width(), (self.W * 0.5 if self.GENIS else self.W - 120 * u), g.get("genislik", 1e9) * u)
+            gh = gw * img.height() / img.width()
+            if not self.GENIS and gh > 900 * u:
+                gw, gh = gw * 900 * u / gh, 900 * u
+            pg = prog(t, g["t"], 0.5)
+            if pg > 0:
+                k = out_back(pg, 1.4) * (1 + 0.035 * clamp((t - g["t"] - 0.5) / 4))
+                self.halka(cv, t, g["t"], gx, gy, 0.3 * gw, 0.75 * gw, P["vurgu"], 12)
+                cv.save(); cv.translate(gx, gy); cv.rotate(lerp(-10, 0, out_cubic(pg))); cv.scale(k, k)
+                cv.drawImageRect(img, self.sk.Rect(-gw / 2, -gh / 2, gw / 2, gh / 2),
+                                 self.sk.SamplingOptions(self.sk.CubicResampler.Mitchell()), self.paint(P["acik"], clamp(pg * 3)))
+                cv.restore()
+            if self.GENIS:
+                tx, azami, aralik = cx - self.W * 0.24, self.W * 0.44, 210 * u
+                yb = cy
+            else:
+                tx, azami, aralik = cx, self.W - 140 * u, 200 * u
+                yb = cy - 560 * u
+            sz = min(min(self.sigdir(w["metin"], min(sz, 190 * u), azami) for w in ws), sz)
+            for i, w in enumerate(ws):
+                self.slam(cv, w["metin"], tx, yb + (i - (n - 1) / 2) * aralik, sz, P[w.get("renk", "acik")], t, w["t"])
+            self.odak = (gx, gy)
+            return
         if self.GENIS:
             gen = [self.genislik(w["metin"], sz) for w in ws]
             bosluk = 90 * u
@@ -211,7 +238,11 @@ class Cizici:
     def buyuk_sayi(self, cv, t, sh):
         P, u, cx, cy = self.P, self.u, self.cx, self.cy
         self.zemin(cv, t, "vurgu")
-        yb = cy - (400 if not self.GENIS else 345) * u
+        # uzun sayı (fiyat gibi "16,90 €") halkaya sığmak için küçülmesin: halka büyür, üst ve etiket açılır
+        dogal = self.genislik(sh["sayi"], 400 * u)
+        azami = 520 * u if dogal <= 520 * u else min(dogal, (760 if not self.GENIS else 640) * u)
+        ek = (azami - 520 * u) / 2
+        yb = cy - (400 if not self.GENIS else 345) * u - ek
         if sh.get("ust"):
             self.slam(cv, sh["ust"], cx, yb, 80 * u, P["zemin"], t, sh.get("ust_t", sh["bas"] + 0.05), track=0.12)
         t0 = sh["sayi_t"]
@@ -219,13 +250,13 @@ class Cizici:
         if pr > 0:  # dönen kesikli halka
             q = self.paint(P["ikinci"], 1, stroke=16 * u)
             q.setPathEffect(self.sk.DashPathEffect.Make([38 * u, 26 * u], (t * 220 * u) % (64 * u)))
-            cv.drawCircle(cx, cy + 10 * u, 300 * u * pr, q)
-        self.slam(cv, sh["sayi"], cx - 14 * u, cy + 10 * u, 400 * u, P["zemin"], t, t0, azami=520 * u)
+            cv.drawCircle(cx, cy + 10 * u, (300 * u + ek) * pr, q)
+        self.slam(cv, sh["sayi"], cx - 14 * u, cy + 10 * u, 400 * u, P["zemin"], t, t0, azami=azami)
         self.halka(cv, t, t0, cx, cy, 200 * u, 700 * u, P["zemin"], 18)
         if sh.get("etiket"):
             pd = out_expo(prog(t, sh.get("etiket_t", t0 + 0.5), 0.35))
             if pd > 0:
-                yd = cy + (360 if not self.GENIS else 330) * u
+                yd = cy + (360 if not self.GENIS else 330) * u + ek
                 fs = self.sigdir(sh["etiket"], 104 * u, 560 * u)
                 bw, bh = self.genislik(sh["etiket"], fs) + 100 * u, 150 * u
                 x0 = lerp(-bw, cx - bw / 2, pd)
@@ -334,19 +365,36 @@ class Cizici:
         P, u, cx, cy, H = self.P, self.u, self.cx, self.cy, self.H
         self.zemin(cv, t, "vurgu")
         satir = sh["satirlar"]
-        sz = (230 if self.GENIS else 215) * u
-        aralik = 260 * u
         n = len(satir)
+        tx, ty = cx, cy - 20 * u  # yazı bloğunun merkezi; logo varsa yana (yatay) ya da aşağı (dikey) kayar
+        logo = sh.get("logo")
+        if logo:
+            boy = logo.get("boy", 560) * u
+            lx, ly_ = (cx - self.W * 0.24, cy) if self.GENIS else (cx, cy - 330 * u)
+            tx, ty = (cx + self.W * 0.2, cy - 20 * u) if self.GENIS else (cx, cy + 300 * u)
+            pl = prog(t, logo.get("t", sh["bas"] + 0.1), 0.45)
+            if pl > 0:
+                img = self.logo_resmi(logo["dosya"])
+                k = out_back(pl, 1.6) * boy
+                cv.save(); cv.translate(lx, ly_); cv.rotate(lerp(-18, 0, out_cubic(pl)))
+                cv.drawImageRect(img, self.sk.Rect(-k / 2, -k * img.height() / img.width() / 2, k / 2, k * img.height() / img.width() / 2),
+                                 self.sk.SamplingOptions(self.sk.CubicResampler.Mitchell()), self.paint(P["acik"], clamp(pl * 3)))
+                cv.restore()
+        azami = (self.W * 0.46 if logo and self.GENIS else self.W - 140 * u)
+        # bütün satırlar aynı boyda: en uzun satır sığacak kadar küçülür, satır aralığı da onunla daralır
+        taban = (230 if self.GENIS else 215) * u
+        sz = min(self.sigdir(w["metin"], taban, azami) for w in satir)
+        aralik = 260 * u * max(sz / taban, 0.55)
         for i, w in enumerate(satir):
-            y = cy - 20 * u + (i - (n - 1) / 2) * aralik
-            self.slam(cv, w["metin"], cx, y, sz, P[w.get("renk", "zemin" if i < n - 1 else "ikinci")], t, w["t"])
-        self.patlama(cv, t, satir[-1]["t"], cx, cy, kuvvet=1.4)
-        ly = cy - 20 * u + (n - 1) / 2 * aralik + 160 * u
+            y = ty + (i - (n - 1) / 2) * aralik
+            self.slam(cv, w["metin"], tx, y, sz, P[w.get("renk", "zemin" if i < n - 1 else "ikinci")], t, w["t"])
+        self.patlama(cv, t, satir[-1]["t"], tx, ty + 20 * u, kuvvet=1.4)
+        ly = ty + (n - 1) / 2 * aralik + 160 * u * max(sz / taban, 0.7)
         if "cizgi_t" in sh:
             pl = out_expo(prog(t, sh["cizgi_t"], 0.35))
             if pl > 0:
                 L = 640 * u
-                cv.drawRoundRect(self.sk.Rect(cx - L / 2, ly - 12 * u, cx - L / 2 + L * pl, ly + 12 * u), 12 * u, 12 * u, self.paint(P["zemin"]))
+                cv.drawRoundRect(self.sk.Rect(tx - L / 2, ly - 12 * u, tx - L / 2 + L * pl, ly + 12 * u), 12 * u, 12 * u, self.paint(P["zemin"]))
         if sh.get("alt"):
             pa = out_cubic(prog(t, sh.get("alt_t", satir[-1]["t"] + 0.4), 0.4))
             if pa > 0:
@@ -354,6 +402,13 @@ class Cizici:
                 self.yazi(cv, sh["alt"], cx, yy + 30 * u * (1 - pa), self.sigdir(sh["alt"], 46 * u, self.W - 160 * u, self.TF7),
                           P["zemin"], a=pa * 0.85, tf=self.TF7, track=0.02)
         self.odak = (cx, cy)
+
+    def logo_resmi(self, dosya):
+        if not hasattr(self, "_logolar"):
+            self._logolar = {}
+        if dosya not in self._logolar:
+            self._logolar[dosya] = self.sk.Image.open(str(Path(self.s["_klasor"]) / dosya))
+        return self._logolar[dosya]
 
     # ---------- kare ----------
     def kare(self, cv, t):

@@ -78,6 +78,8 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
         h.append("ilk sahne 0. saniyede başlamalı")
     if sh and sh[0].get("tur") != "acilis":
         h.append("ilk sahne `acilis` olmalı")
+    if s["marka"].get("logo") and not (Path(s["_klasor"]) / s["marka"]["logo"]).is_file():
+        h.append(f"marka.logo bulunamadı: {s['marka']['logo']}")
     if any(x.get("tur") == "kapanis" for x in sh) and not s["marka"].get("ad"):
         h.append("kapanış için marka.ad gerekli")
     satirlar = s["seslendirme"].get("satirlar", [])

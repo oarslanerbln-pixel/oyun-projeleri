@@ -939,7 +939,22 @@ class Cizici:
             cv.drawCircle(0.79 * R * math.sin(th2), -0.79 * R * math.cos(th2), 3.5, boya(ALTIN_ACIK, a))
         dolgu(cv, lobeli(R * 0.71, 12, 0.025), BEYAZ, a, 2)
         cv.drawPath(lobeli(R * 0.66, 12, 0.025), boya(ALTIN, a, 2))
-        # içerik
+        # içerik: marka.logo verilirse (yuvarlak, saydam PNG) göbeği doldurur; yoksa lale, ad ve alt satır
+        logo = self.marka.get("logo")
+        if logo:
+            import skia
+            if not hasattr(self, "_logo"):
+                self._logo = skia.Image.open(str(Path(self.s["_klasor"]) / logo))
+            r = R * 0.645
+            h = r * self._logo.height() / self._logo.width()
+            cv.drawImageRect(self._logo, skia.Rect(-r, -h, r, h), skia.SamplingOptions(skia.CubicResampler.Mitchell()),
+                             boya(BEYAZ, a))
+        else:
+            self._semse_icerik(cv, R, a)
+        cv.restore()
+        self._piriltilar_ve_cagri(cv, t, bas, p, cx, cy, R)
+
+    def _semse_icerik(self, cv, R, a):
         self.lale(cv, 0, -R * 0.3, R * 0.0025, a)
         ad = self.marka.get("ad", "")
         satirlar = ad.split() if len(ad) > 11 else [ad]
@@ -955,10 +970,15 @@ class Cizici:
             y += boy * 1.05
         alt = self.marka.get("alt")
         if alt:
-            f2 = self.font("metin", R * 0.11)
+            boy2 = R * 0.11
+            f2 = self.font("metin", boy2)
+            while f2.measureText(alt) > R * 1.1 and boy2 > 16:  # uzun alt satır beyaz göbekten taşmasın
+                boy2 *= 0.95
+                f2 = self.font("metin", boy2)
             w = f2.measureText(alt)
             cv.drawString(alt, -w / 2, y + R * 0.07, f2, boya(ALTIN_KOYU, a))
-        cv.restore()
+
+    def _piriltilar_ve_cagri(self, cv, t, bas, p, cx, cy, R):
         # pırıltılar
         if p >= 1:
             rng = random.Random(17)

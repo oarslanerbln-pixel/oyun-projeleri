@@ -94,8 +94,32 @@ def model_kutu(renk: str) -> list[dict]:
     ]
 
 
-GENISLIK = {"kupa": 0.70, "kutu": 0.84}  # yükseklik başına
-MODEL = {"kupa": model_kupa, "kutu": model_kutu}
+def model_kase(renk: str) -> list[dict]:
+    """çorba kâsesi: geniş gövde, açık renk ağız bandı, üstte çorba yüzeyi (ucuncu)"""
+    Y = ((-1, 0), (1, 0))
+    return [
+        yuz([(-0.30, 0), (0, 0), (0, -0.55), (-0.74, -0.55)], renk, 1.0, -1, Y, YARIM, 0.0, 0.34),
+        yuz([(0, 0), (0.30, 0), (0.74, -0.55), (0, -0.55)], renk, 0.84, 0, ((0, 0), (0, -1)), PI, 0.16),
+        yuz([(-0.78, -0.55), (0, -0.55), (0, -0.66), (-0.78, -0.66)], "acik", 0.98, 0, ((-1, -0.55), (1, -0.55)), PI, 0.30, 0.28),
+        yuz([(0, -0.55), (0.78, -0.55), (0.78, -0.66), (0, -0.66)], "acik", 0.86, 2, ((0, 0), (0, -1)), PI, 0.40, 0.26),
+        yuz([(-0.70, -0.66), (0.70, -0.66), (0.54, -0.78), (-0.54, -0.78)], "ucuncu", 1.0, 2, ((-1, -0.66), (1, -0.66)), PI, 0.50, 0.26),
+    ]
+
+
+def model_tabak(renk: str) -> list[dict]:
+    """şef tabağı: açık renk tabak, ortada pilav tepesi (renk), yanında koyu et parçası"""
+    Y = ((-1, 0), (1, 0))
+    return [
+        yuz([(-0.62, 0), (0, 0), (0, -0.13), (-0.88, -0.13)], "acik", 0.98, -1, Y, YARIM, 0.0, 0.34),
+        yuz([(0, 0), (0.62, 0), (0.88, -0.13), (0, -0.13)], "acik", 0.84, 0, ((0, 0), (0, -1)), PI, 0.16),
+        yuz([(-0.50, -0.13), (0, -0.13), (0, -0.62), (-0.26, -0.56)], renk, 1.0, 0, ((-1, -0.13), (1, -0.13)), PI, 0.30, 0.3),
+        yuz([(0, -0.13), (0.50, -0.13), (0.26, -0.56), (0, -0.62)], renk, 0.82, 2, ((0, 0), (0, -1)), PI, 0.42, 0.26),
+        yuz([(0.30, -0.13), (0.70, -0.13), (0.64, -0.34), (0.36, -0.37)], "koyu", 1.0, 0, ((-1, -0.13), (1, -0.13)), PI, 0.52, 0.26),
+    ]
+
+
+GENISLIK = {"kupa": 0.70, "kutu": 0.84, "kase": 1.56, "tabak": 1.76}  # yükseklik başına
+MODEL = {"kupa": model_kupa, "kutu": model_kutu, "kase": model_kase, "tabak": model_tabak}
 
 
 def model_turna() -> list[dict]:
@@ -273,14 +297,28 @@ class Cizici:
             return self.H * 0.68, 360 * u, 60 * u
         return self.H * 0.66, 520 * u, 46 * u
 
+    def resim(self, yol):
+        if not hasattr(self, "_resimler"):
+            self._resimler = {}
+        if yol not in self._resimler:
+            self._resimler[yol] = self.sk.Image.open(str(Path(self.s["_klasor"]) / yol))
+        return self._resimler[yol]
+
+    def oran(self, n):
+        """nesnenin yükseklik başına genişliği; fotoğrafta kendi en/boy oranı"""
+        if n["tur"] == "gorsel":
+            r = self.resim(n["gorsel"])
+            return r.width() / r.height()
+        return GENISLIK[n["tur"]]
+
     def yerlesim(self, sh, t):
         taban, hmax, bosluk = self.olcu()
         nes = sh["nesneler"]
-        tam = sum(GENISLIK[n["tur"]] * n["boy"] * hmax * (1.18 if "one_t" in n else 1.0) for n in nes) + bosluk * (len(nes) - 1)
+        tam = sum(self.oran(n) * n["boy"] * hmax * (1.18 if "one_t" in n else 1.0) for n in nes) + bosluk * (len(nes) - 1)
         k = min(1.0, (self.W * (0.62 if self.GENIS else 0.9)) / tam)
         ilk = zaman.ilk_nesneler(sh)
         ag = [1.0 if n["id"] in ilk else in_out_cubic(prog(t, n["t"] - 0.25, zaman.KAYMA_SN)) for n in nes]
-        gen = [GENISLIK[n["tur"]] * n["boy"] * hmax * k for n in nes]
+        gen = [self.oran(n) * n["boy"] * hmax * k for n in nes]
         bos = [0.0] + [bosluk * k * a for a in ag[1:]]  # boşluk, önündeki nesne geldikçe açılır
         x = self.cx - (sum(g * a for g, a in zip(gen, ag)) + sum(bos)) / 2
         out = {}
@@ -319,9 +357,19 @@ class Cizici:
             # yer gölgesi: düz elips, zıplayınca küçülür
             ga = clamp(tr / 0.3) * 0.08 * (1 - 0.5 * sonuk) * (1 + hop / h)
             cv.drawOval(sk.Rect.MakeXYWH(x - g * s * 0.55, taban - 10 * u, g * s * 1.1, 20 * u), self.paint(self.P["koyu"], ga))
-            M = sk.Matrix.Translate(x, taban + hop)
-            M.preScale(h * s, h * s)
-            self.yuzler(cv, MODEL[n["tur"]](n["renk"]), tr, M, sonuk, golge=(10 * u, 7 * u, 0.13))
+            if n["tur"] == "gorsel":  # gerçek fotoğraf: kâğıt gibi dikey ekseninde dönerek açılır, sonra çok hafif yakınlaşır
+                c = math.cos(YARIM * (1 - out_back(prog(tr, 0, 0.55), 1.5)))
+                if abs(c) > 0.01:
+                    img = self.resim(n["gorsel"])
+                    z = s * (1 + 0.03 * clamp((tr - 0.6) / 6))
+                    gw, gh = g * z, h * z
+                    cv.save(); cv.translate(x, taban + hop - gh / 2); cv.scale(abs(c), 1)
+                    cv.drawImageRect(img, sk.Rect.MakeXYWH(-gw / 2, -gh / 2, gw, gh), sk.SamplingOptions(sk.CubicResampler.Mitchell()))
+                    cv.restore()
+            else:
+                M = sk.Matrix.Translate(x, taban + hop)
+                M.preScale(h * s, h * s)
+                self.yuzler(cv, MODEL[n["tur"]](n["renk"]), tr, M, sonuk, golge=(10 * u, 7 * u, 0.13))
             if "etiket_t" in n and t >= n["etiket_t"]:
                 self.etiket(cv, t, n, x, taban + 44 * u, g, sonuk)
         for n in one:
@@ -462,6 +510,20 @@ class Cizici:
             M.preScale(S, S)
             kanat = 0.55 * (0.5 - 0.5 * math.cos((tr - 0.7) * 4.8)) * clamp((tr - 0.7) / 0.3)
             self.yuzler(cv, model_turna(), tr, M, golge=(12 * u, 10 * u, 0.18), ek_aci={4: kanat})
+        if sh.get("isaret") == "logo" and tr >= 0 and sh.get("logo"):
+            # marka logosu (saydam PNG): kâğıt gibi dikey ekseninde dönerek açılır
+            if not hasattr(self, "_logo"):
+                self._logo = sk.Image.open(str(Path(self.s["_klasor"]) / sh["logo"]))
+            S = sh.get("logo_boy", 360 if self.GENIS else 520) * u
+            p = prog(tr, 0, 0.5)
+            c = math.cos(YARIM * (1 - out_back(p, 1.5)))
+            if abs(c) > 0.01:
+                cy_ = H * (0.30 if self.GENIS else 0.33)
+                h_ = S * self._logo.height() / self._logo.width()
+                cv.save(); cv.translate(self.cx, cy_); cv.scale(abs(c), 1)
+                cv.drawOval(sk.Rect.MakeXYWH(-S / 2 + 12 * u, -h_ / 2 + 10 * u, S, h_), self.paint(self.P["koyu"], 0.18))
+                cv.drawImageRect(self._logo, sk.Rect.MakeXYWH(-S / 2, -h_ / 2, S, h_), sk.SamplingOptions(sk.CubicResampler.Mitchell()))
+                cv.restore()
         satirlar = sh["satirlar"]
         boy = (84 if self.GENIS else 104) * u
         y0 = H * (0.60 if self.GENIS else 0.585)

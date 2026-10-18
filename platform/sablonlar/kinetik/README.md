@@ -28,11 +28,11 @@ Bütün anlar videonun başından itibaren saniye cinsinden verilir. Bir sahne b
 
 | Sahne (`tur`) | Zemin | Alanlar |
 | --- | --- | --- |
-| `kelimeler` | zemin | `kelimeler[{metin, t, renk}]`, `acilis` (ilk sahnede açılış topu, varsayılan açık), `punto` |
-| `buyuk-sayi` | vurgu | `ust`, `ust_t`, `sayi`, `sayi_t` (bas efekti), `etiket`, `etiket_t` |
+| `kelimeler` | zemin | `kelimeler[{metin, t, renk}]`, `acilis` (ilk sahnede açılış topu, varsayılan açık), `punto`, `gorsel{dosya, t, genislik}` (gerçek ürün fotoğrafı, saydam PNG: halkayla döne döne iner; kelimeler üste, yatayda sola geçer; fotoğraf kendi çözünürlüğünden büyütülmez) |
+| `buyuk-sayi` | vurgu | `ust`, `ust_t`, `sayi`, `sayi_t` (bas efekti; "16,90 €" gibi uzun bir fiyat küçülmez, halka büyür), `etiket`, `etiket_t` |
 | `egri` | zemin | `baslangic_t`, `zirve_t`, `oran`, `gun` (bileşik büyüme; sayaç `(1+oran)^gun` değerine çıkar), `eksen`, `sayac`, `rozet` |
 | `karsitlik` | üçüncü + ikinci | `kucuk`, `kucuk_t`, `panel_t`, `buyuk`, `buyuk_t` (dikeyde üst/alt, yatayda sol/sağ) |
-| `kapanis` | vurgu | `satirlar[{metin, t, renk}]`, `cizgi_t`, `alt`, `alt_t` |
+| `kapanis` | vurgu | `satirlar[{metin, t, renk}]` (hepsi aynı boyda), `cizgi_t`, `alt`, `alt_t`, `logo{dosya, t, boy}` (saydam PNG; dikeyde üstte, yatayda solda dönerek oturur, yazılar yer açar) |
 
 Sahneye giriş geçişi (`gecis`): `iris` (önceki sahnenin odak noktasından yeni zeminin rengiyle açılır, 0,28 sn), `diyagonal` (önceki sahne yakınlaşır, yükselen sesle birlikte ikinci renkte bir perde ekranı kaplayıp çekilir, ritim bu noktada tam girer), `kesme`.
 

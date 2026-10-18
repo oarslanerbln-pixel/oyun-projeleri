@@ -1,4 +1,4 @@
-"""Stil şablonu testleri: senaryo denetimi ve iki stilin küçük çözünürlükte uçtan uca üretimi."""
+"""Stil şablonu testleri: senaryo denetimi ve stillerin küçük çözünürlükte uçtan uca üretimi."""
 
 import importlib
 import json
@@ -156,6 +156,18 @@ class TestUretim(Tmp):
         self.assertEqual(gelen, [['render', yol, '--format', '9x16', '16x9'],
                                  ['render', yol, '-o', 'x', '--format', '16x9'],
                                  ['kare', yol, '--an', '1', '--format', '16x9']])
+
+    def test_hamur_kart_ayari(self):
+        """stiller.hamur altındaki metin dışı alanlar STIL_AYAR'a gelir; verilmeyen kart alanları varsayılan kalır."""
+        yol = senaryo_kur(self.kok, stiller={'hamur': {'kart': {'bos': 6}, 'marka': 'KÖŞE FIRIN', 'metin': {'sayi': '2x'}}})
+        motor.kur(oku(yol), 'hamur', str(self.kok / 'cikti' / 'seslendirme'))
+        hamur = importlib.import_module('hamur')
+        self.assertEqual(hamur.kart_ayar(), {'bos': 6, 'toplam': 10, 'hazir': 2})
+        self.assertEqual(motor.STIL_AYAR['marka'], 'KÖŞE FIRIN')
+        self.assertNotIn('metin', motor.STIL_AYAR)
+        self.assertEqual(motor.METIN['sayi'], '2x')
+        motor.kur(oku(senaryo_kur(self.kok)), 'izometrik', str(self.kok / 'cikti' / 'seslendirme'))
+        self.assertEqual(motor.STIL_AYAR, {})
 
     def test_kare_saf_fonksiyon(self):
         """Aynı t iki kez aynı kareyi verir (stop-motion titremesi de t'ye bağlı)."""

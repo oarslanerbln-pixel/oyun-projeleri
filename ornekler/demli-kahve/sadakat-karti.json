@@ -1,0 +1,29 @@
+{
+  "kimlik": "demli-kahve-sadakat",
+  "stil": "hamur",
+  "sure": 10,
+  "fps": 30,
+  "format": "9:16",
+  "not": "Kafe sahiplerine: bahşedilmiş ilerleme etkisi (endowed progress). Nunes & Drèze (2006): 8 damgalık boş kartı tamamlayanlar %19, iki damgası önceden basılı 10 damgalık kartta %34 (yaklaşık 1,8 kat). İki kart da 8 alışveriş ister.",
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Boş sadakat kartı, çekmecede unutulur."},
+    {"id": "v1", "t": 3.15, "metin": "İki damgası basılı verin, bitiren neredeyse iki kat."},
+    {"id": "v2", "t": 6.15, "metin": "Başlamış iş yarım kalmaz."},
+    {"id": "v3", "t": 8.35, "metin": "İlk iki damgayı siz basın."}
+  ]},
+  "sahneler": [
+    {"tur": "buyuk-sayi", "bas": 0, "sayi": "0/8"},
+    {"tur": "kelimeler", "bas": 0, "kelimeler": [{"metin": "boş"}, {"metin": "kart"}]},
+    {"tur": "egri", "bas": 3.0, "alt": "daha çok biten"},
+    {"tur": "karsitlik", "bas": 6.0, "kucuk": "sıfırdan", "buyuk": "başlamış"},
+    {"tur": "kapanis", "bas": 8.0, "satirlar": [{"metin": "2 damga"}, {"metin": "hediye"}]}
+  ],
+  "stiller": {
+    "hamur": {
+      "kart": {"bos": 8, "toplam": 10, "hazir": 2},
+      "marka": "DEMLİ KAHVE",
+      "dipnot": "bahşedilmiş ilerleme etkisi · Nunes & Drèze, 2006",
+      "metin": {"sayi": "1,8x", "sayac": 10}
+    }
+  }
+}

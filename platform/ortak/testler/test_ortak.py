@@ -143,6 +143,28 @@ class BandingBirim(unittest.TestCase):
         self.assertEqual(kalite.banding_orani(kare), 0.0)
 
 
+@unittest.skipUnless(NUMPY and importlib.util.find_spec("skia") and importlib.util.find_spec("PIL"), "skia, numpy ya da PIL yok")
+class Onizleme(unittest.TestCase):
+    def test_iki_stil_tek_sayfa(self):
+        import onizleme
+        from PIL import Image
+        with tempfile.TemporaryDirectory() as tmp:
+            hedef = Path(tmp) / "onizleme.png"
+            r = onizleme.onizle([str(DEPO / "ornekler/tuzak-fiyat-origami/origami.json"),
+                                 "tek-cizgi=" + str(DEPO / "ornekler/hamurkar-firin/tek-cizgi.json")], hedef, [2.0, 6.0])
+            self.assertEqual([x["stil"] for x in r["stiller"]], ["origami", "tek-cizgi"])
+            self.assertTrue(all(len(x["kareler"]) == 2 and "hata" not in x for x in r["stiller"]))
+            w, h = Image.open(hedef).size
+            self.assertGreater(h, w)  # 2 satır x 2 sütun dikey kare
+
+    def test_sablon_bulma(self):
+        import onizleme
+        self.assertEqual(onizleme.sablon_bul({}, DEPO / "platform/sablonlar/kolaj/ornek/senaryo.json", None), "kolaj")
+        self.assertEqual(onizleme.sablon_bul({"stil": "hamur"}, Path("x.json"), None), "hamur")
+        self.assertEqual(onizleme.sablon_bul({}, Path("x.json"), "izometrik"), "izometrik")
+        self.assertEqual(onizleme.anlar_bul({"sure": 10}, None), [1.5, 5.0, 8.5])
+
+
 class CiCalistirici(unittest.TestCase):
     def setUp(self):
         sys.path.insert(0, str(DEPO / "platform" / "ci"))

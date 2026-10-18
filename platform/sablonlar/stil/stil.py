@@ -128,7 +128,8 @@ def main(argv=None):
         import seslendirme
         satirlar = [{'id': x['id'], 'metin': x['metin']} for x in s.get('seslendirme', {}).get('satirlar', [])]
         try:
-            k = seslendirme.uret(satirlar, __import__('pathlib').Path(ses_dizini), a.saglayici, {'ses': a.ses})
+            k = seslendirme.uret(satirlar, __import__('pathlib').Path(ses_dizini), a.saglayici,
+                                 {'ses': a.ses, 'saglayici': s.get('seslendirme', {}).get('saglayici')})
         except seslendirme.SeslendirmeHatasi as e:
             print(f'HATA: {e}', file=sys.stderr); return 2
         for x in k['satirlar']:

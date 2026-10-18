@@ -30,15 +30,15 @@ def sureler_oku(klasor: Path) -> dict[str, float]:
 def seslendir(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: str | None = None) -> dict:
     """Senaryonun satırlarını seslendirir; `okunus` varsa ekrandaki metin yerine o okunur.
 
-    `otomatik`: ELEVENLABS_API_KEY varsa ElevenLabs, yoksa Piper. Ses ve dil komut satırından,
-    yoksa senaryonun `seslendirme.ses` / `seslendirme.dil` (ya da `dil`) alanından gelir.
+    `otomatik`: Piper; senaryo `seslendirme.saglayici: "elevenlabs"` derse ElevenLabs. Ses ve dil komut
+    satırından, yoksa senaryonun `seslendirme.ses` / `seslendirme.dil` (ya da `dil`) alanından gelir.
     """
     if str(SES) not in sys.path:
         sys.path.insert(0, str(SES))
     import seslendirme
     sb = s.get("seslendirme", {})
     satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in sb["satirlar"]]
-    ayar = {"ses": ses or sb.get("ses"), "dil": sb.get("dil") or s.get("dil")}
+    ayar = {"ses": ses or sb.get("ses"), "dil": sb.get("dil") or s.get("dil"), "saglayici": sb.get("saglayici")}
     return seslendirme.uret(satirlar, Path(cikti) / "seslendirme", saglayici, ayar)
 
 

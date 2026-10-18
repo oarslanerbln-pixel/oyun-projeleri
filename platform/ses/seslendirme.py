@@ -9,8 +9,9 @@
 Her satır `<id>.wav` olur; aynı klasöre süreleri içeren `seslendirme.json` yazılır (kurgu zamanlaması buradan okur).
 
 Sağlayıcılar (`SAGLAYICILAR`):
-  otomatik    varsayılan: ELEVENLABS_API_KEY varsa elevenlabs, yoksa piper. ElevenLabs'e ulaşılamazsa
-              uyarıp piper'a döner (render durmaz).
+  otomatik    varsayılan: piper. İş ElevenLabs isterse (senaryoda `"seslendirme": {"saglayici": "elevenlabs"}`)
+              elevenlabs; anahtar yoksa ya da ElevenLabs'e ulaşılamazsa uyarıp piper'a döner (render durmaz).
+              ElevenLabs her işte değil, seçilen işlerde (müşteri işi, öne çıkan video) kullanılır.
   piper       yerel, ücretsiz. Ses modeli ilk kullanımda GitHub'dan indirilir (huggingface.co kapalı olabilir).
   elevenlabs  ücretli API. ELEVENLABS_API_KEY yoksa açık bir hatayla durur. Her satır önbelleğe yazılır:
               aynı metin + ses + ayar ikinci kez kredi harcamaz. Harcanan karakterler kullanim.jsonl'a yazılır.
@@ -176,10 +177,10 @@ SAGLAYICILAR = {"piper": piper, "elevenlabs": elevenlabs}
 UCRETLI = {"elevenlabs"}  # satır önbelleği ve karakter kaydı bunlar için
 
 
-def saglayici_coz(saglayici: str | None) -> str:
-    """`otomatik` (ya da boş): ELEVENLABS_API_KEY varsa elevenlabs, yoksa piper."""
+def saglayici_coz(saglayici: str | None, ayar: dict | None = None) -> str:
+    """`otomatik` (ya da boş): işin istediği sağlayıcı (`ayar["saglayici"]`, senaryodan gelir), yoksa piper."""
     if saglayici in (None, "", "otomatik"):
-        return "elevenlabs" if os.environ.get("ELEVENLABS_API_KEY") else "piper"
+        return (ayar or {}).get("saglayici") or "piper"
     return saglayici
 
 
@@ -251,10 +252,11 @@ def sure(yol: Path) -> float:
 
 def uret(satirlar: list[dict], cikti: Path, saglayici: str | None = "otomatik", ayar: dict | None = None) -> dict:
     otomatik = saglayici in (None, "", "otomatik")
-    saglayici = saglayici_coz(saglayici)
+    ayar = dict(ayar or {})
+    saglayici = saglayici_coz(saglayici, ayar)
+    ayar.pop("saglayici", None)
     if saglayici not in SAGLAYICILAR:
         raise SeslendirmeHatasi(f"bilinmeyen sağlayıcı: {saglayici}")
-    ayar = ayar or {}
     try:
         return _uret(satirlar, cikti, saglayici, ayar)
     except SeslendirmeHatasi as e:
@@ -329,11 +331,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"piper  {ad:10} {b['dil']}  {b['lisans']:16} {'ticari' if b['ticari'] else 'ticari değil'}")
         for c, b in ELEVEN_SESLERI.items():
             print(f"elevenlabs {b['ad']:10} {c:6} varsayılan ({b['id']})")
-        print("elevenlabs  --ses <voice_id>  (ELEVENLABS_API_KEY gerekir; anahtar varsa varsayılan sağlayıcı)")
+        print("elevenlabs  --ses <voice_id>  (ELEVENLABS_API_KEY gerekir; varsayılan değil, işe göre seçilir)")
         return 0
     veri = json.loads(Path(a.satirlar).read_text(encoding="utf-8"))
     try:
-        k = uret(veri["satirlar"], Path(a.cikti), a.saglayici, {"ses": a.ses, "dil": a.dil, "hiz": a.hiz, "ticari": not a.ticari_degil})
+        k = uret(veri["satirlar"], Path(a.cikti), a.saglayici, {"ses": a.ses, "dil": a.dil, "hiz": a.hiz, "ticari": not a.ticari_degil,
+                                                            "saglayici": veri.get("saglayici")})
     except SeslendirmeHatasi as e:
         print(f"HATA: {e}", file=sys.stderr)
         return 2

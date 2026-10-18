@@ -794,7 +794,8 @@ def seslendir(yol, cikti=None, saglayici='otomatik', ses=None):
         return None
     from pathlib import Path
     sec = s.get('seslendirme', {}).get('ses') if ses is None else ses
-    return seslendirme.uret(satirlar, Path(_ses_dizini(yol, s, cikti)), saglayici, {'ses': sec})
+    return seslendirme.uret(satirlar, Path(_ses_dizini(yol, s, cikti)), saglayici,
+                            {'ses': sec, 'saglayici': s.get('seslendirme', {}).get('saglayici')})
 
 
 def calistir(yol, cikti, boyutlar, olcek=1.0):

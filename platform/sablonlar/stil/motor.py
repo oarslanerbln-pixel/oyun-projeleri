@@ -27,6 +27,11 @@ VURUSLAR = [(0.30, 2.85), (3.15, 5.90), (6.15, 8.15), (8.35, 9.85)]
 VURUS_TOLERANS = 0.12  # senaryodaki satır başlangıcı vuruş anından en çok bu kadar sapabilir
 SES = [(b, f'v{i}') for i, (b, _) in enumerate(VURUSLAR)]  # yukle() kimlikleri senaryodakilerle değiştirir
 SAHNE = [0.0, 3.0, 6.0, 8.0, SURE]
+# Serbest süre (yalnız ESNEK_STILLER): senaryo `sure` 10–20 sn verirse seslendirme satırlarının `t` anları vuruş olur ve
+# gerçek zaman parça parça doğrusal bir haritayla şablon zamanına çevrilir (kare, müzik ve efekt olayları aynı haritadan).
+ESNEK_STILLER = {'kagit-kesik'}
+ESNEK_SURE = (10.0, 20.0)
+HARITA = [(0.0, 0.0), (SURE, SURE)]  # (gerçek an, şablon anı) çiftleri; varsayılan özdeşlik
 
 # ekran yazısı yuvaları: ad -> (varsayılan, azami karakter). Sınırlar yerleşimin taşmaması için.
 YUVALAR = {
@@ -35,6 +40,7 @@ YUVALAR = {
     'sayi': ('37x', 4),              # 2. vuruş büyük sayı            ← egri: (1+oran)^gun
     'sayi_alt': ('bir yıl sonra', 16),  #                              ← egri.alt (yoksa varsayılan)
     'sayac': (365, None),            # 2. vuruş sayaç sonu            ← egri.gun
+    'sayac_ust': ('GÜN', 8),         # 2. vuruş sayaç etiketi         ← egri.sayac
     'kucuk': ('küçük adım', 14),     # 3. vuruş                       ← karsitlik.kucuk
     'buyuk': ('büyük fark', 12),     #                                ← karsitlik.buyuk
     'cagri': ('Bugün başla.', 14),   # 4. vuruş                       ← kapanis.satirlar
@@ -101,6 +107,7 @@ def metin_cikar(s, stil):
             if 'gun' in sh: m['sayac'] = int(sh['gun'])
             if 'gun' in sh and 'oran' in sh: m['sayi'] = f"{int((1 + sh['oran']) ** sh['gun'])}x"
             if sh.get('alt'): m['sayi_alt'] = sh['alt']
+            if sh.get('sayac'): m['sayac_ust'] = sh['sayac']
         elif tur == 'karsitlik':
             if sh.get('kucuk'): m['kucuk'] = tr_kucuk(sh['kucuk'])
             if sh.get('buyuk'): m['buyuk'] = tr_kucuk(sh['buyuk'])
@@ -123,8 +130,14 @@ def denetle(s, stil, ses_dizini, render=True):
     hata, uyari = [], []
     if stil not in STILLER:
         hata.append(f'stil: "{stil}" bilinmiyor (geçerli: {", ".join(STILLER)}; kinetik için platform/sablonlar/kinetik)')
-    if s.get('sure', SURE) != SURE:
-        hata.append(f'sure: bu stiller {SURE:g} sn sabit biçimde (senaryo: {s.get("sure")})')
+    esnek = s.get('sure', SURE) != SURE
+    if esnek and stil not in ESNEK_STILLER:
+        hata.append(f'sure: bu stil {SURE:g} sn sabit biçimde (senaryo: {s.get("sure")}); serbest süre: {", ".join(sorted(ESNEK_STILLER))}')
+    elif esnek and not (ESNEK_SURE[0] <= s['sure'] <= ESNEK_SURE[1]):
+        hata.append(f'sure: {ESNEK_SURE[0]:g}–{ESNEK_SURE[1]:g} sn arası olmalı (senaryo: {s.get("sure")})')
+    g = s.get('stiller', {}).get(stil, {}).get('gorsel')
+    if g is not None and not (isinstance(g, dict) and g.get('dosya')):
+        hata.append(f'stiller.{stil}.gorsel: {{"dosya": "kapak.png", "genislik": 0.46}} biçiminde olmalı')
     m = metin_cikar(s, stil)
     for k in m:
         if k not in YUVALAR: hata.append(f"stiller.{stil}.metin.{k}: tanımsız yuva (geçerli: {', '.join(YUVALAR)})")
@@ -140,6 +153,8 @@ def denetle(s, stil, ses_dizini, render=True):
         hata.append(f'seslendirme.satirlar: {len(VURUSLAR)} satır gerekli (her vuruşa bir), {len(satirlar)} var')
         return hata, uyari
     sureler = sureler_oku(ses_dizini)
+    if esnek and not hata:
+        return hata + _esnek_denetle(s, satirlar, sureler, ses_dizini, render), uyari
     for i, (x, (bas, son)) in enumerate(zip(satirlar, VURUSLAR)):
         if abs(x.get('t', bas) - bas) > VURUS_TOLERANS:
             hata.append(f'{x["id"]}: t={x.get("t")} ama {i + 1}. vuruş {bas} sn\'de (bu stilde vuruş anları sabit)')
@@ -155,12 +170,59 @@ def denetle(s, stil, ses_dizini, render=True):
     return hata, uyari
 
 
-def kur(s, stil, ses_dizini):
-    """Motor durumunu (METIN, STIL_AYAR, SES, SES_DIZINI) senaryoya göre yerinde kurar."""
+def _esnek_denetle(s, satirlar, sureler, ses_dizini, render):
+    """Serbest süre: satırlar sırayla, her biri bir sonrakinden (son satır videonun bitiminden) önce bitmeli; vuruşlar arası
+    şablondakinden kısa olamaz (yalnız uzatılır, en çok 2,5 kat)."""
+    hata, sure = [], s['sure']
+    anlar = [x.get('t') for x in satirlar]
+    if not all(isinstance(t, (int, float)) for t in anlar):
+        return ['seslendirme.satirlar: serbest sürede her satırın `t` anı gerekli']
+    gercek = [0.0] + anlar + [sure]
+    sablon = [0.0] + [b for b, _ in VURUSLAR] + [SURE]
+    for i in range(1, len(gercek)):
+        oran = (gercek[i] - gercek[i - 1]) / (sablon[i] - sablon[i - 1])
+        if not 1.0 - 1e-6 <= oran <= 2.5:
+            hata.append(f'serbest süre: {gercek[i - 1]:g}–{gercek[i]:g} sn aralığı şablonun {oran:.2f} katı (1–2,5 olmalı)')
+    for i, x in enumerate(satirlar):
+        d = sureler.get(x['id'])
+        if d is None:
+            if render: hata.append(f'{x["id"]}: seslendirme yok ({ses_dizini}); önce `seslendir` çalıştırın')
+            continue
+        if not os.path.exists(os.path.join(ses_dizini, x['id'] + '.wav')): hata.append(f'{x["id"]}.wav yok')
+        son = anlar[i + 1] if i + 1 < len(anlar) else sure - 0.15
+        if x['t'] + d > son:
+            hata.append(f'{x["id"]}: {d:.2f} sn, {x["t"]:g} sn\'de başlıyor ve {son:g} sn\'ye sığmıyor')
+    return hata
+
+
+def _ara(t, a, b):
+    """HARITA üzerinde a sütunundan b sütununa parça parça doğrusal çeviri (uçlardan dışarı taşmaz)."""
+    if t <= HARITA[0][a]: return HARITA[0][b] + (t - HARITA[0][a])
+    for p, q in zip(HARITA, HARITA[1:]):
+        if t <= q[a]:
+            return p[b] + (q[b] - p[b]) * (t - p[a]) / max(q[a] - p[a], 1e-9)
+    return HARITA[-1][b] + (t - HARITA[-1][a])
+
+
+def sablon_an(t): return _ara(t, 0, 1)
+def gercek_an(t): return _ara(t, 1, 0)
+def gercek_sure(): return HARITA[-1][0]
+
+
+def kur(s, stil, ses_dizini, senaryo_dizini=None):
+    """Motor durumunu (METIN, STIL_AYAR, SES, SES_DIZINI, HARITA) senaryoya göre yerinde kurar."""
     global SES_DIZINI
     METIN.clear(); METIN.update({k: v for k, (v, _) in YUVALAR.items()}); METIN.update(metin_cikar(s, stil))
     STIL_AYAR.clear(); STIL_AYAR.update({k: v for k, v in s.get('stiller', {}).get(stil, {}).items() if k != 'metin'})
-    SES[:] = [(b, x['id']) for (b, _), x in zip(VURUSLAR, s['seslendirme']['satirlar'])]
+    if isinstance(STIL_AYAR.get('gorsel'), dict) and senaryo_dizini:  # görsel yolu senaryoya göredir
+        STIL_AYAR['gorsel'] = dict(STIL_AYAR['gorsel'], dosya=os.path.join(senaryo_dizini, STIL_AYAR['gorsel']['dosya']))
+    satirlar = s['seslendirme']['satirlar']
+    if stil in ESNEK_STILLER and s.get('sure', SURE) != SURE:
+        HARITA[:] = [(0.0, 0.0)] + [(x['t'], b) for x, (b, _) in zip(satirlar, VURUSLAR)] + [(float(s['sure']), SURE)]
+        SES[:] = [(x['t'], x['id']) for x in satirlar]
+    else:
+        HARITA[:] = [(0.0, 0.0), (SURE, SURE)]
+        SES[:] = [(b, x['id']) for (b, _), x in zip(VURUSLAR, satirlar)]
     SES_DIZINI = str(ses_dizini)
 
 
@@ -183,7 +245,8 @@ def mtof(m): return 440 * 2 ** ((m - 69) / 12)
 
 
 def ekle(buf, t0, x, gain=1.0, pan=0.0):
-    n = len(buf); i = int(t0 * SR)
+    """t0 şablon anıdır; serbest sürede gerçek ana HARITA ile çevrilir."""
+    n = len(buf); i = int(gercek_an(t0) * SR)
     if i >= n or i < 0: return
     x = x[: n - i]
     l, r = math.cos((pan + 1) * math.pi / 4), math.sin((pan + 1) * math.pi / 4)
@@ -228,7 +291,7 @@ def _oku(yol):
 def miks(cikti, muzik, sfx, muzik_alti_db=8.0, sfx_db=-4.0):
     """Seslendirme + müzik (konuşmanın ~8 dB altında, konuşurken ek kısma) + efektler -> ses.wav"""
     import soundfile as sf
-    n = int(SR * SURE)
+    n = int(SR * gercek_sure())
     vo = np.zeros((n, 2)); maske = np.zeros(n)
     for t0, vid in SES:
         x = _oku(os.path.join(SES_DIZINI, vid + '.wav'))
@@ -273,10 +336,10 @@ def video(kare, yol, W, H, n_kare=None):
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', pf, '-s', f'{W}x{H}', '-r', str(FPS),
                            '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', yol],
                           stdin=subprocess.PIPE)
-    for i in range(n_kare or int(FPS * SURE)):
+    for i in range(n_kare or int(FPS * gercek_sure())):
         with surf as cv:
             cv.clear(0xFF000000)
-            kare(cv, i / FPS, W, H)
+            kare(cv, sablon_an(i / FPS), W, H)
         ff.stdin.write(surf.makeImageSnapshot().tobytes())
     ff.stdin.close()
     if ff.wait():
@@ -300,7 +363,7 @@ def calistir(ad, stil, cikti, boyutlar=('9x16', '16x9'), olcek=1.0):
     """stil: kare/muzik/sfx/AYAR taşıyan modül. Çıktı: <ad>-<boyut>.mp4 ve <ad>-kapak.png; ara dosyalar cikti/is/"""
     is_ = os.path.join(cikti, 'is')
     os.makedirs(is_, exist_ok=True)
-    n = int(SR * SURE)
+    n = int(SR * gercek_sure())
     ayar = getattr(stil, 'AYAR', {})
     miks(is_, stil.muzik(n), stil.sfx(n), sfx_db=ayar.get('sfx_db', -4.0))
     ses = ses_bitir(is_)

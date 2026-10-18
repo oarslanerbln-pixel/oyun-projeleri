@@ -84,6 +84,28 @@ class TestDenetim(Tmp):
         self.assertTrue(any('v1: t=3.6' in h for h in hata), hata)
         self.assertTrue(any(h.startswith('sure:') for h in hata), hata)
 
+    def test_kagit_kesik_serbest_sure_ve_harita(self):
+        yol = senaryo_kur(self.kok, sureler=dict(SURELER, v1=3.5), sure=15)
+        s = oku(yol)
+        for x, t in zip(s['seslendirme']['satirlar'], (0.3, 4.0, 8.0, 11.0)): x['t'] = t
+        sd = str(self.kok / 'cikti' / 'seslendirme')
+        self.assertEqual(motor.denetle(s, 'kagit-kesik', sd)[0], [])
+        self.assertTrue(any('v1:' in h for h in motor.denetle(dict(s, sure=15) | {'seslendirme': {'satirlar': [
+            dict(x, t=t) for x, t in zip(s['seslendirme']['satirlar'], (0.3, 4.0, 7.0, 11.0))]}}, 'kagit-kesik', sd)[0]))
+        try:
+            motor.kur(s, 'kagit-kesik', sd)
+            self.assertAlmostEqual(motor.gercek_sure(), 15)
+            self.assertAlmostEqual(motor.sablon_an(4.0), 3.15)
+            self.assertAlmostEqual(motor.gercek_an(motor.sablon_an(9.3)), 9.3)
+            self.assertEqual(motor.SES[1], (4.0, 'v1'))
+        finally:
+            motor.kur(oku(senaryo_kur(self.kok)), 'kagit-kesik', sd)
+        self.assertAlmostEqual(motor.gercek_sure(), motor.SURE)
+
+    def test_sayac_etiketi_egriden(self):
+        s = oku(senaryo_kur(self.kok)); s['sahneler'][2]['sayac'] = 'HOTELS'
+        self.assertEqual(motor.metin_cikar(s, 'kagit-kesik')['sayac_ust'], 'HOTELS')
+
     def test_metin_siniri_ve_tanimsiz_yuva(self):
         yol = senaryo_kur(self.kok, stiller={'kagit-kesik': {'metin': {'cagri': 'x' * 30, 'baslik': 'a'}}})
         hata, _ = self._denetle(yol)
@@ -99,7 +121,7 @@ class TestDenetim(Tmp):
         yol = str(senaryo_kur(self.kok))
         self.assertEqual(stil.main(['denetle', yol, '--stil', 'izometrik']), 0)
         self.assertEqual(stil.main(['denetle', yol]), 1)  # stil yok
-        self.assertEqual(stil.main(['denetle', str(senaryo_kur(self.kok, stil='kagit-kesik', sure=12))]), 1)
+        self.assertEqual(stil.main(['denetle', str(senaryo_kur(self.kok, stil='izometrik', sure=12))]), 1)
 
     def test_piksel_yazilari(self):
         """Piksel fontu büyük harf yazar; sayıdaki 'x' küçük kalır, uzun yazı ekrana sığana kadar küçülür."""

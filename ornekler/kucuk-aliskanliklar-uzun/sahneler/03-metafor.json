@@ -1,0 +1,23 @@
+{
+  "stil": "karakalem",
+  "kimlik": "metafor",
+  "sure": 12.5,
+  "palet": {"kagit": "#F7F4EC", "grafit": "#34343A", "vurgu": "#E0703E"},
+  "karakter": {"ad": "Mert", "sac": "daginik", "sac_rengi": "#4A4A52", "gozluk": true, "ten": "#F3EEE4", "kazak": "#D8D5CE", "pantolon": "#4A4A52"},
+  "muzik": {"bpm": 100},
+  "seslendirme": {
+    "vurgulu": ["altmış", "altı", "gün"],
+    "satirlar": [
+      {"id": "v0", "t": 0.5, "metin": "Büyük hedefler göz korkutur."},
+      {"id": "v1", "t": 3.1, "metin": "Ama tek yapman gereken, bugünün basamağı."},
+      {"id": "v2", "t": 7.0, "metin": "Altmış altı gün sonra, artık düşünmeden çıkarsın."}
+    ]
+  },
+  "sahneler": [
+    {"tur": "hedef", "bas": 0},
+    {"tur": "adimlar", "bas": 3.0, "adet": 5, "buyume": 1.62, "etiket": "+%1"},
+    {"tur": "sonuc", "bas": 6.6,
+     "damga": {"metin": "66 gün", "alt": "otomatik", "t": 8.4},
+     "baslik": {"metin": "Bir basamak, her gün", "t": 9.0}}
+  ]
+}

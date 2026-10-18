@@ -33,8 +33,11 @@ KOMUTLAR = {
     "tek-cizgi": "tek_cizgi/tek_cizgi.py",
     "minyatur": "minyatur/minyatur.py",
     "kolaj": "kolaj/kolaj.py",
+    "analiz": "analiz/analiz.py",
+    "karakalem": "karakalem/karakalem.py",
+    "kurgu": "kurgu/kurgu.py",
 }
-IKI_NOKTALI = {"minyatur"}  # format seçeneklerini "9:16" yazımıyla bekleyenler
+IKI_NOKTALI = {"minyatur", "analiz"}  # format seçeneklerini "9:16" yazımıyla bekleyenler
 VARSAYILAN_ANLAR = (0.15, 0.5, 0.85)  # süreye oranla
 
 
@@ -78,7 +81,9 @@ def anlar_bul(senaryo: dict, istek: list[float] | None) -> list[float]:
     return [1.0, 5.0, 9.0]
 
 
-def onizle(girdiler: list[str], hedef: Path, anlar: list[float] | None = None, fmt: str = "9x16") -> dict:
+def onizle(girdiler: list[str], hedef: Path, anlar: list[float] | None = None, fmt: str = "9x16",
+           girdi_anlari: list[list[float]] | None = None) -> dict:
+    """`girdi_anlari` verilirse her senaryo kendi anlarında çizilir (ör. kurgunun her sahnesi)."""
     import numpy as np
     from PIL import Image
     fmt = anahtar(fmt)
@@ -90,7 +95,7 @@ def onizle(girdiler: list[str], hedef: Path, anlar: list[float] | None = None, f
             yol = Path(yol)
             s = json.loads(yol.read_text(encoding="utf-8"))
             ad = sablon_bul(s, yol, ad or None)
-            an = anlar_bul(s, anlar)
+            an = girdi_anlari[i] if girdi_anlari else anlar_bul(s, anlar)
             sutun = max(sutun, len(an))
             r = subprocess.run(komut(ad, yol, an, fmt, Path(tmp) / str(i)), capture_output=True, text=True)
             pngler = [Path(x.strip()) for x in r.stdout.splitlines() if x.strip().endswith(".png")]

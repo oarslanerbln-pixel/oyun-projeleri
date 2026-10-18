@@ -50,7 +50,10 @@ def senaryolar(kok: Path) -> list[tuple[Path, dict]]:
             continue
         if isinstance(s, dict) and ("sahneler" in s or "seslendirme" in s or "stil" in s):
             out.append((p, s))
-    return out
+    # kurgunun sahne dosyaları ayrı ayrı üretilmez; kurgu.json'un satırı yeter
+    sahne = {(p.parent / x["senaryo"]).resolve() for p, s in out for x in s.get("sahneler", [])
+             if isinstance(x, dict) and isinstance(x.get("senaryo"), str)}
+    return [(p, s) for p, s in out if p.resolve() not in sahne]
 
 
 def yeniden_uret(yol: Path, s: dict) -> str:

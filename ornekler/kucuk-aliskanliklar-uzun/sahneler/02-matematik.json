@@ -1,0 +1,39 @@
+{
+  "stil": "analiz",
+  "kimlik": "matematik",
+  "sure": 31,
+  "tema": "acik",
+  "palet": {"vurgu": "#D9622B"},
+  "seri": "Küçük alışkanlıklar",
+  "konu": "Yüzde birin gücü",
+  "tarih": "Ekim 2026",
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.8, "metin": "Önce matematiğe bakalım."},
+    {"id": "v1", "t": 4.6, "metin": "Her gün yüzde bir daha iyi olursan, bu küçük adımlar birbirinin üstüne eklenir."},
+    {"id": "v2", "t": 9.6, "metin": "Bir yılın sonunda, başladığın yerin otuz yedi katındasın."},
+    {"id": "v3", "t": 15.0, "metin": "Ama aynı küçük adım ters yöne de işler. Her gün yüzde bir geri gidersen, bir yıl sonra neredeyse hiçbir şey kalmaz."},
+    {"id": "v4", "t": 23.0, "metin": "Peki bir alışkanlık ne zaman oturur? Bir araştırmaya göre ortalama altmış altı gün."}
+  ]},
+  "sahneler": [
+    {"tur": "baslik", "bas": 0, "ust": "Bölüm 1 · Matematik", "baslik": "Yüzde birin\nmatematiği",
+     "alt": "Her gün biraz daha iyi: bir yılda ne değişir?"},
+    {"tur": "cizgi", "bas": 4.2, "baslik": "Her gün %1 daha iyi", "alt": "Başlangıca göre kat (1,01 üzeri gün sayısı)",
+     "basamak": 1, "cizim_t": 5.0, "cizim_sure": 6.0, "kaynak": "Hesaplama: 1,01^gün (bileşik büyüme)",
+     "noktalar": [
+       {"etiket": "0. gün", "deger": 1.0}, {"etiket": "60", "deger": 1.82}, {"etiket": "120", "deger": 3.3},
+       {"etiket": "180", "deger": 6.0}, {"etiket": "240", "deger": 10.89}, {"etiket": "300", "deger": 19.79},
+       {"etiket": "365. gün", "deger": 37.78}
+     ]},
+    {"tur": "karsilastirma", "bas": 14.6, "baslik": "Aynı %1, iki yön", "alt": "365 gün sonra, başlangıca göre kat",
+     "basamak": 2, "kaynak": "Hesaplama: 1,01^365 ≈ 37,78 · 0,99^365 ≈ 0,03",
+     "sol": {"etiket": "Her gün %1 daha iyi", "deger": 37.78, "t": 16.0},
+     "sag": {"etiket": "Her gün %1 daha kötü", "deger": 0.03, "t": 19.0}},
+    {"tur": "sayac", "bas": 22.6, "baslik": "Alışkanlık ne zaman oturur?", "alt": "Yeni bir davranışın otomatikleşmesi için geçen süre",
+     "kaynak": "Lally ve ark., European Journal of Social Psychology, 2010 (96 katılımcı)",
+     "kartlar": [
+       {"etiket": "Ortanca", "deger": 66, "birim": "gün", "vurgu": true, "t": 26.4, "not": "yarısı daha kısa, yarısı daha uzun"},
+       {"etiket": "En kısa", "deger": 18, "birim": "gün", "t": 27.6},
+       {"etiket": "En uzun", "deger": 254, "birim": "gün", "t": 28.2}
+     ]}
+  ]
+}

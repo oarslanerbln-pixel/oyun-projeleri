@@ -1,0 +1,19 @@
+{
+  "stil": "kinetik",
+  "kimlik": "acilis",
+  "sure": 11.5,
+  "palet": {"zemin": "#15122E", "vurgu": "#FFD23F", "ikinci": "#E2611A", "ucuncu": "#3DDC97", "acik": "#FFF8E7"},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.4, "metin": "Her gün, sadece yüzde bir daha iyi olsan ne olur?"},
+    {"id": "v1", "t": 4.7, "metin": "Küçük görünür. Ama bir yılda, sandığından çok daha büyük bir fark yaratır."},
+    {"id": "v2", "t": 9.5, "metin": "Gel, birlikte bakalım."}
+  ]},
+  "sahneler": [
+    {"tur": "kelimeler", "bas": 0, "kelimeler": [{"metin": "HER", "t": 0.45}, {"metin": "GÜN", "t": 0.75, "renk": "vurgu"}]},
+    {"tur": "buyuk-sayi", "bas": 1.9, "gecis": "iris", "ust": "SADECE", "ust_t": 1.95, "sayi": "%1", "sayi_t": 2.25,
+     "etiket": "DAHA İYİ", "etiket_t": 2.8},
+    {"tur": "karsitlik", "bas": 4.6, "gecis": "diyagonal", "kucuk": "KÜÇÜK ADIM", "kucuk_t": 4.8, "panel_t": 6.6,
+     "buyuk": "BÜYÜK FARK", "buyuk_t": 6.9},
+    {"tur": "kelimeler", "bas": 9.3, "gecis": "iris", "kelimeler": [{"metin": "GEL,", "t": 9.5}, {"metin": "BAKALIM", "t": 9.9, "renk": "ikinci"}]}
+  ]
+}

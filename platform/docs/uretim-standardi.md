@@ -30,6 +30,8 @@ Stüdyoda her videonun aynı yoldan geçmesi için çalışma kuralları. Amaç 
 python3 platform/ortak/onizleme.py kolaj=is/kolaj.json origami=is/origami.json -o is/onizleme.png
 # 5–6. adım: render; kalite kapısı kendiliğinden çalışır
 python3 platform/sablonlar/stil/stil.py uret is/senaryo.json --stil <ad> --format 9:16
+# uzun video: birden çok şablonun sahneleri tek videoda (önizleme → seslendirme → render, aynı kurallar)
+python3 platform/sablonlar/kurgu/kurgu.py onizle is/kurgu.json && python3 platform/sablonlar/kurgu/kurgu.py uret is/kurgu.json
 # 7. adım: devir özeti (her teslimde güncellenir; önceki notlar korunur)
 python3 platform/ortak/devir.py /mnt/project-files/<müşteri> --not "Atilla tabağın büyük görünmesini istedi"
 ```

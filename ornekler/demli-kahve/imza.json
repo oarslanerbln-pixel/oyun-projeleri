@@ -1,0 +1,7 @@
+{
+  "kimlik": "demli-kahve",
+  "stil": "bumper",
+  "sure": 3,
+  "marka": "ornekler/demli-kahve/marka/marka.json",
+  "bumper": { "varyant": "imza", "alt": "Kahve" }
+}

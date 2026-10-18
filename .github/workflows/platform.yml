@@ -96,6 +96,13 @@ jobs:
           for p in ornekler/*/tek-cizgi.json; do
             python platform/sablonlar/tek_cizgi/tek_cizgi.py denetle "$p" -o "$RUNNER_TEMP/tek-cizgi"
           done
+      - name: Karakalem şablonu (testler ve senaryo denetimi)
+        run: |
+          python platform/sablonlar/karakalem/karakalem.py fontlar
+          python -m unittest discover -s platform/sablonlar/karakalem/testler -v
+          for p in ornekler/*/karakalem.json; do
+            python platform/sablonlar/karakalem/karakalem.py denetle "$p" -o "$RUNNER_TEMP/karakalem"
+          done
       - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
         run: |
           for p in ornekler/*/proje.json; do

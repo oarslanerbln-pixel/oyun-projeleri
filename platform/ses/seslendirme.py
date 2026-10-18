@@ -38,8 +38,9 @@ PIPER_SESLERI = {
     "fettah": {"dil": "tr", "kod": "tr_TR", "lisans": "CC0", "ticari": True},
     "dfki": {"dil": "tr", "kod": "tr_TR", "lisans": "CC BY-NC-SA 4.0", "ticari": False},
     "thorsten": {"dil": "de", "kod": "de_DE", "lisans": "CC0", "ticari": True},
+    "kerstin": {"dil": "de", "kod": "de_DE", "lisans": "CC0", "ticari": True, "kalite": "low"},  # kadın sesi; yalnız low var
 }
-PIPER_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-{kod}-{ses}-medium.tar.bz2"
+PIPER_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-{kod}-{ses}-{kalite}.tar.bz2"
 PIPER_ONBELLEK = Path(os.environ.get("PIPER_SES_DIZINI", Path.home() / ".cache" / "studyo" / "piper"))
 
 ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}?output_format=pcm_44100"
@@ -87,12 +88,12 @@ def piper(metin: str, ayar: dict) -> tuple[bytes, int]:
 
 
 def piper_indir(ses: str) -> Path:
-    kod = PIPER_SESLERI[ses]["kod"]
-    hedef = PIPER_ONBELLEK / f"vits-piper-{kod}-{ses}-medium"
+    kod, kalite = PIPER_SESLERI[ses]["kod"], PIPER_SESLERI[ses].get("kalite", "medium")
+    hedef = PIPER_ONBELLEK / f"vits-piper-{kod}-{ses}-{kalite}"
     if any(hedef.glob("*.onnx")):
         return hedef
     PIPER_ONBELLEK.mkdir(parents=True, exist_ok=True)
-    url = PIPER_URL.format(kod=kod, ses=ses)
+    url = PIPER_URL.format(kod=kod, ses=ses, kalite=kalite)
     try:
         with urllib.request.urlopen(url, timeout=300) as r:
             veri = r.read()

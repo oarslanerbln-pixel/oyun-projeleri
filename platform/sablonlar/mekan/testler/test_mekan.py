@@ -66,6 +66,10 @@ class TestDenetim(Tmp):
         hata, _ = mekan.denetle(self.senaryo(sahneler=[{'tur': 'urun', 'sure': 6, 'foto': 'foto.png', 'baslik': 'x' * 40}]))
         self.assertTrue(any('baslik' in h for h in hata))
 
+    def test_bilinmeyen_tema(self):
+        hata, _ = mekan.denetle(self.senaryo(tema='neon'))
+        self.assertTrue(any('tema' in h for h in hata))
+
     def test_tv_seslendirme_yok(self):
         hata, _ = mekan.denetle(self.senaryo(seslendirme={'satirlar': [{'id': 'v0', 't': 0, 'metin': 'Hallo'}]}))
         self.assertTrue(any('seslendirme' in h for h in hata))
@@ -93,6 +97,9 @@ class TestCizim(Tmp):
             with surf as cv:
                 mekan.kare(cv, t, 192, 108, g)
             return np.asarray(surf.makeImageSnapshot().toarray(), dtype=int)
+        self.assertEqual(int(np.abs(ciz(0.0) - ciz(g.sure)).max()), 0)
+        g.acik_tema = True
+        g.tz, g.ty, g.tvv = g.acik, g.koyu_yazi, g.logo_renk
         self.assertEqual(int(np.abs(ciz(0.0) - ciz(g.sure)).max()), 0)
         self.assertLess(np.abs(ciz(g.sure - 1 / 30) - ciz(0.0)).mean(), 2.0)
 

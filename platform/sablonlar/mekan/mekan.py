@@ -31,7 +31,7 @@ out_cubic, in_out = motor.out_cubic, motor.in_out_cubic
 
 VARYANTLAR = ('tv', 'reel')
 TURLER = {  # sahne türü -> izinli alanlar
-    'marka': {'tur', 'sure', 'foto', 'odak', 'ust', 'baslik', 'alt'},
+    'marka': {'tur', 'sure', 'foto', 'odak', 'logo', 'ust', 'baslik', 'alt'},
     'urun': {'tur', 'sure', 'foto', 'odak', 'ust', 'baslik', 'alt'},
     'uclu': {'tur', 'sure', 'fotolar', 'baslik'},
     'bilgi': {'tur', 'sure', 'foto', 'odak', 'ust', 'baslik', 'satirlar', 'alt'},
@@ -80,6 +80,8 @@ def denetle(yol, render=False, cikti=None):
     v = varyant(s)
     if v not in VARYANTLAR:
         return hata + [f'varyant: "{v}" bilinmiyor (geçerli: {", ".join(VARYANTLAR)})'], uyari
+    if s.get('tema', 'koyu') not in ('koyu', 'acik'):
+        hata.append(f'tema: "{s.get("tema")}" bilinmiyor (koyu ya da acik)')
     sahneler = s.get('sahneler', [])
     if not sahneler:
         hata.append('sahneler: en az bir sahne gerekli')
@@ -165,6 +167,10 @@ class Gorunum:
         self.acik = bul('zemin')                  # marka kartı zemini
         self.koyu_yazi = bul('metin')
         self.logo_renk = bul('logo', 'ana', 'metin')
+        # TV teması: koyu (varsayılan, loş mekân) ya da açık (krem zemin, koyu yazı, logo yeşili vurgu)
+        self.acik_tema = s.get('tema', 'koyu') == 'acik'
+        self.tz, self.ty, self.tvv = ((self.acik, self.koyu_yazi, self.logo_renk) if self.acik_tema
+                                      else (self.zemin, self.yazi, self.vurgu))
         # büyük harf dile göre: Türkçede i → İ, Almancada ß → SS (senaryo "dil", varsayılan tr)
         self.buyuk = motor.tr_buyuk if s.get('dil', 'tr') == 'tr' else str.upper
         self.egri = bumper.bezier(m.hareket.get('egri', [0.2, 0, 0, 1]))
@@ -275,8 +281,10 @@ def _satirla(tf, s, boy, genislik):
     return satirlar + ([cur] if cur else [])
 
 
-def foto_ciz(cv, g, f, rect, odak=(0.5, 0.5), zoom=1.0, kay=(0.0, 0.0), alfa=1.0):
-    """Fotoğrafı rect'i dolduracak şekilde (cover) odak noktasına göre kırpıp çizer; zoom/kay Ken Burns için."""
+def foto_ciz(cv, g, f, rect, odak=(0.5, 0.5), zoom=1.0, kay=(0.0, 0.0), alfa=1.0, logo=None):
+    """Fotoğrafı rect'i dolduracak şekilde (cover) odak noktasına göre kırpıp çizer; zoom/kay Ken Burns için.
+    logo=[x, y, h] (fotoğrafa oranla): logo fotoğrafla birlikte hareket eder. Düşük çözünürlüklü bir marka
+    görselindeki logo silinip yerine keskin logo çizilir; fotoğraf büyüse de logo net kalır."""
     import skia
     img = g.resimler[f]
     x0, y0, x1, y1 = rect
@@ -290,6 +298,8 @@ def foto_ciz(cv, g, f, rect, odak=(0.5, 0.5), zoom=1.0, kay=(0.0, 0.0), alfa=1.0
     cv.clipRect(skia.Rect(x0, y0, x1, y1), doAntiAlias=True)
     p = skia.Paint(AntiAlias=True); p.setAlphaf(alfa)
     cv.drawImageRect(img, skia.Rect(x0 + ox, y0 + oy, x0 + ox + iw, y0 + oy + ih), g.ornek, p)
+    if logo:
+        logo_ciz(cv, g, x0 + ox + logo[0] * iw, y0 + oy + logo[1] * ih, logo[2] * ih, g.logo_renk, alfa)
     cv.restore()
 
 
@@ -316,25 +326,8 @@ def _alan(W, H):
 
 # ---------- TV ----------
 def _tv_zemin(cv, t, W, H, g):
-    """Koyu marka zemini, çok yavaş nefes alan sıcak ışık ve süzülen yumuşak ışık noktaları (döngüyle periyodik)."""
-    import skia
-    L = g.sure
-    cv.clear(_argb(g.zemin))
-    w = 2 * math.pi * t / L
-    cx, cy = W * (0.5 + 0.08 * math.sin(w)), H * (0.45 + 0.05 * math.cos(w))
-    isik = skia.GradientShader.MakeRadial((cx, cy), max(W, H) * 0.75,
-                                          [_argb(g.vurgu, 0.10 + 0.03 * math.sin(2 * w)), _argb(g.vurgu, 0.0)])
-    cv.drawPaint(skia.Paint(Shader=isik))
-    u = min(W, H) / 1080
-    rng = np.random.default_rng(7)
-    for i in range(14):  # her nokta döngüde tam sayıda tur atar → kesintisiz
-        bx, by, r, faz = rng.random(), rng.random(), rng.uniform(30, 110), rng.random() * 6.28
-        k = 1 + i % 2
-        x = W * ((bx + 0.04 * math.sin(k * w + faz)) % 1.0)
-        y = H * ((by - k * t / L) % 1.0)
-        a = 0.035 + 0.025 * math.sin(k * w + faz)
-        sh = skia.GradientShader.MakeRadial((x, y), r * u, [_argb(g.vurgu, a), _argb(g.vurgu, 0)])
-        cv.drawCircle(x, y, r * u, skia.Paint(AntiAlias=True, Shader=sh))
+    """Düz marka zemini. Yumuşak radyal ışık 8 bit videoda dairesel basamaklar (banding) yapar; yazının arkası temiz kalır."""
+    cv.clear(_argb(g.tz))
 
 
 def _tv_metin_gir(lt, d, gecis, sira):
@@ -368,24 +361,35 @@ def _tv_sahne(cv, t, lt, W, H, g, i):
         else:
             rect = (0, 0, W, H * 0.56)
             yazi_alani = (W * 0.08, W * 0.92)
-        # paneli zemine yumuşak kenarla karıştır
-        cv.saveLayer(None)
         zoom = lerp(1.04, 1.13, kb) if i % 2 else lerp(1.13, 1.04, kb)
-        foto_ciz(cv, g, foto, rect, sh.get('odak', (0.5, 0.5)), zoom, (0, lerp(0.015, -0.015, kb)))
-        if tur == 'marka':  # açık marka görseli loş mekânda parlamasın
-            cv.drawRect(skia.Rect(*rect), skia.Paint(Color=_argb(g.zemin, 0.22)))
-        tuy = 220 * u
-        if yatay:
-            ic = rect[0] if sag else rect[2]
-            dis = ic + (tuy if sag else -tuy)
-            mask = skia.GradientShader.MakeLinear([(ic, 0), (dis, 0)], [0x00000000, 0xFF000000])
+        if g.acik_tema:  # açık tema: fotoğraf yumuşak gölgeli, köşeleri yuvarlak bir kartta
+            m = 70 * u
+            r = skia.Rect(rect[0] + m * (0.5 if sag else 1.0), rect[1] + m, rect[2] - m * (1.0 if sag else 0.5), rect[3] - m)
+            rr = skia.RRect.MakeRectXY(r, 28 * u, 28 * u)
+            cv.drawRRect(rr, skia.Paint(AntiAlias=True, Color=_argb(g.tz),
+                                        ImageFilter=skia.ImageFilters.DropShadow(0, 18 * u, 40 * u, 40 * u, _argb('#3a2a10', 0.22))))
+            cv.save(); cv.clipRRect(rr, doAntiAlias=True)
+            foto_ciz(cv, g, foto, (r.left(), r.top(), r.right(), r.bottom()), sh.get('odak', (0.5, 0.5)), zoom, (0, lerp(0.015, -0.015, kb)),
+                     logo=sh.get('logo'))
+            cv.restore()
         else:
-            mask = skia.GradientShader.MakeLinear([(0, rect[3]), (0, rect[3] - tuy)], [0x00000000, 0xFF000000])
-        cv.drawRect(skia.Rect(*rect), skia.Paint(Shader=mask, BlendMode=skia.BlendMode.kDstIn))
-        cv.restore()
+            # paneli zemine yumuşak kenarla karıştır
+            cv.saveLayer(None)
+            foto_ciz(cv, g, foto, rect, sh.get('odak', (0.5, 0.5)), zoom, (0, lerp(0.015, -0.015, kb)), logo=sh.get('logo'))
+            if tur == 'marka':  # açık marka görseli loş mekânda parlamasın
+                cv.drawRect(skia.Rect(*rect), skia.Paint(Color=_argb(g.tz, 0.22)))
+            tuy = 220 * u
+            if yatay:
+                ic = rect[0] if sag else rect[2]
+                dis = ic + (tuy if sag else -tuy)
+                mask = skia.GradientShader.MakeLinear([(ic, 0), (dis, 0)], [0x00000000, 0xFF000000])
+            else:
+                mask = skia.GradientShader.MakeLinear([(0, rect[3]), (0, rect[3] - tuy)], [0x00000000, 0xFF000000])
+            cv.drawRect(skia.Rect(*rect), skia.Paint(Shader=mask, BlendMode=skia.BlendMode.kDstIn))
+            cv.restore()
     elif foto:  # bilgi sahnesi: fotoğraf tüm ekranda, çok koyu ve bulanık
         img = g.bulanik(foto, W, H)
-        p = skia.Paint(); p.setAlphaf(0.24)
+        p = skia.Paint(); p.setAlphaf(0.0 if g.acik_tema else 0.24)
         cv.drawImage(img, 0, 0, skia.SamplingOptions(), p)
 
     if tur == 'bilgi':
@@ -403,12 +407,12 @@ def _tv_sahne(cv, t, lt, W, H, g, i):
     sira = 0
     if tur == 'marka' and not foto:  # fotoğraf varsa logo zaten görselde
         a, dy = _tv_metin_gir(lt, d, gecis, 0)
-        logo_ciz(cv, g, (x0 + x1) / 2 if not yatay else x0 + 120 * u, y + 20 * u + dy * 30 * u, 210 * u, g.yazi, a)
+        logo_ciz(cv, g, (x0 + x1) / 2 if not yatay else x0 + 120 * u, y + 20 * u + dy * 30 * u, 210 * u, g.ty, a)
         y += 230 * u; sira = 1
     if sh.get('ust'):
         a, dy = _tv_metin_gir(lt, d, gecis, sira)
         boy = _sigdir(g.tf_govde_kalin, g.buyuk(sh['ust']), 30 * u, genis, 0.22)
-        _yaz(cv, g.tf_govde_kalin, g.buyuk(sh['ust']), boy, x0, y + dy * 30 * u, g.vurgu, a, aralik=0.22)
+        _yaz(cv, g.tf_govde_kalin, g.buyuk(sh['ust']), boy, x0, y + dy * 30 * u, g.tvv, a, aralik=0.22)
         y += 92 * u; sira += 1
     if sh.get('baslik'):
         a, dy = _tv_metin_gir(lt, d, gecis, sira)
@@ -417,21 +421,21 @@ def _tv_sahne(cv, t, lt, W, H, g, i):
         if len(satirlar) > 2:
             boy = _sigdir(g.tf_baslik, sh['baslik'], boy, genis * 2); satirlar = _satirla(g.tf_baslik, sh['baslik'], boy, genis)
         for k, sat in enumerate(satirlar):
-            _yaz(cv, g.tf_baslik, sat, boy, x0, y + k * boy * 1.02 + dy * 34 * u, g.yazi, a)
+            _yaz(cv, g.tf_baslik, sat, boy, x0, y + k * boy * 1.02 + dy * 34 * u, g.ty, a)
         y += boy * 1.02 * (len(satirlar) - 1) + 46 * u
         # ince vurgu çizgisi soldan çizilir
         q = g.egri(prog(lt, 0.9 + 0.35 * sira, 1.2)) * (1 - in_out(prog(lt, d - gecis - 1.0, 0.9)))
         if q > 0:
-            cv.drawRect(skia.Rect(x0, y, x0 + 120 * u * q, y + 3 * u), skia.Paint(AntiAlias=True, Color=_argb(g.vurgu, q)))
+            cv.drawRect(skia.Rect(x0, y, x0 + 120 * u * q, y + 3 * u), skia.Paint(AntiAlias=True, Color=_argb(g.tvv, q)))
         y += 72 * u; sira += 1
     if sh.get('alt'):
         a, dy = _tv_metin_gir(lt, d, gecis, sira)
         for k, sat in enumerate(_satirla(g.tf_govde, sh['alt'], 40 * u, genis)):
-            _yaz(cv, g.tf_govde, sat, 40 * u, x0, y + k * 54 * u + dy * 26 * u, g.yazi, a * 0.82)
+            _yaz(cv, g.tf_govde, sat, 40 * u, x0, y + k * 54 * u + dy * 26 * u, g.ty, a * 0.82)
     if tur != 'marka':  # küçük marka imzası
         a, _ = _tv_metin_gir(lt, d, gecis, 3)
-        logo_ciz(cv, g, x0 + 30 * u, H - 112 * u, 44 * u, g.vurgu, a * 0.9, isaret=True)
-        _yaz(cv, g.tf_govde_kalin, g.buyuk(g.m.ad or ''), 22 * u, x0 + 76 * u, H - 104 * u, g.vurgu, a * 0.9, aralik=0.28)
+        logo_ciz(cv, g, x0 + 30 * u, H - 112 * u, 44 * u, g.tvv, a * 0.9, isaret=True)
+        _yaz(cv, g.tf_govde_kalin, g.buyuk(g.m.ad or ''), 22 * u, x0 + 76 * u, H - 104 * u, g.tvv, a * 0.9, aralik=0.28)
 
 
 def _tv_bilgi(cv, lt, W, H, g, sh, d, u):
@@ -444,31 +448,31 @@ def _tv_bilgi(cv, lt, W, H, g, sh, d, u):
     genis = min(W * 0.72, 1180 * u)
     y = H * (0.20 if yatay else 0.28)
     a, dy = _tv_metin_gir(lt, d, gecis, 0)
-    logo_ciz(cv, g, cx, y + dy * 30 * u, 150 * u, g.vurgu, a)
+    logo_ciz(cv, g, cx, y + dy * 30 * u, 150 * u, g.tvv, a)
     y += 150 * u
     if sh.get('ust'):
         a, dy = _tv_metin_gir(lt, d, gecis, 0)
-        _yaz(cv, g.tf_govde_kalin, g.buyuk(sh['ust']), 28 * u, cx, y + dy * 30 * u, g.vurgu, a, 'orta', 0.24)
+        _yaz(cv, g.tf_govde_kalin, g.buyuk(sh['ust']), 28 * u, cx, y + dy * 30 * u, g.tvv, a, 'orta', 0.24)
         y += 84 * u
     if sh.get('baslik'):
         a, dy = _tv_metin_gir(lt, d, gecis, 1)
         boy = _sigdir(g.tf_baslik, sh['baslik'], 92 * u, genis)
-        _yaz(cv, g.tf_baslik, sh['baslik'], boy, cx, y + dy * 30 * u, g.yazi, a, 'orta')
+        _yaz(cv, g.tf_baslik, sh['baslik'], boy, cx, y + dy * 30 * u, g.ty, a, 'orta')
         y += 70 * u
     for k, (sol, sag) in enumerate(satirlar):
         a, dy = _tv_metin_gir(lt, d, gecis, 2 + 0.6 * k)
         y += 82 * u
         yy = y + dy * 26 * u
         boy = 46 * u
-        _yaz(cv, g.tf_govde, sol, boy, cx - genis / 2 + 40 * u, yy, g.yazi, a * 0.85)
-        _yaz(cv, g.tf_govde_kalin, sag, boy, cx + genis / 2 - 40 * u, yy, g.yazi, a, 'sag')
+        _yaz(cv, g.tf_govde, sol, boy, cx - genis / 2 + 40 * u, yy, g.ty, a * 0.85)
+        _yaz(cv, g.tf_govde_kalin, sag, boy, cx + genis / 2 - 40 * u, yy, g.ty, a, 'sag')
         if k < len(satirlar) - 1:
             cv.drawRect(skia.Rect(cx - genis / 2 + 40 * u, yy + 30 * u, cx + genis / 2 - 40 * u, yy + 31.5 * u),
-                        skia.Paint(Color=_argb(g.yazi, a * 0.18)))
+                        skia.Paint(Color=_argb(g.ty, a * 0.18)))
     if sh.get('alt'):
         a, dy = _tv_metin_gir(lt, d, gecis, 2 + 0.6 * len(satirlar))
         y += 110 * u
-        _yaz(cv, g.tf_govde_kalin, sh['alt'], 36 * u, cx, y + dy * 26 * u, g.vurgu, a, 'orta', 0.04)
+        _yaz(cv, g.tf_govde_kalin, sh['alt'], 36 * u, cx, y + dy * 26 * u, g.tvv, a, 'orta', 0.04)
 
 
 def kare_tv(cv, t, W, H, g):
@@ -487,14 +491,6 @@ def kare_tv(cv, t, W, H, g):
                     cv.restore()
                 else:
                     _tv_sahne(cv, t, lt, W, H, g, i)
-    _vinyet(cv, W, H, 0.30)
-
-
-def _vinyet(cv, W, H, a):
-    import skia
-    vin = skia.GradientShader.MakeRadial((W / 2, H / 2), math.hypot(W, H) * 0.6,
-                                         [0x00000000, 0x00000000, _argb('#000000', a)], [0.0, 0.55, 1.0])
-    cv.drawPaint(skia.Paint(Shader=vin))
 
 
 # ---------- Reel ----------
@@ -506,16 +502,19 @@ def _reel_sahne(cv, t, lt, W, H, g, i):
     tur = sh['tur']
     vurus = 60 / g.bpm
     if tur == 'uclu':
-        # üç fotoğraf dikey şeritler halinde vuruşlarla kayarak gelir
+        # üç fotoğraf uzun kenar boyunca bantlar halinde vuruşlarla kayarak gelir (dikeyde yatay bant:
+        # fotoğraf kendi çözünürlüğüne yakın kalır, büyütülüp yumuşamaz)
         cv.clear(_argb(g.zemin))
         n = 3
         for k, f in enumerate(sh['fotolar']):
             p = g.egri(prog(lt, 0.05 + k * vurus * 0.5, 0.55))
-            x0, x1 = W * k / n, W * (k + 1) / n
             yon = -1 if k % 2 else 1
-            dy = (1 - p) * H * yon
-            cv.save(); cv.translate(0, dy)
-            foto_ciz(cv, g, f, (x0 + 3 * u, 0, x1 - 3 * u, H), (0.5, 0.55), lerp(1.12, 1.02, out_cubic(prog(lt, 0, d))))
+            if H >= W:
+                rect = (0, H * k / n + 3 * u, W, H * (k + 1) / n - 3 * u); kayma = ((1 - p) * W * yon, 0)
+            else:
+                rect = (W * k / n + 3 * u, 0, W * (k + 1) / n - 3 * u, H); kayma = (0, (1 - p) * H * yon)
+            cv.save(); cv.translate(*kayma)
+            foto_ciz(cv, g, f, rect, (0.5, 0.55), lerp(1.06, 1.0, out_cubic(prog(lt, 0, d))))
             cv.restore()
         # koyu örtü + soru
         q = out_cubic(prog(lt, 0.6, 0.6))
@@ -528,18 +527,21 @@ def _reel_sahne(cv, t, lt, W, H, g, i):
     if tur == 'marka':
         _reel_marka(cv, t, lt, W, H, g, sh, d, u, ust, alt, sol, sag)
         return
-    # ürün: fotoğraf kadrajı doldurur (odak noktası korunur), yazı için alttan koyulaşan geçiş
+    # ürün: fotoğraf genişliğe oturur (kendi çözünürlüğünde, büyütme yok denecek kadar az), altında düz marka
+    # zemini; yazılar o temiz zeminde. Fotoğrafın alt kenarı zemine yumuşakça karışır.
     f = sh['foto']
     kb = clamp(lt / d)
-    foto_ciz(cv, g, f, (0, 0, W, H), sh.get('odak', (0.5, 0.5)), lerp(1.0, 1.08, kb), (0, lerp(0.01, -0.01, kb)))
-    cv.drawRect(skia.Rect(0, H * 0.45, W, H),
-                skia.Paint(Shader=skia.GradientShader.MakeLinear([(0, H * 0.45), (0, H * 0.82)],
-                                                                [_argb('#000000', 0), _argb('#000000', 0.72)])))
-    cv.drawRect(skia.Rect(0, 0, W, H * 0.18),
-                skia.Paint(Shader=skia.GradientShader.MakeLinear([(0, 0), (0, H * 0.18)],
-                                                                [_argb('#000000', 0.35), _argb('#000000', 0)])))
-    # yazılar: alt güvenli alanın üstünde
-    y = alt - 150 * u
+    img = g.resimler[f]
+    fh = min(H * 0.78, W * img.height() / img.width())
+    cv.clear(_argb(g.zemin))
+    cv.saveLayer(None)
+    foto_ciz(cv, g, f, (0, 0, W, fh), sh.get('odak', (0.5, 0.5)), lerp(1.0, 1.05, kb), (0, lerp(0.01, -0.01, kb)))
+    tuy = 260 * u
+    cv.drawRect(skia.Rect(0, fh - tuy, W, fh), skia.Paint(
+        Shader=skia.GradientShader.MakeLinear([(0, fh), (0, fh - tuy)], [0x00000000, 0xFF000000]), BlendMode=skia.BlendMode.kDstIn))
+    cv.restore()
+    # yazılar: alt güvenli alanın üstünde, fotoğrafın altındaki düz zeminde
+    y = alt - 40 * u
     if sh.get('alt'):
         q = out_cubic(prog(lt, 0.55, 0.5))
         _yaz(cv, g.tf_govde, sh['alt'], _sigdir(g.tf_govde, sh['alt'], 40 * u, sag - sol), W / 2, y + (1 - q) * 20 * u,
@@ -566,7 +568,8 @@ def _reel_marka(cv, t, lt, W, H, g, sh, d, u, ust, alt, sol, sag):
     f = sh.get('foto')
     if f:
         # görsel yukarı kayar: logo üstte kalır, bilgi kartı altta boş alana oturur
-        foto_ciz(cv, g, f, (0, 0, W, H), sh.get('odak', (0.5, 0.62)), lerp(1.26, 1.12, out_cubic(clamp(lt / d))))
+        foto_ciz(cv, g, f, (0, 0, W, H), sh.get('odak', (0.5, 0.5)), lerp(1.06, 1.0, out_cubic(clamp(lt / d))),
+                 logo=sh.get('logo'))
     else:
         cv.clear(_argb(g.acik))
         logo_ciz(cv, g, W / 2, H * 0.40, 420 * u, g.logo_renk, out_cubic(prog(lt, 0.1, 0.8)))

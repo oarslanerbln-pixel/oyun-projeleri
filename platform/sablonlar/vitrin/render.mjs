@@ -15,7 +15,7 @@ const [, , ayarYolu, kip, cikti, ...ts] = process.argv;
 const A = JSON.parse(await readFile(ayarYolu, 'utf8'));
 const { W, H, fps, sure } = A;
 const TUR = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.html': 'text/html', '.ttf': 'font/ttf',
-  '.json': 'application/json', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.png': 'image/png', '.jpg': 'image/jpeg', '.bin': 'application/octet-stream' };
+  '.json': 'application/json', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream' };
 
 const tarayici = await chromium.launch({
   executablePath: process.env.CHROMIUM || undefined,

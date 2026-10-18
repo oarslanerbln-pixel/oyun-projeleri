@@ -129,6 +129,42 @@ class SahneAyari(unittest.TestCase):
         self.assertEqual(a['dosyalar']['/model/urun.glb'], str(glb))
 
 
+class Kitap(unittest.TestCase):
+    KITAP = DEPO / 'ornekler' / 'demli-kahve' / 'e-kitap.json'
+
+    def kitap(self):
+        return json.loads(self.KITAP.read_text(encoding='utf-8'))
+
+    def test_ornek_gecer_ve_ic_odagi_kitapta_gecerli(self):
+        self.assertEqual(denetle(self.kitap()), [])
+        self.assertIn('ic', [o['odak'] for o in self.kitap()['ozellikler']])
+
+    def test_kapak_gorseli_sunulur_ve_etiket_istemez(self):
+        s = self.kitap(); s['urun'] = {'tur': 'kitap'}
+        with tempfile.TemporaryDirectory() as d:
+            kapak = Path(d) / 'Kapak.JPG'; kapak.write_bytes(b'\xff\xd8')
+            s['urun']['kapak'] = str(kapak)
+            hata, _, m = vitrin.denetle(s, self.KITAP, Path(d), render=False)
+            self.assertEqual(hata, [])
+            with mock.patch.object(vitrin, 'font_yolu', lambda ag: Path(f'/yok/Inter-{ag}.ttf')):
+                a = vitrin.ayar(s, self.KITAP, m, 540, 960)
+        self.assertEqual(a['urun']['kapak'], '/kapak/kapak.jpg')
+        self.assertEqual(a['dosyalar']['/kapak/kapak.jpg'], str(kapak))
+        self.assertEqual(a['giris'], 'Evde kafe kahvesi?')
+
+    def test_hatalar(self):
+        durumlar = [
+            (lambda s: s['urun'].update(kapak='yok/kapak.png'), 'urun.kapak'),
+            (lambda s: s['urun'].update(tur='kutu', kapak='ornekler/demli-kahve/e-kitap.json'), 'yalnız urun.tur "kitap"'),
+            (lambda s: s['urun'].update(kapak='ornekler/demli-kahve/e-kitap.json'), 'görsel bekleniyor'),
+            (lambda s: s.update(giris='Bu açılış sorusu ekrana sığmaz'), 'giris'),
+        ]
+        for degistir, beklenen in durumlar:
+            s = self.kitap(); degistir(s)
+            with self.subTest(beklenen=beklenen):
+                self.assertTrue(any(beklenen in h for h in denetle(s)), denetle(s))
+
+
 class StilYonlendirme(unittest.TestCase):
     def test_stil_py_vitrine_iletir(self):
         import stil

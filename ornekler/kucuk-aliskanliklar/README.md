@@ -16,3 +16,10 @@ Ayrı şablonlarla aynı konunun webtoon ve risograf sürümleri de var (seslend
 python3 platform/sablonlar/cizgi_roman/cizgi_roman.py render ornekler/kucuk-aliskanliklar/cizgi-roman.json   # cizgi-roman.json
 python3 platform/sablonlar/risograf/risograf.py render ornekler/kucuk-aliskanliklar/risograf.json            # risograf.json
 ```
+
+Aynı metnin [gölge oyunu şablonuyla](../../platform/sablonlar/golge_oyunu/README.md) hali `golge-oyunu.json` dosyasındadır:
+
+```sh
+python3 platform/sablonlar/golge_oyunu/golge_oyunu.py seslendir ornekler/kucuk-aliskanliklar/golge-oyunu.json
+python3 platform/sablonlar/golge_oyunu/golge_oyunu.py render    ornekler/kucuk-aliskanliklar/golge-oyunu.json
+```

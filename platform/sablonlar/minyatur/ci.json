@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/minyatur.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/minyatur.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/minyatur"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "hazirlik": [
+    [
+      "{python}",
+      "-c",
+      "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import motor; motor.yazi_tipi(800); motor.yazi_tipi(700)"
+    ],
+    [
+      "{python}",
+      "-c",
+      "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import hamur; [hamur.yazi_tipi_baloo(w) for w in (600, 700, 800)]"
+    ]
+  ],
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/senaryo.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/stil.py",
+        "denetle",
+        "{dosya}",
+        "--stil",
+        "kagit-kesik",
+        "-o",
+        "{gecici}/stil"
+      ]
+    },
+    {
+      "dosyalar": [
+        "ornekler/*/senaryo.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/stil.py",
+        "denetle",
+        "{dosya}",
+        "--stil",
+        "izometrik",
+        "-o",
+        "{gecici}/stil"
+      ]
+    },
+    {
+      "dosyalar": [
+        "ornekler/*/senaryo.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/stil.py",
+        "denetle",
+        "{dosya}",
+        "--stil",
+        "hamur",
+        "-o",
+        "{gecici}/stil"
+      ]
+    },
+    {
+      "dosyalar": [
+        "ornekler/*/sadakat-karti.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/stil.py",
+        "denetle",
+        "{dosya}",
+        "--stil",
+        "hamur",
+        "-o",
+        "{gecici}/stil"
+      ]
+    },
+    {
+      "dosyalar": [
+        "ornekler/*/bumper.json",
+        "ornekler/*/imza.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/stil.py",
+        "denetle",
+        "{dosya}",
+        "--stil",
+        "bumper"
+      ]
+    }
+  ]
+}

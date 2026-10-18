@@ -1,0 +1,14 @@
+{
+  "kimlik": "demli-kahve",
+  "stil": "bumper",
+  "sure": 6,
+  "format": "9:16",
+  "marka": "ornekler/demli-kahve/marka/marka.json",
+  "bumper": {
+    "varyant": "bumper",
+    "onerme": "Sabahın on dakikası senin",
+    "logo": "DEMLİ",
+    "alt": "Kahve",
+    "cagri": "demlikahve.com"
+  }
+}

@@ -1,8 +1,7 @@
 name: Platform testleri
 
-# Mimari §4.5 mantığın platform/ci altında workflow_call olarak durmasını öneriyor; ancak GitHub
-# yeniden kullanılabilir iş akışlarını yalnız .github/workflows altından çağırabiliyor. Bu yüzden
-# şimdilik tek iş akışı burada; modül başına çağırıcılara bölünmesi ikinci projeyle gelir.
+# Mimari §4.5: CI mantığı platform/ci altında. Bu dosya yalnız sistem paketlerini kurar; hangi
+# testlerin ve örnek denetimlerinin koşacağını platform/ci/calistir.py modül klasörlerinden bulur.
 on:
   pull_request:
     paths:
@@ -38,60 +37,15 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: ffmpeg (render ve türev testleri; Ubuntu paketi librsvg ile derli)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
-      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, origami, kolaj, minyatur, golge_oyunu)
+      - name: Görüntü şablonu bağımlılıkları (skia için EGL/GL, Inter)
         run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/origami platform/sablonlar/kolaj platform/sablonlar/minyatur platform/sablonlar/golge_oyunu; do
-            echo "::group::$d"
-            python -m unittest discover -s "$d/testler" -v
-            echo "::endgroup::"
-          done
-      - name: Örnek projeleri denetle ve üret
-        run: |
-          for p in ornekler/*/proje.json; do
-            python platform/sablonlar/animasyon/animasyon.py uret "$p" -o "$RUNNER_TEMP/cikti/$(basename "$(dirname "$p")")"
-          done
-      - name: Kinetik senaryoları denetle
-        run: |
-          for p in ornekler/*/senaryo.json; do
-            python platform/sablonlar/kinetik/kinetik.py denetle "$p" -o "$RUNNER_TEMP/kinetik"
-          done
-      - name: Origami senaryolarını denetle
-        run: |
-          for p in ornekler/*/origami.json; do
-            python platform/sablonlar/origami/origami.py denetle "$p" -o "$RUNNER_TEMP/origami"
-          done
-      - name: Kolaj senaryolarını denetle
-        run: |
-          for p in platform/sablonlar/kolaj/ornek/senaryo.json ornekler/*/kolaj.json; do
-            [ -e "$p" ] || continue
-            python platform/sablonlar/kolaj/kolaj.py denetle "$p" -o "$RUNNER_TEMP/kolaj"
-          done
-      - name: Minyatür senaryolarını denetle
-        run: |
-          for p in ornekler/*/minyatur.json; do
-            python platform/sablonlar/minyatur/minyatur.py denetle "$p" -o "$RUNNER_TEMP/minyatur"
-          done
-      - name: Gölge oyunu senaryolarını denetle
-        run: |
-          for p in ornekler/*/golge-oyunu.json; do
-            python platform/sablonlar/golge_oyunu/golge_oyunu.py denetle "$p" -o "$RUNNER_TEMP/golge-oyunu"
-          done
-      - name: Tek çizgi şablonu (testler ve senaryo denetimi)
-        run: |
-          python -m pip install -q numpy
-          python -m unittest discover -s platform/sablonlar/tek_cizgi/testler -v
-          for p in ornekler/*/tek-cizgi.json; do
-            python platform/sablonlar/tek_cizgi/tek_cizgi.py denetle "$p" -o "$RUNNER_TEMP/tek-cizgi"
-          done
-      - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
-        run: |
-          for p in ornekler/*/proje.json; do
-            python platform/uretim/uretim.py plan "$p"
-            python platform/uretim/uretim.py denetle "$p"
-          done
-      - name: Örnek projelerin render'ı (bumper; YZ klibi yoksa yer tutucu)
-        run: |
-          for p in ornekler/*/proje.json; do
-            python platform/sablonlar/animasyon/animasyon.py render "$p" --teslim youtube-bumper \
-              -o "$RUNNER_TEMP/render/$(basename "$(dirname "$p")")"
-          done
+          sudo apt-get install -y -qq --no-install-recommends libegl1 libgl1 fonts-inter
+          python -m pip install -q skia-python numpy soundfile fonttools pillow
+          # fonts-inter beklenen statik ağırlıkları vermezse kinetik, stil şablonunun örneklediği Inter'i kullanır
+          ls /usr/share/fonts/opentype/inter/Inter-ExtraBold.otf 2>/dev/null || echo "KINETIK_FONT_DIZINI=$HOME/.cache/studyo/fonts" >> "$GITHUB_ENV"
+      # Modüller kendini bildirir: her testler/ klasörü ve her ci.json (platform/ci/calistir.py).
+      # Yeni şablon bu dosyaya dokunmadan CI'a girer.
+      - name: Modül hazırlıkları (ci.json içindeki pip paketleri ve yazı tipi önbellekleri)
+        run: python platform/ci/calistir.py hazirla
+      - name: Testler ve örnek denetimleri
+        run: python platform/ci/calistir.py test

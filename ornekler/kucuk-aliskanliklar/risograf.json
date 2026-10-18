@@ -1,0 +1,53 @@
+{
+  "kimlik": "kucuk-aliskanliklar-risograf",
+  "not": "Stil testindeki 10 sn'lik risograf örneğinin şablon karşılığı: aynı satırlar, aynı anlar.",
+  "sure": 10,
+  "fps": 30,
+  "format": ["9x16"],
+  "kapak_t": 4.9,
+  "kagit": "#F4EFE4",
+  "murekkepler": {
+    "sari": {"renk": "#FFE14D", "kayma": [0, 0]},
+    "pembe": {"renk": "#FF48B0", "kayma": [5, -3]},
+    "mavi": {"renk": "#0078BF", "kayma": [-4, 4]}
+  },
+  "tanecik": {"guc": 1.0, "kaynama": 4},
+  "muzik": {"bpm": 80},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Her gün, sadece yüzde bir daha iyi ol."},
+    {"id": "v1", "t": 3.15, "metin": "Bir yıl sonra, otuz yedi kat güçlüsün."},
+    {"id": "v2", "t": 6.15, "metin": "Küçük adım. Büyük fark."},
+    {"id": "v3", "t": 8.35, "metin": "Bugün başla."}
+  ]},
+  "sayfalar": [
+    {"bas": 0, "ogeler": [
+      {"tur": "daire", "murekkep": "sari", "t": 0.05, "giris": "yuksel", "baslangic_y": 0.911, "sure": 1.1, "x": 0.5, "y": 0.604, "r": 360, "16x9": {"x": 0.66, "y": 0.6}},
+      {"tur": "zemin", "murekkep": "mavi", "y": 0.781},
+      {"tur": "yazi", "murekkep": "mavi", "metin": "HER GÜN", "t": 0.3, "giris": "sil", "x": 0.078, "y": 0.122, "boy": 92},
+      {"tur": "yazi", "murekkep": "pembe", "metin": "%1", "t": 1.3, "giris": "kay", "x": 0.5, "y": 0.401, "boy": 450, "hiza": 0.5, "16x9": {"x": 0.27, "y": 0.66}},
+      {"tur": "figur", "t": 0, "bitis_t": 2.0, "x0": -0.111, "x": 0.5, "y": 0.777, "olcek": 0.95, "16x9": {"x": 0.66}}
+    ]},
+    {"bas": 3.0, "ogeler": [
+      {"tur": "yazi", "murekkep": "mavi", "metin": "BİR YIL SONRA", "t": 3.15, "giris": "sil", "x": 0.078, "y": 0.122, "boy": 92},
+      {"tur": "egri", "murekkep": "mavi", "golge": "pembe", "noktalar": "sari", "t": 3.25, "bitis_t": 4.45,
+       "baslangic": [0.056, 0.885], "bitis": [1.037, 0.3125]},
+      {"tur": "sayac", "murekkep": "pembe", "degerler": [1, 37], "son_ek": "×", "t": 4.0, "bitis_t": 4.5, "x": 0.074, "y": 0.521, "boy": 340},
+      {"tur": "daire", "murekkep": "sari", "t": 4.4, "giris": "buyu", "sure": 0.5, "yay": 1.4, "x": 0.824, "y": 0.292, "r": 170}
+    ]},
+    {"bas": 6.0, "ogeler": [
+      {"tur": "daire", "murekkep": "pembe", "t": 6.15, "giris": "buyu", "x": 0.5, "y": 0.427, "r": 34, "buyume": {"t": 6.85, "r": 430}, "16x9": {"x": 0.3, "y": 0.5}},
+      {"tur": "daire", "murekkep": "sari", "t": 6.93, "giris": "buyu", "sure": 0.6, "yay": 0, "x": 0.5, "y": 0.427, "r": 520, "16x9": {"x": 0.3, "y": 0.5}},
+      {"tur": "yazi", "murekkep": "mavi", "metin": "KÜÇÜK ADIM", "t": 6.2, "bitis_t": 6.95, "giris": "kay", "x": 0.5, "y": 0.5625, "boy": 60, "hiza": 0.5, "16x9": {"x": 0.3, "y": 0.66}},
+      {"tur": "halkalar", "murekkep": "mavi", "t": 6.85, "x": 0.5, "y": 0.427, "16x9": {"x": 0.3, "y": 0.5}},
+      {"tur": "yazi", "murekkep": "mavi", "metin": "BÜYÜK", "t": 6.85, "giris": "kay", "x": 0.5, "y": 0.792, "boy": 270, "genislik": 0.852, "hiza": 0.5, "16x9": {"x": 0.72, "y": 0.5, "genislik": 0.44}},
+      {"tur": "yazi", "murekkep": "mavi", "metin": "FARK", "t": 6.85, "giris": "kay", "x": 0.5, "y": 0.927, "boy": 270, "hiza": 0.5, "16x9": {"x": 0.72, "y": 0.78}}
+    ]},
+    {"bas": 8.0, "ogeler": [
+      {"tur": "yazi", "murekkep": "mavi", "metin": "BUGÜN", "t": 8.15, "giris": "kay", "x": 0.065, "y": 0.385, "boy": 300, "genislik": 0.87, "16x9": {"y": 0.33, "genislik": 0.5}},
+      {"tur": "yazi", "murekkep": "pembe", "metin": "BAŞLA", "t": 8.4, "giris": "kay", "x": 0.065, "y": 0.51, "boy": 300, "genislik": 0.87, "16x9": {"y": 0.55, "genislik": 0.5}},
+      {"tur": "ok", "murekkep": "sari", "t": 8.7, "y": 0.604, "x0": 0.093, "x1": 0.889, "16x9": {"y": 0.45, "x0": 0.62, "x1": 0.93}},
+      {"tur": "cizgi", "murekkep": "mavi", "y": 0.865},
+      {"tur": "figur", "t": 8.9, "bitis_t": 10.0, "hareket": "duz", "x0": 0.157, "x": 0.435, "y": 0.865, "olcek": 0.8}
+    ]}
+  ]
+}

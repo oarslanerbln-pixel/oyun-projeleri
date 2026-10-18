@@ -1,0 +1,32 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/proje.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/animasyon.py",
+        "uret",
+        "{dosya}",
+        "-o",
+        "{gecici}/cikti/{ad}"
+      ]
+    },
+    {
+      "dosyalar": [
+        "ornekler/*/proje.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/animasyon.py",
+        "render",
+        "{dosya}",
+        "--teslim",
+        "youtube-bumper",
+        "-o",
+        "{gecici}/render/{ad}"
+      ]
+    }
+  ]
+}

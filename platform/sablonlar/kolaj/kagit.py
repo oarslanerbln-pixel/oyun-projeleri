@@ -256,8 +256,9 @@ def kesik_resim(w: float, h: float, sil: skia.Path, gri_ciz, spotlar, P: dict, u
     return rec.finishRecordingAsPicture()
 
 
-def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int):
-    """Herhangi bir PNG/JPG → kesik yarım ton parça. Saydamlık varsa siluet odur, yoksa makas kesikli dikdörtgen."""
+def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int, renkli: bool = False):
+    """Herhangi bir PNG/JPG → kesik yarım ton parça. Saydamlık varsa siluet odur, yoksa makas kesikli dikdörtgen.
+    renkli=True: yarım tona çevirmeden kendi renkleriyle kesilir (kitap kapağı, ürün fotoğrafı gibi okunması gerekenler)."""
     img = skia.Image.MakeFromEncoded(skia.Data.MakeFromFileName(yol))
     k = hedef_w / img.width()
     w, h = img.width() * k, img.height() * k
@@ -279,6 +280,21 @@ def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int):
                     sil.addRect(skia.Rect(x0 * adim * k, y * k, x * adim * k, (y + adim) * k))
                 x += 1
         sil = skia.Op(sil, sil, skia.PathOp.kUnion_PathOp)
+
+    if renkli:
+        kenar = makas(sil, 11 * u, 28 * u, random.Random(tohum))
+        m = 50 * u
+        rec = skia.PictureRecorder()
+        cv = rec.beginRecording(skia.Rect(-m, -m, w + m, h + m))
+        golge(cv, kenar, u)
+        cv.drawPath(kenar, boya(renk(P["kagit"])))
+        cv.save(); cv.clipPath(sil, skia.ClipOp.kIntersect, True)
+        cv.drawImageRect(img, skia.Rect(0, 0, w, h), skia.SamplingOptions(skia.CubicResampler.Mitchell()))
+        cv.restore()
+        cv.save(); cv.clipPath(kenar, skia.ClipOp.kIntersect, True)
+        cv.drawPaint(doku_boyasi(0.5, tohum % 5))
+        cv.restore()
+        return rec.finishRecordingAsPicture(), w, h
 
     def gri_ciz(cv):
         p = skia.Paint(AntiAlias=True)

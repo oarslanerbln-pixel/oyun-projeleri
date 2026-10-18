@@ -18,16 +18,18 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
 from pathlib import Path
 
 BURADA = Path(__file__).resolve().parent
 sys.path.insert(0, str(BURADA))
 sys.path.insert(0, str(BURADA.parents[1] / "ses"))
+sys.path.insert(0, str(BURADA.parents[1] / "ortak"))
+
+import akis  # noqa: E402
+import mastering  # noqa: E402
 
 FORMATLAR = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080), "4:5": (1080, 1350)}
-HEDEF_LUFS = -14.0
 TURLER = ("acilis", "avlu", "kapanis")
 IKRAMLAR = ("yemek", "kahve")
 
@@ -41,13 +43,6 @@ def yukle(yol: str) -> dict:
     s["muzik"].setdefault("bpm", 96)
     s.setdefault("marka", {})
     return s
-
-
-def sureler_oku(klasor: Path) -> dict[str, float]:
-    k = klasor / "seslendirme.json"
-    if not k.exists():
-        return {}
-    return {x["id"]: x["sure"] for x in json.loads(k.read_text(encoding="utf-8"))["satirlar"]}
 
 
 def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
@@ -97,29 +92,16 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
     return h
 
 
-def cikti_klasoru(s: dict, arg: str | None) -> Path:
-    return Path(arg) if arg else Path(s["_klasor"]) / "cikti"
-
-
 def formatlar_coz(s: dict, arg: str | None) -> list[str]:
     f = arg or s.get("format") or "9:16"
     return ["9:16", "16:9"] if f == "ikisi" else [f]
 
 
-def seslendir(s: dict, cikti: Path, saglayici: str, ses: str | None) -> dict:
-    import seslendirme
-    satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in s["seslendirme"]["satirlar"]]
-    return seslendirme.uret(satirlar, cikti / "seslendirme", saglayici, {"ses": ses})
-
-
-def master(gir: Path, ara: Path) -> None:
-    """16 kHz üstü kesilir (AAC sonrası gerçek tepe aşımını önler), -14 LUFS, tepe sınırlı"""
-    r = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(gir), "-af", "lowpass=f=16000:poles=2,ebur128=framelog=quiet",
-                        "-f", "null", "-"], capture_output=True, text=True)
-    lufs = float([x for x in r.stderr.splitlines() if x.strip().startswith("I:")][-1].split()[1])
-    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(gir), "-af",
-                    f"lowpass=f=16000:poles=2,volume={HEDEF_LUFS - lufs:.2f}dB,alimiter=limit=0.75:level=false",
-                    "-ar", "48000", str(ara)], check=True)
+# Ortak adımlar platform/ortak'ta; eski adlar başka modüller ve testler için kalıyor
+sureler_oku = akis.sureler_oku
+cikti_klasoru = akis.cikti_klasoru
+seslendir = akis.seslendir
+master = mastering.master
 
 
 def render(s: dict, cikti: Path, formatlar: list[str]) -> list[Path]:
@@ -128,20 +110,17 @@ def render(s: dict, cikti: Path, formatlar: list[str]) -> list[Path]:
     kimlik = s.get("kimlik", "minyatur")
     is_ = cikti / "is"
     bilgi = muzik.miksle(s, is_, cikti / "seslendirme")
-    eksik = [x["id"] for x in s["seslendirme"].get("satirlar", []) if x["id"] not in bilgi["seslendirme"]]
-    if eksik:
-        print(f"UYARI: seslendirme yok ({', '.join(eksik)}); önce `seslendir` çalıştırın. Video seslendirmesiz çıkar.", file=sys.stderr)
+    akis.uyar_eksik(akis.eksik_seslendirme(s, bilgi))
     if bilgi["ses_ustu_db"] is not None:
         print(f"ses dengesi: konuşma müziğin {bilgi['ses_ustu_db']:.1f} dB üstünde")
-    master(is_ / "ses.wav", is_ / "ses-master.wav")
+    mastering.master(is_ / "ses.wav", is_ / "ses-master.wav")
     out = []
     for f in formatlar:
         W, H = FORMATLAR[f]
         ek = f.replace(":", "x")
         sessiz = cizim.video(s, W, H, is_ / f"sessiz-{ek}.mp4")
         hedef = cikti / f"{kimlik}-{ek}.mp4"
-        subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(sessiz), "-i", str(is_ / "ses-master.wav"),
-                        "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(hedef)], check=True)
+        akis.birlestir(sessiz, is_ / "ses-master.wav", hedef)
         out.append(hedef)
     return out
 
@@ -154,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("senaryo")
         p.add_argument("-o", "--cikti")
         if ad in ("seslendir", "uret"):
-            p.add_argument("--saglayici", default="piper")
+            p.add_argument("--saglayici", default="otomatik")
             p.add_argument("--ses")
         if ad == "kare":
             p.add_argument("--an", type=float, nargs="+", required=True)

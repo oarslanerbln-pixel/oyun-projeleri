@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 TURLER = ("vitrin", "kapanis")
-NESNELER = ("kupa", "kutu", "kase", "tabak")
+NESNELER = ("kupa", "kutu", "kase", "tabak", "gorsel")  # gorsel: gerçek ürün fotoğrafı (saydam PNG)
 GECISLER = ("kesme", "katla")
 ISARETLER = ("turna", "logo", "yok")
 ROLLER = ("zemin", "koyu", "vurgu", "ikinci", "ucuncu", "acik")
@@ -106,8 +106,11 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
                 for k in NESNE_ZAMANLARI[1:]:
                     if k in n and "t" in n and n[k] < n["t"]:
                         h.append(f"{na}: {k} nesne gelmeden önce")
-                if not 0.3 <= n["boy"] <= 1.0:
-                    h.append(f"{na}: boy 0,3–1,0 arasında olmalı")
+                ust = 1.6 if n["tur"] == "gorsel" else 1.0  # fotoğraf tek başına büyük bir an olabilir
+                if not 0.3 <= n["boy"] <= ust:
+                    h.append(f"{na}: boy 0,3–{ust:.1f} arasında olmalı".replace(".", ","))
+                if n["tur"] == "gorsel" and not (n.get("gorsel") and (Path(s["_klasor"]) / n["gorsel"]).is_file()):
+                    h.append(f"{na}: gorsel türü için `gorsel` (saydam PNG ya da JPG) bulunmalı")
             for k in ("baslik", "rozet"):
                 if sh.get(k) and not sh[k].get("metin"):
                     h.append(f"{ad}: {k}.metin gerekli")

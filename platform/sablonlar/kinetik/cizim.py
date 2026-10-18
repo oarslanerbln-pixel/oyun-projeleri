@@ -193,6 +193,33 @@ class Cizici:
             self.halka(cv, t, ws[0]["t"] - 0.04, cx, cy, 120 * u, 520 * u, P["vurgu"], 14)
         sz = sh.get("punto", 230) * u
         n = len(ws)
+        g = sh.get("gorsel")
+        if g:  # gerçek ürün fotoğrafı (saydam PNG): kelimeler üstte (yatayda solda), fotoğraf büyük ve net
+            img = self.logo_resmi(g["dosya"])
+            gx, gy = (cx + self.W * 0.21, cy) if self.GENIS else (cx, cy + 250 * u)
+            gw = min(img.width(), (self.W * 0.5 if self.GENIS else self.W - 120 * u), g.get("genislik", 1e9) * u)
+            gh = gw * img.height() / img.width()
+            if not self.GENIS and gh > 900 * u:
+                gw, gh = gw * 900 * u / gh, 900 * u
+            pg = prog(t, g["t"], 0.5)
+            if pg > 0:
+                k = out_back(pg, 1.4) * (1 + 0.035 * clamp((t - g["t"] - 0.5) / 4))
+                self.halka(cv, t, g["t"], gx, gy, 0.3 * gw, 0.75 * gw, P["vurgu"], 12)
+                cv.save(); cv.translate(gx, gy); cv.rotate(lerp(-10, 0, out_cubic(pg))); cv.scale(k, k)
+                cv.drawImageRect(img, self.sk.Rect(-gw / 2, -gh / 2, gw / 2, gh / 2),
+                                 self.sk.SamplingOptions(self.sk.CubicResampler.Mitchell()), self.paint(P["acik"], clamp(pg * 3)))
+                cv.restore()
+            if self.GENIS:
+                tx, azami, aralik = cx - self.W * 0.24, self.W * 0.44, 210 * u
+                yb = cy
+            else:
+                tx, azami, aralik = cx, self.W - 140 * u, 200 * u
+                yb = cy - 560 * u
+            sz = min(min(self.sigdir(w["metin"], min(sz, 190 * u), azami) for w in ws), sz)
+            for i, w in enumerate(ws):
+                self.slam(cv, w["metin"], tx, yb + (i - (n - 1) / 2) * aralik, sz, P[w.get("renk", "acik")], t, w["t"])
+            self.odak = (gx, gy)
+            return
         if self.GENIS:
             gen = [self.genislik(w["metin"], sz) for w in ws]
             bosluk = 90 * u

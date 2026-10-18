@@ -297,14 +297,28 @@ class Cizici:
             return self.H * 0.68, 360 * u, 60 * u
         return self.H * 0.66, 520 * u, 46 * u
 
+    def resim(self, yol):
+        if not hasattr(self, "_resimler"):
+            self._resimler = {}
+        if yol not in self._resimler:
+            self._resimler[yol] = self.sk.Image.open(str(Path(self.s["_klasor"]) / yol))
+        return self._resimler[yol]
+
+    def oran(self, n):
+        """nesnenin yükseklik başına genişliği; fotoğrafta kendi en/boy oranı"""
+        if n["tur"] == "gorsel":
+            r = self.resim(n["gorsel"])
+            return r.width() / r.height()
+        return GENISLIK[n["tur"]]
+
     def yerlesim(self, sh, t):
         taban, hmax, bosluk = self.olcu()
         nes = sh["nesneler"]
-        tam = sum(GENISLIK[n["tur"]] * n["boy"] * hmax * (1.18 if "one_t" in n else 1.0) for n in nes) + bosluk * (len(nes) - 1)
+        tam = sum(self.oran(n) * n["boy"] * hmax * (1.18 if "one_t" in n else 1.0) for n in nes) + bosluk * (len(nes) - 1)
         k = min(1.0, (self.W * (0.62 if self.GENIS else 0.9)) / tam)
         ilk = zaman.ilk_nesneler(sh)
         ag = [1.0 if n["id"] in ilk else in_out_cubic(prog(t, n["t"] - 0.25, zaman.KAYMA_SN)) for n in nes]
-        gen = [GENISLIK[n["tur"]] * n["boy"] * hmax * k for n in nes]
+        gen = [self.oran(n) * n["boy"] * hmax * k for n in nes]
         bos = [0.0] + [bosluk * k * a for a in ag[1:]]  # boşluk, önündeki nesne geldikçe açılır
         x = self.cx - (sum(g * a for g, a in zip(gen, ag)) + sum(bos)) / 2
         out = {}
@@ -343,9 +357,19 @@ class Cizici:
             # yer gölgesi: düz elips, zıplayınca küçülür
             ga = clamp(tr / 0.3) * 0.08 * (1 - 0.5 * sonuk) * (1 + hop / h)
             cv.drawOval(sk.Rect.MakeXYWH(x - g * s * 0.55, taban - 10 * u, g * s * 1.1, 20 * u), self.paint(self.P["koyu"], ga))
-            M = sk.Matrix.Translate(x, taban + hop)
-            M.preScale(h * s, h * s)
-            self.yuzler(cv, MODEL[n["tur"]](n["renk"]), tr, M, sonuk, golge=(10 * u, 7 * u, 0.13))
+            if n["tur"] == "gorsel":  # gerçek fotoğraf: kâğıt gibi dikey ekseninde dönerek açılır, sonra çok hafif yakınlaşır
+                c = math.cos(YARIM * (1 - out_back(prog(tr, 0, 0.55), 1.5)))
+                if abs(c) > 0.01:
+                    img = self.resim(n["gorsel"])
+                    z = s * (1 + 0.03 * clamp((tr - 0.6) / 6))
+                    gw, gh = g * z, h * z
+                    cv.save(); cv.translate(x, taban + hop - gh / 2); cv.scale(abs(c), 1)
+                    cv.drawImageRect(img, sk.Rect.MakeXYWH(-gw / 2, -gh / 2, gw, gh), sk.SamplingOptions(sk.CubicResampler.Mitchell()))
+                    cv.restore()
+            else:
+                M = sk.Matrix.Translate(x, taban + hop)
+                M.preScale(h * s, h * s)
+                self.yuzler(cv, MODEL[n["tur"]](n["renk"]), tr, M, sonuk, golge=(10 * u, 7 * u, 0.13))
             if "etiket_t" in n and t >= n["etiket_t"]:
                 self.etiket(cv, t, n, x, taban + 44 * u, g, sonuk)
         for n in one:
@@ -490,7 +514,7 @@ class Cizici:
             # marka logosu (saydam PNG): kâğıt gibi dikey ekseninde dönerek açılır
             if not hasattr(self, "_logo"):
                 self._logo = sk.Image.open(str(Path(self.s["_klasor"]) / sh["logo"]))
-            S = (360 if self.GENIS else 520) * u
+            S = sh.get("logo_boy", 360 if self.GENIS else 520) * u
             p = prog(tr, 0, 0.5)
             c = math.cos(YARIM * (1 - out_back(p, 1.5)))
             if abs(c) > 0.01:

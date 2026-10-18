@@ -28,7 +28,7 @@ Bütün anlar videonun başından itibaren saniye cinsinden verilir. Bir sahne b
 
 | Sahne (`tur`) | Zemin | Alanlar |
 | --- | --- | --- |
-| `kelimeler` | zemin | `kelimeler[{metin, t, renk}]`, `acilis` (ilk sahnede açılış topu, varsayılan açık), `punto` |
+| `kelimeler` | zemin | `kelimeler[{metin, t, renk}]`, `acilis` (ilk sahnede açılış topu, varsayılan açık), `punto`, `gorsel{dosya, t, genislik}` (gerçek ürün fotoğrafı, saydam PNG: halkayla döne döne iner; kelimeler üste, yatayda sola geçer; fotoğraf kendi çözünürlüğünden büyütülmez) |
 | `buyuk-sayi` | vurgu | `ust`, `ust_t`, `sayi`, `sayi_t` (bas efekti; "16,90 €" gibi uzun bir fiyat küçülmez, halka büyür), `etiket`, `etiket_t` |
 | `egri` | zemin | `baslangic_t`, `zirve_t`, `oran`, `gun` (bileşik büyüme; sayaç `(1+oran)^gun` değerine çıkar), `eksen`, `sayac`, `rozet` |
 | `karsitlik` | üçüncü + ikinci | `kucuk`, `kucuk_t`, `panel_t`, `buyuk`, `buyuk_t` (dikeyde üst/alt, yatayda sol/sağ) |

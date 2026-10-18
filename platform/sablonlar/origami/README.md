@@ -33,9 +33,9 @@ Bütün anlar videonun başından itibaren saniye cinsinden verilir. Bir sahne b
 | Sahne (`tur`) | Zemin | Alanlar |
 | --- | --- | --- |
 | `vitrin` | zemin (hafif kâğıt kıvrımları) | `nesneler` (1–4, soldan sağa), `baslik` (akordeon gibi açılan koyu şerit), `rozet` (başlık bu anda dönüp arka yüzünde vurgu renginde kurdele olur; başlık yoksa kurdele kendisi açılır) |
-| `kapanis` | vurgu | `isaret` (`turna`: katlanarak oluşan, kanat çırpan kâğıt turna; `logo`: `logo` alanındaki PNG, kart gibi dönerek açılır; `yok`), `isaret_t`, `satirlar[{metin, t, renk}]`, `alt`, `alt_t` |
+| `kapanis` | vurgu | `isaret` (`turna`: katlanarak oluşan, kanat çırpan kâğıt turna; `logo`: `logo` alanındaki PNG, kart gibi dönerek açılır, boyu `logo_boy` (varsayılan 520); `yok`), `isaret_t`, `satirlar[{metin, t, renk}]`, `alt`, `alt_t` |
 
-Nesne alanları: `id`, `tur` (`kupa`, `kutu`, `kase`: buharlı çorba kâsesi, `tabak`: yemek tabağı; kâse ve tabak geniş olduğundan daha çok yer kaplar), `boy` (0,3–1,0), `renk` (palet rolü), `ad` ve `fiyat` (etiket), ve anlar: `t` (katlanarak açılır; sonradan gelen nesne için diğerleri kayarak yer açar), `etiket_t`, `zipla_t` (küçük zıplama), `one_t` (büyür, arkasında kâğıt yıldız açılır, konfeti, etiketi dönüp vurgu rengine geçer; tam ritim de burada girer), `sonuk_t` (zemine doğru solar; tuzak seçenek için).
+Nesne alanları: `id`, `tur` (`kupa`, `kutu`, `kase`: buharlı çorba kâsesi, `tabak`: yemek tabağı; kâse ve tabak geniş olduğundan daha çok yer kaplar; `gorsel`: gerçek ürün fotoğrafı, `gorsel` alanında saydam PNG ya da JPG verilir, kâğıt gibi dönerek açılır, kendi en/boy oranını korur ve tek başına `boy` 1,6'ya kadar büyüyebilir; netlik için fotoğrafın kendi çözünürlüğünü aşmayacak bir boy seçin), `boy` (0,3–1,0), `renk` (palet rolü), `ad` ve `fiyat` (etiket), ve anlar: `t` (katlanarak açılır; sonradan gelen nesne için diğerleri kayarak yer açar), `etiket_t`, `zipla_t` (küçük zıplama), `one_t` (büyür, arkasında kâğıt yıldız açılır, konfeti, etiketi dönüp vurgu rengine geçer; tam ritim de burada girer), `sonuk_t` (zemine doğru solar; tuzak seçenek için).
 
 Sahneye giriş geçişi (`gecis`): `katla` (sonraki sahnenin rengindeki sayfa iki kanatla kapanır: sağ kanat kenardan gelir, üstüne katlı sol kanat beyaz arka yüzüyle açılıp sola yatar, 0,6 sn), `kesme`.
 

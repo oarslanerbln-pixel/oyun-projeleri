@@ -49,20 +49,14 @@ def _data_uri(path: Path) -> str:
     return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
 
-def _fal(is_: dict, hedef: Path, ayar: dict, ag) -> Path:
-    key = os.environ.get(ayar.get("anahtar", "FAL_KEY"), "")
+def fal_kuyruk(model: str, body: dict, ag, anahtar: str = "FAL_KEY") -> dict:
+    """fal.ai kuyruk API'si: isteği bırakır, bitene kadar bekler, sonuç JSON'unu döndürür."""
+    key = os.environ.get(anahtar, "")
     if not key:
-        raise SaglayiciHatasi(f"{ayar.get('anahtar', 'FAL_KEY')} ortam değişkeni yok")
+        raise SaglayiciHatasi(f"{anahtar} ortam değişkeni yok")
     auth = {"Authorization": f"Key {key}"}
-    body = {"prompt": is_["prompt"], "duration": f"{is_['faturali_sn']:g}"}
-    if is_["negatif"]:
-        body["negative_prompt"] = is_["negatif"]
-    if is_["kare"]:
-        body["image_url"] = _data_uri(Path(is_["kare"]))
-    if ayar.get("tohum"):
-        body["seed"] = is_["tohum"]
     try:
-        kuyruk = json.loads(ag("POST", FAL_KUYRUK + ayar["model"], body, auth))
+        kuyruk = json.loads(ag("POST", FAL_KUYRUK + model, body, auth))
         bitis = time.monotonic() + ZAMAN_ASIMI_SN
         while True:
             durum = json.loads(ag("GET", kuyruk["status_url"], None, auth)).get("status")
@@ -73,7 +67,21 @@ def _fal(is_: dict, hedef: Path, ayar: dict, ag) -> Path:
             if time.monotonic() > bitis:
                 raise SaglayiciHatasi("fal.ai zaman aşımı")
             time.sleep(BEKLEME_SN)
-        sonuc = json.loads(ag("GET", kuyruk["response_url"], None, auth))
+        return json.loads(ag("GET", kuyruk["response_url"], None, auth))
+    except (OSError, KeyError, ValueError) as e:
+        raise SaglayiciHatasi(f"fal.ai: {e}") from e
+
+
+def _fal(is_: dict, hedef: Path, ayar: dict, ag) -> Path:
+    body = {"prompt": is_["prompt"], "duration": f"{is_['faturali_sn']:g}"}
+    if is_["negatif"]:
+        body["negative_prompt"] = is_["negatif"]
+    if is_["kare"]:
+        body["image_url"] = _data_uri(Path(is_["kare"]))
+    if ayar.get("tohum"):
+        body["seed"] = is_["tohum"]
+    sonuc = fal_kuyruk(ayar["model"], body, ag, ayar.get("anahtar", "FAL_KEY"))
+    try:
         url = sonuc["video"]["url"]
         out = hedef.with_suffix(".mp4")
         out.write_bytes(ag("GET", url, None, None))

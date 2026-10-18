@@ -10,6 +10,7 @@
 | `kalite.py` | Kalite kapısı (aşağıda). |
 | `devir.py` | İşin teslim klasörüne kısa `DEVIR.md` yazar: teslim edilen videolar ve kalite sonuçları, senaryolar ve yeniden üretme komutları, seslendirme, kararlar. Revizyon thread'i eski konuşma yerine bunu okur. Kullanım: `devir.py <klasör> --not "karar"`. |
 | `onizleme.py` | Render'dan önce önizleme: her stil için birkaç kare tek sayfada, banding ve netlik ölçüsüyle. 4 stil yaklaşık 15 sn. Kullanım: `onizleme.py kolaj=a.json origami=b.json -o onizleme.png`. |
+| `sayfa.py` | Sayfa kapısı: panel, açılış sayfası ya da HTML teslimini gerçek tarayıcıda telefon ve masaüstü ekranında açıp kontrol eder (aşağıda). |
 
 Şablon tarafında kullanım (platform bir Python paketi olamadığı için yol eklenir):
 
@@ -41,3 +42,22 @@ Her render sonunda kendiliğinden çalışır (`akis.birlestir`), videonun yanı
 Banding ölçüsü: görüntü 64 px karolara bölünür; tonu yumuşak değişen (2–16 kod değeri), en az iki tonu geniş düz şeritler hâlinde taşıyan ve komşu pikselleri %90'dan fazla aynı olan karo basamaklı sayılır. Titreşimli (dither) degrade, düz dolgu ve dokulu yüzey sayılmaz; çok açık karolar da (kâğıt dokusu, yumuşak gölge) sayılmaz. Ayar gerçek işlerle yapıldı: The Leaf TV döngüsünün ilk sürümü (koyu bulanık zemin) %43 ile kalır, açık sürümü geçer; şablon örnekleri geçer; yarım çözünürlükten büyütülmüş kinetik "netlik" uyarısı alır.
 
 Kontakt sayfası 8 örnek kare gösterir. Dikey videoda Reels / TikTok / Shorts arayüzünün kapattığı yaklaşık bölgeler (üst %10, alt %22, sağ %13, sol %4) kırmızı taralıdır: yazının oraya düşüp düşmediğine insan bakar, çünkü yazıyı çizimden makine güvenilir ayıramıyor.
+
+## Sayfa kapısı
+
+```sh
+python3 platform/ortak/sayfa.py panel.html [https://… ...] [--kontakt k.png] [--bekle 800] [--ekran telefon] [--json]
+```
+
+Videodaki kalite kapısının web karşılığı. Sayfa Chromium'da (Playwright) iki ekranda açılır: telefon 390×844 @3x ve masaüstü 1440×900 @2x, açık tema. Dosyanın yanına `<ad>.sayfa.json` ve `<ad>.sayfa.png` yazar: iki ekranın tam sayfa görüntüsü yan yana, sorunlu öğe kırmızı (hata) ya da turuncu kesikli (uyarı) çerçeveli. Claude sayfayı tek tek ekran görüntüsüyle gezmez, bu tek görüntüye ve rapora bakar.
+
+| Kontrol | Hata | Uyarı |
+| --- | --- | --- |
+| Taşma | sayfa yana kayıyor; öğe ekranın dışına taşıyor (kaydırılan bir kabın içindekiler sayılmaz) | |
+| Kesilen yazı | | yazı kutusuna sığmıyor, kabı kesiyor ya da üç noktayla kısaltılmış |
+| Kontrast | 2:1'in altı | WCAG AA altı (normal yazı 4.5:1, büyük yazı 3:1); degrade ya da görsel zeminde ölçülmez |
+| Telefon | | 12 px altı yazı; kısa kenarı 44 px altı düğme ya da bağlantı (yazı içi bağlantı sayılmaz) |
+| Görsel | yüklenemeyen (kırık) görsel | doğal genişliği ekrandaki genişliğin 1,5 katından az: telefonda bulanık görünür |
+| Konsol, ağ | | JavaScript hatası; yüklenemeyen dosya (bulut oturumunda ağ izni kapalı olabilir) |
+
+Stüdyo panelinde denendi (2026-10-18): taşma yok; uyarı olarak turuncu not yazısı 3.9:1 kontrastta, sekme düğmeleri telefonda 43 px.

@@ -47,9 +47,9 @@ jobs:
           # hamur stili Baloo 2 kullanır (Türkçe harfler tam); ağırlıkları önceden örnekle
           python -c "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import hamur; [hamur.yazi_tipi_baloo(w) for w in (600, 700, 800)]"
           ls /usr/share/fonts/opentype/inter/Inter-ExtraBold.otf 2>/dev/null || echo "KINETIK_FONT_DIZINI=$HOME/.cache/studyo/fonts" >> "$GITHUB_ENV"
-      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil, bumper, mekan, origami, kolaj, minyatur)
+      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil, bumper, mekan, origami, kolaj, minyatur, vitrin)
         run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil platform/sablonlar/bumper platform/sablonlar/mekan platform/sablonlar/origami platform/sablonlar/kolaj platform/sablonlar/minyatur; do
+          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil platform/sablonlar/bumper platform/sablonlar/mekan platform/sablonlar/origami platform/sablonlar/kolaj platform/sablonlar/minyatur platform/sablonlar/vitrin; do
             echo "::group::$d"
             python -m unittest discover -s "$d/testler" -v
             echo "::endgroup::"
@@ -72,6 +72,11 @@ jobs:
           done
           for p in ornekler/*/bumper.json ornekler/*/imza.json; do
             [ -e "$p" ] && python platform/sablonlar/stil/stil.py denetle "$p" --stil bumper
+          done
+      - name: Ürün vitrini senaryolarını denetle
+        run: |
+          for p in ornekler/*/vitrin.json; do
+            python platform/sablonlar/stil/stil.py denetle "$p" --stil urun-vitrini -o "$RUNNER_TEMP/vitrin"
           done
       - name: Origami senaryolarını denetle
         run: |

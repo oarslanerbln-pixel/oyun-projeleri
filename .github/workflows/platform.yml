@@ -96,6 +96,20 @@ jobs:
           for p in ornekler/*/tek-cizgi.json; do
             python platform/sablonlar/tek_cizgi/tek_cizgi.py denetle "$p" -o "$RUNNER_TEMP/tek-cizgi"
           done
+      - name: Çizgi roman şablonu (testler ve senaryo denetimi)
+        run: |
+          python -m pip install -q numpy scipy
+          python -m unittest discover -s platform/sablonlar/cizgi_roman/testler -v
+          for p in ornekler/*/cizgi-roman.json; do
+            python platform/sablonlar/cizgi_roman/cizgi_roman.py denetle "$p" -o "$RUNNER_TEMP/cizgi-roman"
+          done
+      - name: Risograf şablonu (testler ve senaryo denetimi)
+        run: |
+          python -m pip install -q numpy scipy
+          python -m unittest discover -s platform/sablonlar/risograf/testler -v
+          for p in ornekler/*/risograf.json; do
+            python platform/sablonlar/risograf/risograf.py denetle "$p" -o "$RUNNER_TEMP/risograf"
+          done
       - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
         run: |
           for p in ornekler/*/proje.json; do

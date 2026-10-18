@@ -423,6 +423,7 @@ function ozellikCiz(t) {
     cx.globalAlpha = KITAP.kapak ? 0 : g * (1 - nab); cx.stroke();
     cx.globalAlpha = KITAP.kapak ? 0 : g; cx.fillStyle = R.vurgu;
     cx.beginPath(); cx.arc(px, py, 7 * U * outBack(prog(t, o.bas + 0.05, 0.35)), 0, Math.PI * 2); cx.fill();
+    cx.globalAlpha = g;
 
     const no = String(i + 1).padStart(2, '0');
     const kay = (1 - gir) * 40 * U - (1 - cik) * 18 * U;

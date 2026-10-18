@@ -23,13 +23,13 @@ Bütün anlar videonun başından itibaren saniye cinsindendir. Bir sahne bir so
 
 | Sahne (`tur`) | Ne | Alanlar |
 | --- | --- | --- |
-| `fis` | Çapa: yazıcıdan satır satır uzayan fiş, birikip yapışan kesik bardaklar, damga gibi basılan kelime | `kalemler[]`, `kalem_t`, `kalem_son`, `toplam`, `toplam_t`, `cember_t` (toplamın etrafına kalem halkası), `nesne{tur,t,adet}`, `damga{metin,t,son}`, `baslik` |
-| `esitlik` | Yeniden çerçeveleme: üst yazı, nesne = nesne2, alt yazı, kalem altı çizgisi | `ust{metin,t,son}`, `nesne{t}`, `esit_t`, `nesne2{t}` (zirvede çarparak iner), `alt{metin,t,son}`, `cizgi_t` |
+| `fis` | Çapa: yazıcıdan satır satır uzayan fiş, birikip yapışan kesik bardaklar, damga gibi basılan kelime | `kalemler[]`, `kalem_t`, `kalem_son`, `toplam`, `toplam_tutar` (yoksa `para` ×5), `para` (fiyat simgesi, varsayılan `₺`), `fis_alt` (varsayılan `*** FİŞ ***`), `toplam_t`, `cember_t` (toplamın etrafına kalem halkası), `nesne{tur,t,adet}`, `damga{metin,t,son}`, `baslik` |
+| `esitlik` | Yeniden çerçeveleme: üst yazı, nesne = nesne2, alt yazı, kalem altı çizgisi | `ust{metin,t,son}`, `nesne{t,buhar}` (buhar çizgileri yalnız bardak/kupada, başka nesnede `buhar: true`), `esit_t`, `nesne2{t}` (zirvede çarparak iner), `alt{metin,t,son}`, `cizgi_t` |
 | `kapanis` | Marka: kelime kelime yapışan marka şeritleri, daktilo etiketi, yuvarlak mühür | `marka{metin,t,son}`, `alt{metin,t}`, `nesne{t}`, `damga_t`, `damga{metin}` (mühür çevresindeki yazı) |
 
 Kesik harf yazılarında (`ust`, `alt`, `damga`) her harf `t` → `son` arasında tek tek düşer; sığmazsa kelime aralarından satıra bölünür, yine sığmazsa küçülür. Ekranda az yazı kuralı için üç dört kelimeyi geçmeyin.
 
-Nesneler (`tur`): `bardak` (karton kahve bardağı), `kupa`, `simit`, `cekirdek`. Hepsi kodla çizilip yarım tona çevrilir. Gerçek ürün için `{"gorsel": "urun.png", "genislik": 420, "t": 3.3}` verilir: görsel gri tona, oradan yarım ton baskıya çevrilir, saydam PNG ise siluetinden makasla kesilir.
+Nesneler (`tur`): `bardak` (karton kahve bardağı), `kupa`, `simit`, `cekirdek`. Hepsi kodla çizilip yarım tona çevrilir. Gerçek ürün için `{"gorsel": "urun.png", "genislik": 420, "t": 3.3}` verilir: görsel gri tona, oradan yarım ton baskıya çevrilir, saydam PNG ise siluetinden makasla kesilir. Okunması gereken görseller (kitap kapağı, ambalaj yazısı) için `"renkli": true` yarım tonu atlar, görsel kendi renkleriyle makasla kesilir.
 
 Sahneye giriş geçişi (`gecis`): `yirt` (önceki sayfa ortadan yırtılır, iki yarısı beyaz lifli kenarlarıyla ekrandan çıkar), `kaydir` (yeni kâğıt alttan kayarak gelir, 0,3 sn önce başlar), `kesme`.
 

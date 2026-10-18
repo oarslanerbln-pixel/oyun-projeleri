@@ -1,0 +1,9 @@
+{
+  "pip": ["numpy", "scipy"],
+  "denetle": [
+    {
+      "dosyalar": ["ornekler/*/risograf.json"],
+      "komut": ["{python}", "{modul}/risograf.py", "denetle", "{dosya}", "-o", "{gecici}/risograf"]
+    }
+  ]
+}

@@ -16,3 +16,10 @@ python3 platform/sablonlar/animasyon/animasyon.py render ornekler/demli-kahve/pr
 | 1 · Öz | `docs/01-oz/brif.json` |
 | Görünen metin (TR/EN) | `metin/metin.csv` |
 | 4 · Yapı | `docs/04-yapi/cekimler-*.csv` |
+
+Marka bumper'ı ve video imzası, aynı `marka/marka.json` ile ([bumper şablonu](../../platform/sablonlar/bumper/README.md)):
+
+```sh
+python3 platform/sablonlar/stil/stil.py uret ornekler/demli-kahve/bumper.json --stil bumper   # 6 sn
+python3 platform/sablonlar/stil/stil.py uret ornekler/demli-kahve/imza.json   --stil bumper   # 3 sn imza
+```

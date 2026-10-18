@@ -45,9 +45,9 @@ jobs:
           # fonts-inter beklenen statik ağırlıkları vermezse kinetik, stil şablonunun örneklediği Inter'i kullanır
           python -c "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import motor; motor.yazi_tipi(800); motor.yazi_tipi(700)"
           ls /usr/share/fonts/opentype/inter/Inter-ExtraBold.otf 2>/dev/null || echo "KINETIK_FONT_DIZINI=$HOME/.cache/studyo/fonts" >> "$GITHUB_ENV"
-      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil, bumper)
+      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil, bumper, mekan)
         run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil platform/sablonlar/bumper; do
+          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil platform/sablonlar/bumper platform/sablonlar/mekan; do
             echo "::group::$d"
             python -m unittest discover -s "$d/testler" -v
             echo "::endgroup::"

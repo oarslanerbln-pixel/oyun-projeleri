@@ -180,6 +180,7 @@ class Gorunum:
         self.tf_govde = marka_yazi_tipi(g.aile, max(g.agirlik, 500)) if g else motor.yazi_tipi(700)
         self.logo_resim = _logo_resim(m, senaryo_yolu) if m.logo_dosya else None
         self.sure = VARYANTLAR[vary]
+        self.buyuk = motor.tr_buyuk  # senaryo "dil" Türkçe değilse gorunum() str.upper'a çevirir (BERLIN, BERLİN değil)
         # olay anları (sn). imza, bumper'ın halka geçişinden başlar.
         k = 0.0 if vary == 'bumper' else -2.2
         self.z = dict(nokta=0.15, kelime=0.5, cizgi=0.45, halka=2.55 + k, logo=3.0 + k, alt=3.55 + k,
@@ -264,7 +265,7 @@ def kare(cv, t, W, H, g):
         isik = skia.GradientShader.MakeRadial(
             (cx, cy - 0.05 * H), max(W, H) * (0.55 + 0.04 * nefes),
             [_alfa(g.isik, 0.20 + 0.06 * nefes), _alfa(g.isik, 0.0)])
-        cv.drawPaint(skia.Paint(Shader=isik))
+        cv.drawPaint(skia.Paint(Shader=isik, Dither=True))  # titreşim: 8 bitte dairesel basamak olmasın
         if g.varyant == 'bumper':
             _onerme(cv, t, W, H, g, cx, cy, genis, u)
         _nokta_ve_halka(cv, t, g, cx, hy, u, R)
@@ -284,7 +285,7 @@ def kare(cv, t, W, H, g):
     # hafif vinyet: düz renk zemin "basılı" değil sıcak görünsün
     vin = skia.GradientShader.MakeRadial((cx, H / 2), max(W, H) * 0.75,
                                          [0x00000000, 0x00000000, 0x22000000 if t < z['halka'] + 0.4 else 0x0C000000], [0.0, 0.6, 1.0])
-    cv.drawPaint(skia.Paint(Shader=vin))
+    cv.drawPaint(skia.Paint(Shader=vin, Dither=True))
 
 
 def _nokta_ve_halka(cv, t, g, cx, hy, u, R):
@@ -366,7 +367,7 @@ def _logo(cv, t, W, H, g, cx, cy, genis, u, alt):
     if g.logo_resim:
         _logo_resim_ciz(cv, t, g, cx, logo_y - 80 * u, genis, u)
     else:
-        s = motor.tr_buyuk(a['logo']) if a['logo'] == a['logo'].upper() else a['logo']
+        s = g.buyuk(a['logo']) if a['logo'] == a['logo'].upper() else a['logo']
         boy = _sigdir(g.tf_baslik, s, 230 * u, genis * 0.86, 0.04)
         n = len(s)
 
@@ -383,8 +384,9 @@ def _logo(cv, t, W, H, g, cx, cy, genis, u, alt):
                                                6 * u, 6 * u), skia.Paint(AntiAlias=True, Color=g.vurgu))
     if a['alt']:
         q = g.egri(prog(t, z['alt'], 0.6))
-        boy = _sigdir(g.tf_govde, motor.tr_buyuk(a['alt']), 44 * u, genis * 0.7, 0.32)
-        _harfler(cv, g.tf_govde, motor.tr_buyuk(a['alt']), boy, cx, logo_y + 130 * u + (1 - q) * 16 * u,
+        boy = _sigdir(g.tf_govde, g.buyuk(a['alt']), 44 * u, genis * 0.7, 0.32)
+        alt_y = logo_y + (200 if g.logo_resim else 130) * u  # görsel logo daha uzun: alt yazı altına iner
+        _harfler(cv, g.tf_govde, g.buyuk(a['alt']), boy, cx, alt_y + (1 - q) * 16 * u,
                  g.metin, lerp(0.6, 0.32, q), lambda i: (q * 0.85, 0.0, 1.0))
     cv.restore()
     if a['cagri'] and g.varyant == 'bumper':
@@ -493,7 +495,10 @@ def muzik(g):
 # ---------- üretim ----------
 def gorunum(senaryo_yolu):
     s, m, _ = yukle(senaryo_yolu)
-    return Gorunum(m, alanlar(s, m), varyant(s), senaryo_yolu), s
+    g = Gorunum(m, alanlar(s, m), varyant(s), senaryo_yolu)
+    if s.get('dil', 'tr') != 'tr':
+        g.buyuk = str.upper
+    return g, s
 
 
 def kapak(g, yol, W, H, t=None):

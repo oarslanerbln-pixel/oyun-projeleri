@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/tek-cizgi.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/tek_cizgi.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/tek-cizgi"
+      ]
+    }
+  ]
+}

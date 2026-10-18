@@ -1,0 +1,57 @@
+{
+  "kimlik": "kucuk-aliskanliklar-cizgi-roman",
+  "not": "Stil testindeki 10 sn'lik webtoon örneğinin şablon karşılığı: aynı satırlar, aynı anlar.",
+  "sure": 10,
+  "fps": 30,
+  "format": ["9x16"],
+  "kapak_t": 4.9,
+  "palet": {"yesil_nokta": "#7CC95C"},
+  "muzik": {"bpm": 120},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Her gün, sadece yüzde bir daha iyi ol."},
+    {"id": "v1", "t": 3.15, "metin": "Bir yıl sonra, otuz yedi kat güçlüsün."},
+    {"id": "v2", "t": 6.15, "metin": "Küçük adım. Büyük fark."},
+    {"id": "v3", "t": 8.35, "metin": "Bugün başla."}
+  ]},
+  "sahneler": [
+    {"bas": 0, "paneller": [{
+      "zemin": "sari", "nokta": "turuncu", "nokta_guc": 9.6, "nokta_bas": 0.36,
+      "hiz_cizgileri": {"t": 0.8, "x": 0.5, "y": 0.527},
+      "anlati": {"metin": "HER GÜN...", "t": 0.25, "boy": 92},
+      "ogeler": [
+        {"tur": "takvim", "t": 0.25, "bitis_t": 1.17, "cikis_t": 1.2, "degerler": [1, 7], "x": 0.5, "y": 0.522},
+        {"tur": "patlama", "t": 1.35, "metin": "%1", "x": 0.5, "y": 0.527, "16x9": {"olcek": 0.82}}
+      ]}]},
+    {"bas": 3.0, "paneller": [{
+      "zemin": "mavi", "nokta": "lacivert", "nokta_yon": "yukari", "nokta_guc": 8.8, "nokta_bas": 0.658, "egim": true,
+      "anlati": {"metin": "BİR YIL SONRA...", "t": 3.2, "boy": 84},
+      "ogeler": [
+        {"tur": "buyume_oku", "t": 3.25, "bitis_t": 4.45, "baslangic": [0.11, 0.897], "bitis": [0.9, -0.07]},
+        {"tur": "patlama", "t": 4.0, "sayac": {"degerler": [1, 37], "bitis_t": 4.5}, "son_ek": "×",
+         "zemin": "sari", "x": 0.35, "y": 0.391, "16x9": {"x": 0.3, "y": 0.5, "olcek": 0.8}}
+      ]}]},
+    {"bas": 6.0, "bolme": 0.3385, "paneller": [
+      {"zemin": "krem", "nokta": "krem_nokta", "nokta_yon": "duz", "nokta_guc": 3.4, "nokta_aralik": 18,
+       "ogeler": [
+         {"tur": "filiz", "t": 6.15, "x": 0.66, "y": 0.65, "olcek": 1.44, "16x9": {"x": 0.45, "y": 0.72}},
+         {"tur": "yazi", "t": 6.2, "giris": "pop", "metin": "KÜÇÜK ADIM", "renk": "murekkep", "boy": 179, "kontur": 0,
+          "hiza": 0, "x": 0.05, "y": 0.44, "16x9": {"x": 0.07, "y": 0.3}}
+       ]},
+      {"zemin": "acik_yesil", "nokta": "yesil_nokta", "nokta_guc": 9.0, "nokta_bas": 0.53, "vurus": 6.85,
+       "hiz_cizgileri": {"renk": "beyaz", "x": 0.5, "y": 0.41, "r": 560, "donus": 0.04, "seed": 8},
+       "ogeler": [
+         {"tur": "agac", "t": 6.85, "x": 0.5, "y": 0.855, "olcek": 0.86},
+         {"tur": "yazi", "t": 6.85, "giris": "pop", "metin": "BÜYÜK FARK!", "renk": "sari", "boy": 190, "derinlik": 22,
+          "kontur": 16, "x": 0.5, "y": 0.96}
+       ]}]},
+    {"bas": 8.0, "paneller": [{
+      "zemin": "kirmizi", "nokta": "koyu_kirmizi", "nokta_guc": 9.4, "nokta_bas": 0.467,
+      "hiz_cizgileri": {"renk": "acik_kirmizi", "x": 0.5, "y": 0.652, "r": 380, "donus": -0.06, "n": 40, "seed": 12},
+      "ogeler": [
+        {"tur": "kahraman", "t": 8.0, "yumruk_t": 8.75, "goz_kirp_t": 9.45, "x": 0.48, "y": 0.658, "16x9": {"x": 0.64, "y": 0.6, "olcek": 0.92}},
+        {"tur": "balon", "t": 8.3, "x": 0.5, "y": 0.234,
+         "satirlar": [{"metin": "BUGÜN"}, {"metin": "BAŞLA!", "renk": "kirmizi"}],
+         "16x9": {"x": 0.27, "y": 0.4, "olcek": 0.85, "kuyruk": [520, 330]}}
+      ]}]}
+  ]
+}

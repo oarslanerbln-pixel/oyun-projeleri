@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/senaryo.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/kinetik.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/kinetik"
+      ]
+    }
+  ]
+}

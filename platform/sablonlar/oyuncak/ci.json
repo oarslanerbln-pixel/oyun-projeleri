@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/oyuncak.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/oyuncak.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/oyuncak"
+      ]
+    }
+  ]
+}

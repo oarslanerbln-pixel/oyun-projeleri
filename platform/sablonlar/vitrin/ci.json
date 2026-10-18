@@ -1,0 +1,19 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/vitrin.json"
+      ],
+      "komut": [
+        "{python}",
+        "platform/sablonlar/stil/stil.py",
+        "denetle",
+        "{dosya}",
+        "--stil",
+        "urun-vitrini",
+        "-o",
+        "{gecici}/vitrin"
+      ]
+    }
+  ]
+}

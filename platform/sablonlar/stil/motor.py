@@ -42,7 +42,7 @@ YUVALAR = {
 METIN = {k: v for k, (v, _) in YUVALAR.items()}
 SES_DIZINI = None
 STIL_AYAR = {}  # stiller.<stil> altındaki, metin dışı stile özel ayarlar (örn. hamur: kart, marka, dipnot)
-STILLER = {'kagit-kesik': 'kagit_kesik', 'izometrik': 'izometrik', 'hamur': 'hamur'}
+STILLER = {'kagit-kesik': 'kagit_kesik', 'izometrik': 'izometrik', 'hamur': 'hamur', 'piksel': 'piksel'}
 BOYUTLAR = {'9x16': (1080, 1920), '16x9': (1920, 1080), '1x1': (1080, 1080), '4x5': (1080, 1350)}
 
 

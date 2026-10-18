@@ -784,7 +784,7 @@ def ses_uret(g, yol, is_, ses_dizini):
 
 
 # ---------- üretim ----------
-def seslendir(yol, cikti=None, saglayici='piper', ses=None):
+def seslendir(yol, cikti=None, saglayici='otomatik', ses=None):
     sys.path.insert(0, os.path.join(PLATFORM, 'ses'))
     import seslendirme
     with open(yol, encoding='utf-8') as f:
@@ -794,7 +794,8 @@ def seslendir(yol, cikti=None, saglayici='piper', ses=None):
         return None
     from pathlib import Path
     sec = s.get('seslendirme', {}).get('ses') if ses is None else ses
-    return seslendirme.uret(satirlar, Path(_ses_dizini(yol, s, cikti)), saglayici, {'ses': sec})
+    return seslendirme.uret(satirlar, Path(_ses_dizini(yol, s, cikti)), saglayici,
+                            {'ses': sec, 'saglayici': s.get('seslendirme', {}).get('saglayici')})
 
 
 def calistir(yol, cikti, boyutlar, olcek=1.0):
@@ -835,7 +836,7 @@ def main(argv=None):
         p = alt.add_parser(ad)
         p.add_argument('senaryo'); p.add_argument('-o', '--cikti')
         if ad in ('seslendir', 'uret'):
-            p.add_argument('--saglayici', default='piper'); p.add_argument('--ses')
+            p.add_argument('--saglayici', default='otomatik'); p.add_argument('--ses')
         if ad == 'kare':
             p.add_argument('--an', type=float, nargs='+', required=True)
             p.add_argument('--format', type=lambda x: formatlar(x)[0])

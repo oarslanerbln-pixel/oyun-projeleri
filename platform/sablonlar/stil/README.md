@@ -1,12 +1,13 @@
 # platform/sablonlar/stil
 
-Kâğıt kesik, izometrik ve hamur (claymation) stilleri. [Kinetik şablonla](../kinetik/README.md) aynı `senaryo.json` dosyasını okur, böylece bir video içeriği değişmeden stil değiştirir. Seslendirme stillerde ortaktır (`cikti/seslendirme/`). Ücretli servis gerekmez; her kare `t` anının saf fonksiyonudur.
+Kâğıt kesik, izometrik, hamur (claymation) ve piksel (retro oyun) stilleri. [Kinetik şablonla](../kinetik/README.md) aynı `senaryo.json` dosyasını okur, böylece bir video içeriği değişmeden stil değiştirir. Seslendirme stillerde ortaktır (`cikti/seslendirme/`). Ücretli servis gerekmez; her kare `t` anının saf fonksiyonudur.
 
 | Stil | Görünüm | Ses |
 | --- | --- | --- |
 | `kagit-kesik` | Stop-motion: saniyede 12 poz, her pozda hafif titreme; kesilmiş kenarlı kâğıt parçalar, yumuşak gölge, kâğıt dokusu, kayan sayfa geçişleri | kalimba, yumuşak davul, kısık kâğıt efektleri |
 | `izometrik` | Yüzen pastel ada, üç tonlu bloklar, uzun gölgeler, kamera kayması; yazılar adadaki tabelada | çan/pluck arpej, pad, tahta "tok" efektleri |
 | `hamur` | Claymation: saniyede 12 poz, kaynayan konturlar, yoğrulan geçişler (top → kart), hacimli hamur parçalar, parmak izi, düz krem fon + tanecik. Metafor: damga yuvalı ilerleme kartı | marimba, pizz bas, yumuşak davul; vıcık/pıt/tok hamur efektleri |
+| `piksel` | 16-bit oyun: 16 renkli palet, düşük iç çözünürlük en yakın komşuyla büyütülür, kendi bitmap fontu (Türkçe harfler dahil), basamak tırmanan kahraman, GÜN/GÜÇ/XP göstergesi, LEVEL UP, başlık ekranı. Yazılar büyük harfe çevrilir, sığmazsa küçültülür | chiptune (kare/üçgen dalga, arpej), 8-bit efektler |
 
 ```sh
 S=platform/sablonlar/stil/stil.py

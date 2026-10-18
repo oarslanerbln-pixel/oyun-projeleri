@@ -101,6 +101,13 @@ class TestDenetim(Tmp):
         self.assertEqual(stil.main(['denetle', yol]), 1)  # stil yok
         self.assertEqual(stil.main(['denetle', str(senaryo_kur(self.kok, stil='kagit-kesik', sure=12))]), 1)
 
+    def test_piksel_yazilari(self):
+        """Piksel fontu büyük harf yazar; sayıdaki 'x' küçük kalır, uzun yazı ekrana sığana kadar küçülür."""
+        import piksel
+        self.assertEqual(piksel.ekran('37x'), '37x')
+        self.assertEqual(piksel.ekran('çiğ öğün'), 'ÇİĞ ÖĞÜN')
+        self.assertLessEqual(piksel.metin_gen('KOCA DEĞİŞİM', piksel.sigdir(['KOCA DEĞİŞİM'], 4, 127)), 127)
+
     def test_tr_harfler(self):
         self.assertEqual(motor.tr_buyuk('büyük fikir ılık'), 'BÜYÜK FİKİR ILIK')
         self.assertEqual(motor.cumle('BUGÜN BAŞLA İLK'), 'Bugün başla ilk')

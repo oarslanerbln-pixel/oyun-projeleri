@@ -63,7 +63,7 @@ jobs:
         run: |
           for p in ornekler/*/senaryo.json; do
             python platform/sablonlar/kinetik/kinetik.py denetle "$p" -o "$RUNNER_TEMP/kinetik"
-            for stil in kagit-kesik izometrik hamur; do
+            for stil in kagit-kesik izometrik hamur piksel; do
               python platform/sablonlar/stil/stil.py denetle "$p" --stil "$stil" -o "$RUNNER_TEMP/stil"
             done
           done

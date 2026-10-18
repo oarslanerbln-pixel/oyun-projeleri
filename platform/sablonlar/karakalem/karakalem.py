@@ -8,7 +8,7 @@ aynı anlara kilitlidir. Hiçbir ücretli servis gerekmez (seslendirme: Piper tr
 
     python3 platform/sablonlar/karakalem/karakalem.py fontlar
     python3 platform/sablonlar/karakalem/karakalem.py denetle   karakalem.json
-    python3 platform/sablonlar/karakalem/karakalem.py seslendir karakalem.json [--saglayici elevenlabs --ses <id>]
+    python3 platform/sablonlar/karakalem/karakalem.py seslendir karakalem.json   # sağlayıcı: seslendirme.saglayici (varsayılan piper)
     python3 platform/sablonlar/karakalem/karakalem.py kare      karakalem.json --an 1.0 4.2 8.6
     python3 platform/sablonlar/karakalem/karakalem.py render    karakalem.json [--format 9x16 16x9]
 Format verilmezse senaryonun `format` listesi, o da yoksa yalnız 9x16. Çıktı varsayılanı senaryonun yanındaki `cikti/`.
@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("senaryo")
         p.add_argument("-o", "--cikti")
         if ad == "seslendir":
-            p.add_argument("--saglayici", default="piper"); p.add_argument("--ses")
+            p.add_argument("--saglayici", help="senaryodaki seslendirme.saglayici yerine (varsayılan piper)"); p.add_argument("--ses")
         if ad == "kare":
             p.add_argument("--an", type=float, nargs="+", required=True)
             p.add_argument("--format", default="9x16", choices=sorted(FORMATLAR))
@@ -117,7 +117,8 @@ def main(argv: list[str] | None = None) -> int:
     elif a.komut == "seslendir":
         import seslendirme
         try:
-            k = seslendir(s, cikti, a.saglayici, a.ses)
+            sl = s["seslendirme"]  # sağlayıcı video başına seçilir: çoğu iş Piper, bazıları ElevenLabs
+            k = seslendir(s, cikti, a.saglayici or sl.get("saglayici", "piper"), a.ses or sl.get("ses"))
         except seslendirme.SeslendirmeHatasi as e:
             print(f"HATA: {e}", file=sys.stderr)
             return 2

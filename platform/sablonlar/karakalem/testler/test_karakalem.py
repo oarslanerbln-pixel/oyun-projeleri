@@ -53,6 +53,12 @@ class Denetim(unittest.TestCase):
         h = copy.deepcopy(self.ham); h["sahneler"][2]["damga"]["t"] = 7.2
         self.assertTrue(any("damga" in x for x in zaman.denetle(yaz(h))))
 
+    def test_saglayici_video_basina(self):
+        h = copy.deepcopy(self.ham); h["seslendirme"].update({"saglayici": "elevenlabs", "ses": "abc123"})
+        self.assertEqual(zaman.denetle(yaz(h)), [])
+        h["seslendirme"]["ses"] = 5
+        self.assertTrue(any("seslendirme.ses" in x for x in zaman.denetle(yaz(h))))
+
     def test_seslendirme_cakismasi(self):
         hatalar = zaman.denetle(zaman.yukle(ORNEK), {"v0": 3.0})
         self.assertTrue(any("v0" in x and "bitmiyor" in x for x in hatalar))

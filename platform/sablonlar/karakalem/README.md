@@ -8,7 +8,7 @@ Tek senaryo dosyasından görüntü, kalem sesi, efektler, sentez müzik ve sesl
 K=platform/sablonlar/karakalem/karakalem.py
 python3 $K fontlar                                                   # Caveat + Permanent Marker, bir kez
 python3 $K denetle   ornekler/kucuk-aliskanliklar/karakalem.json
-python3 $K seslendir ornekler/kucuk-aliskanliklar/karakalem.json     # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $K seslendir ornekler/kucuk-aliskanliklar/karakalem.json     # platform/ses; sağlayıcı senaryodan (varsayılan Piper fahrettin)
 python3 $K kare      ornekler/kucuk-aliskanliklar/karakalem.json --an 1.0 4.2 8.6 --format 16x9   # önizleme PNG
 python3 $K render    ornekler/kucuk-aliskanliklar/karakalem.json --format 9x16 16x9
 ```
@@ -25,7 +25,7 @@ Senaryo dosyasının adı bilerek `senaryo.json` değil: CI `ornekler/*/senaryo.
   "palet": {"kagit": "#F7F4EC", "grafit": "#34343A", "vurgu": "#E0703E"},
   "karakter": {"sac": "daginik", "sac_rengi": "#4A4A52", "gozluk": true, "ten": "#F3EEE4", "kazak": "#D8D5CE", "pantolon": "#4A4A52"},
   "muzik": {"bpm": 90},
-  "seslendirme": {"vurgulu": ["yüzde", "otuz", "yedi", "kat"],
+  "seslendirme": {"saglayici": "piper", "vurgulu": ["yüzde", "otuz", "yedi", "kat"],
                   "satirlar": [{"id": "v0", "t": 0.45, "metin": "Büyük hedefler göz korkutur."}]},
   "sahneler": [
     {"tur": "hedef", "bas": 0},
@@ -57,7 +57,7 @@ Görsel kurallar şablonun içinde: kâğıt düz renktir, üstüne kalıcı lif
 - **Kalem:** Her çizginin sesi o anki kalem hızından üretilir: kâğıdın dişi (5 ms'de bir değişen pürüz), hızlandıkça parlaklaşan grafit sürtünmesi; kalem keskin bir köşeyi döndüğü an küçük bir tık. Gölge taraması saniyede ~12 ileri-geri vuruştur, başlık yazılırken de kalem duyulur.
 - **Kamera ve olaylar:** Geri çekilme ve yaklaşmada hava sesi; her inişte yükselen marimba notası, tok bir "tum" ve pop; eğri çizilirken yükselen e-piyano; damgada tok vuruş, alt bas, kâğıt hışırtısı ve müzik kutusu akoru.
 - **Müzik:** 90 BPM lo-fi; e-piyano akorları (varsayılan Fmaj7–Em7–Dm7–Cmaj7, `muzik.akorlar` ile değişir) ve pad baştan, davul ve bas basamaklarla girer, damgadan hemen önce bir nefeslik sessizlik, hafif plak hışırtısı.
-- **Seslendirme:** `cikti/seslendirme/<id>.wav` (ortak `platform/ses` adımı; varsayılan Piper tr_TR "fahrettin"). Müzik konuşmanın yaklaşık 8 dB altında durur, konuşurken 3 dB daha kısılır.
+- **Seslendirme:** `cikti/seslendirme/<id>.wav` (ortak `platform/ses` adımı). Sağlayıcı video başına seçilir: varsayılan ücretsiz Piper tr_TR "fahrettin"; öne çıkan işlerde senaryoya `"saglayici": "elevenlabs", "ses": "<voice_id>"` yazılır (ELEVENLABS_API_KEY gerekir, kredi harcar). Komut satırındaki `--saglayici` / `--ses` senaryoyu ezer. Müzik konuşmanın yaklaşık 8 dB altında durur, konuşurken 3 dB daha kısılır.
 - **Master:** 16 kHz alçak geçiren, -14 LUFS, tepe sınırlayıcı (diğer şablonlarla aynı zincir).
 
 ## Örnek: Küçük alışkanlıkların gücü

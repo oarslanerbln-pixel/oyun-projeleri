@@ -138,7 +138,10 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
             h.append("sonuc.baslik {metin, t} olmalı")
         elif not (sn["bas"] <= b["t"] and b["t"] + BASLIK_SN <= (sure or 1e9) - 0.2):
             h.append("sonuc.baslik.t sonuç sahnesinde olmalı ve yazı video bitmeden tamamlanmalı")
-    satirlar = s["seslendirme"].get("satirlar", [])
+    sl = s["seslendirme"]
+    if not isinstance(sl.get("saglayici", "piper"), str) or ("ses" in sl and not isinstance(sl["ses"], str)):
+        h.append("seslendirme.saglayici ve seslendirme.ses yazı olmalı (ör. \"elevenlabs\" ve ses kimliği)")
+    satirlar = sl.get("satirlar", [])
     for a, b2 in zip(satirlar, satirlar[1:]):
         if b2["t"] <= a["t"]:
             h.append(f"seslendirme: {b2['id']} {a['id']}'den sonra başlamalı")

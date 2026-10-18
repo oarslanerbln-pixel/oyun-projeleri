@@ -16,7 +16,7 @@ SABLONLAR = os.path.dirname(BURADA)
 sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
-TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'urun-vitrini']
+TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini']
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 
 
@@ -52,6 +52,34 @@ def _vitrin(argv):
     return vitrin.main(ileri)
 
 
+def _bumper(a):
+    """6 sn bumper / 3 sn imza: platform/sablonlar/bumper (seslendirme yok, metin marka.json + senaryo)."""
+    if a.komut == 'seslendir':
+        print('bumper: seslendirme kullanmaz (yalnız müzik)', file=sys.stderr); return 0
+    sys.path.insert(0, os.path.join(SABLONLAR, 'bumper'))
+    import bumper
+    ileri = [a.komut, a.senaryo] + (['-o', a.cikti] if a.cikti else [])
+    if a.komut == 'kare':
+        ileri += ['--an'] + [str(t) for t in a.an] + ['--format', a.format]
+    elif a.komut in ('render', 'uret'):
+        ileri += ['--format'] + a.format + ['--olcek', str(a.olcek)]
+    return bumper.main(ileri)
+
+
+def _mekan(a):
+    """Fotoğraflı mekân şablonu ( TV döngüsü / Reel): platform/sablonlar/mekan. Biçim varsayılanı varyanta göre."""
+    sys.path.insert(0, os.path.join(SABLONLAR, 'mekan'))
+    import mekan
+    ileri = [a.komut, a.senaryo] + (['-o', a.cikti] if a.cikti else [])
+    if a.komut in ('seslendir', 'uret'):
+        ileri += ['--saglayici', a.saglayici] + (['--ses', a.ses] if a.ses else [])
+    if a.komut == 'kare':
+        ileri += ['--an'] + [str(t) for t in a.an] + (['--format', a.format] if a.format else [])
+    elif a.komut in ('render', 'uret'):
+        ileri += (['--format'] + a.format if a.format else []) + ['--olcek', str(a.olcek)]
+    return mekan.main(ileri)
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
@@ -72,11 +100,16 @@ def main(argv=None):
         s = json.load(f)
     if (a.stil or s.get('stil')) == 'urun-vitrini':  # kendi senaryo biçimi (vitrin.json) ve süresi var
         return _vitrin(argv)
+    if (a.stil or s.get('stil')) == 'mekan':  # biçim varsayılanı varyanta göre (tv → 16:9), mekan.py çözer
+        if a.komut == 'kare' and '--format' not in argv: a.format = None
+        return _mekan(a)
     if a.komut in ('render', 'uret'):
         try:
             a.format = formatlar(a.format or s.get('format'))
         except ValueError as e:
             print(f'HATA: {e}', file=sys.stderr); return 1
+    if (a.stil or s.get('stil')) == 'bumper':
+        return _bumper(a)
     if a.komut == 'uret':  # tek adım: seslendirme yoksa üret, sonra render (üç stilde aynı)
         ortak = [a.senaryo] + (['-o', a.cikti] if a.cikti else []) + (['--stil', a.stil] if a.stil else [])
         cikti = a.cikti or os.path.join(os.path.dirname(os.path.abspath(a.senaryo)), 'cikti')

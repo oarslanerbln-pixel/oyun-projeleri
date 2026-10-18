@@ -41,7 +41,8 @@ YUVALAR = {
 }
 METIN = {k: v for k, (v, _) in YUVALAR.items()}
 SES_DIZINI = None
-STILLER = {'kagit-kesik': 'kagit_kesik', 'izometrik': 'izometrik'}
+STIL_AYAR = {}  # stiller.<stil> altındaki, metin dışı stile özel ayarlar (örn. hamur: kart, marka, dipnot)
+STILLER = {'kagit-kesik': 'kagit_kesik', 'izometrik': 'izometrik', 'hamur': 'hamur'}
 BOYUTLAR = {'9x16': (1080, 1920), '16x9': (1920, 1080), '1x1': (1080, 1080), '4x5': (1080, 1350)}
 
 
@@ -155,9 +156,10 @@ def denetle(s, stil, ses_dizini, render=True):
 
 
 def kur(s, stil, ses_dizini):
-    """Motor durumunu (METIN, SES, SES_DIZINI) senaryoya göre yerinde kurar."""
+    """Motor durumunu (METIN, STIL_AYAR, SES, SES_DIZINI) senaryoya göre yerinde kurar."""
     global SES_DIZINI
     METIN.clear(); METIN.update({k: v for k, (v, _) in YUVALAR.items()}); METIN.update(metin_cikar(s, stil))
+    STIL_AYAR.clear(); STIL_AYAR.update({k: v for k, v in s.get('stiller', {}).get(stil, {}).items() if k != 'metin'})
     SES[:] = [(b, x['id']) for (b, _), x in zip(VURUSLAR, s['seslendirme']['satirlar'])]
     SES_DIZINI = str(ses_dizini)
 

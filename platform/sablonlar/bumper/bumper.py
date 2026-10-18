@@ -265,7 +265,7 @@ def kare(cv, t, W, H, g):
         isik = skia.GradientShader.MakeRadial(
             (cx, cy - 0.05 * H), max(W, H) * (0.55 + 0.04 * nefes),
             [_alfa(g.isik, 0.20 + 0.06 * nefes), _alfa(g.isik, 0.0)])
-        cv.drawPaint(skia.Paint(Shader=isik))
+        cv.drawPaint(skia.Paint(Shader=isik, Dither=True))  # titreşim: 8 bitte dairesel basamak olmasın
         if g.varyant == 'bumper':
             _onerme(cv, t, W, H, g, cx, cy, genis, u)
         _nokta_ve_halka(cv, t, g, cx, hy, u, R)
@@ -285,7 +285,7 @@ def kare(cv, t, W, H, g):
     # hafif vinyet: düz renk zemin "basılı" değil sıcak görünsün
     vin = skia.GradientShader.MakeRadial((cx, H / 2), max(W, H) * 0.75,
                                          [0x00000000, 0x00000000, 0x22000000 if t < z['halka'] + 0.4 else 0x0C000000], [0.0, 0.6, 1.0])
-    cv.drawPaint(skia.Paint(Shader=vin))
+    cv.drawPaint(skia.Paint(Shader=vin, Dither=True))
 
 
 def _nokta_ve_halka(cv, t, g, cx, hy, u, R):

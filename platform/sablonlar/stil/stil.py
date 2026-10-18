@@ -3,9 +3,10 @@
     python3 platform/sablonlar/stil/stil.py denetle   senaryo.json --stil kagit-kesik
     python3 platform/sablonlar/stil/stil.py seslendir senaryo.json [--saglayici elevenlabs --ses <id>]
     python3 platform/sablonlar/stil/stil.py kare      senaryo.json --stil izometrik --an 1.5 4.7 [--format 16x9]
-    python3 platform/sablonlar/stil/stil.py render    senaryo.json --stil izometrik [--format 9x16 16x9]
-    python3 platform/sablonlar/stil/stil.py uret      senaryo.json --stil izometrik   # seslendirme yoksa üretir, sonra render
+    python3 platform/sablonlar/stil/stil.py render    senaryo.json --stil izometrik [--format 9:16 | 16:9 | ikisi]
+    python3 platform/sablonlar/stil/stil.py uret      senaryo.json --stil izometrik --format 16:9   # seslendirme yoksa üretir, sonra render
 `--stil kinetik` aynı komutu kinetik şablona iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
+Format sırası: --format, yoksa senaryodaki "format" alanı ("9:16", "16:9", "ikisi" ya da liste), yoksa yalnız 9:16.
 Çıktı varsayılanı senaryonun yanındaki `cikti/` klasörü; seslendirme `cikti/seslendirme/` (üç stilde ortak).
 """
 import argparse, importlib, json, os, sys
@@ -16,6 +17,22 @@ sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
 TUM_STILLER = sorted(motor.STILLER) + ['kinetik']
+VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
+
+
+def formatlar(secim):
+    """'9:16' / '16x9' / 'ikisi' (ya da bunların listesi) → ['9x16', ...]; tanımsızsa ValueError."""
+    if not secim:
+        return list(VARSAYILAN_FORMAT)
+    cikti = []
+    for x in [secim] if isinstance(secim, str) else secim:
+        x = str(x).strip().lower().replace(':', 'x')
+        for f in (['9x16', '16x9'] if x in ('ikisi', 'both', 'hepsi') else [x]):
+            if f not in motor.BOYUTLAR:
+                raise ValueError(f'tanımsız format: {x} (9:16, 16:9, 1:1, 4:5 ya da ikisi)')
+            if f not in cikti:
+                cikti.append(f)
+    return cikti
 
 
 def _kinetik(argv):
@@ -35,11 +52,18 @@ def main(argv=None):
             p.add_argument('--saglayici', default='piper'); p.add_argument('--ses')
         if ad == 'kare':
             p.add_argument('--an', type=float, nargs='+', required=True)
-            p.add_argument('--format', default='9x16', choices=sorted(motor.BOYUTLAR))
+            p.add_argument('--format', default='9x16', type=lambda x: formatlar(x)[0])
         if ad in ('render', 'uret'):
-            p.add_argument('--format', nargs='+', default=['9x16', '16x9'], choices=sorted(motor.BOYUTLAR))
+            p.add_argument('--format', nargs='+', help='9:16, 16:9, 1:1, 4:5 ya da ikisi (varsayılan: senaryodaki "format", yoksa 9:16)')
             p.add_argument('--olcek', type=float, default=1.0, help='hızlı prova için çözünürlük çarpanı (örn. 0.25)')
     a = ap.parse_args(argv)
+    with open(a.senaryo, encoding='utf-8') as f:
+        s = json.load(f)
+    if a.komut in ('render', 'uret'):
+        try:
+            a.format = formatlar(a.format or s.get('format'))
+        except ValueError as e:
+            print(f'HATA: {e}', file=sys.stderr); return 1
     if a.komut == 'uret':  # tek adım: seslendirme yoksa üret, sonra render (üç stilde aynı)
         ortak = [a.senaryo] + (['-o', a.cikti] if a.cikti else []) + (['--stil', a.stil] if a.stil else [])
         cikti = a.cikti or os.path.join(os.path.dirname(os.path.abspath(a.senaryo)), 'cikti')
@@ -48,15 +72,20 @@ def main(argv=None):
             r = main(['seslendir'] + ortak + ses)
             if r: return r
         return main(['render'] + ortak + ['--format'] + a.format + ['--olcek', str(a.olcek)])
-    with open(a.senaryo, encoding='utf-8') as f:
-        s = json.load(f)
     stil_ad = a.stil or s.get('stil')
     if stil_ad == 'kinetik':
-        ileri, atla = [], False  # --stil ve --olcek (kinetikte yok) değerleriyle çıkarılır
+        ileri, atla, coklu = [], False, False  # --stil, --olcek (kinetikte yok) ve --format çıkarılır
         for x in argv:
             if atla: atla = False; continue
+            if coklu and not x.startswith('-'): continue
+            coklu = False
             if x in ('--stil', '--olcek'): atla = True; continue
+            if x == '--format': coklu = a.komut == 'render'; atla = not coklu; continue
             ileri.append(x)
+        if a.komut == 'render':  # çözülen format açıkça iletilir; kinetiğin "ikisi" varsayılanı devreye girmez
+            ileri += ['--format'] + a.format
+        elif a.komut == 'kare':
+            ileri += ['--format', a.format]
         return _kinetik(ileri)
     cikti = a.cikti or os.path.join(os.path.dirname(os.path.abspath(a.senaryo)), 'cikti')
     ses_dizini = os.path.join(cikti, 'seslendirme')

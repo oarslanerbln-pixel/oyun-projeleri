@@ -117,7 +117,8 @@ class TestUretim(Tmp):
         for ad in motor.STILLER:
             with self.subTest(stil=ad):
                 cikti = self.kok / 'cikti'
-                self.assertEqual(stil.main(['render', str(yol), '-o', str(cikti), '--stil', ad, '--olcek', '0.1']), 0)
+                self.assertEqual(stil.main(['render', str(yol), '-o', str(cikti), '--stil', ad, '--format', 'ikisi',
+                                            '--olcek', '0.1']), 0)
                 for b, (W, H) in (('9x16', (108, 192)), ('16x9', (192, 108))):
                     bilgi = self._sure(cikti / f'test-{ad}-{b}.mp4')
                     self.assertAlmostEqual(float(bilgi['format']['duration']), motor.SURE, delta=0.1)
@@ -131,6 +132,30 @@ class TestUretim(Tmp):
         yol = senaryo_kur(self.kok)
         self.assertEqual(stil.main(['uret', str(yol), '--stil', 'izometrik', '--format', '1x1', '--olcek', '0.1']), 0)
         self.assertTrue((self.kok / 'cikti' / 'test-izometrik-1x1.mp4').exists())
+
+    def test_format_secimi(self):
+        """Varsayılan yalnız 9:16; senaryodaki "format" alanı ya da --format ikisini birden ister."""
+        yol = senaryo_kur(self.kok, format='16:9')
+        self.assertEqual(stil.main(['uret', str(yol), '--stil', 'kagit-kesik', '--olcek', '0.1']), 0)
+        mp4 = sorted(p.name for p in (self.kok / 'cikti').glob('*.mp4'))
+        self.assertEqual(mp4, ['test-kagit-kesik-16x9.mp4'])
+        self.assertEqual(stil.formatlar(None), ['9x16'])
+        self.assertEqual(stil.formatlar(['9:16', 'ikisi']), ['9x16', '16x9'])
+        self.assertEqual(stil.main(['render', str(yol), '--stil', 'izometrik', '--format', '3:2']), 1)
+
+    def test_kinetige_cozulen_format_iletilir(self):
+        yol = str(senaryo_kur(self.kok, format='ikisi'))
+        gelen = []
+        eski, stil._kinetik = stil._kinetik, lambda argv: gelen.append(argv) or 0
+        try:
+            stil.main(['render', yol, '--stil', 'kinetik', '--olcek', '0.5'])
+            stil.main(['render', yol, '--stil', 'kinetik', '--format', '16:9', '-o', 'x'])
+            stil.main(['kare', yol, '--stil', 'kinetik', '--an', '1', '--format', '16:9'])
+        finally:
+            stil._kinetik = eski
+        self.assertEqual(gelen, [['render', yol, '--format', '9x16', '16x9'],
+                                 ['render', yol, '-o', 'x', '--format', '16x9'],
+                                 ['kare', yol, '--an', '1', '--format', '16x9']])
 
     def test_kare_saf_fonksiyon(self):
         """Aynı t iki kez aynı kareyi verir (stop-motion titremesi de t'ye bağlı)."""

@@ -12,12 +12,12 @@ S=platform/sablonlar/stil/stil.py
 python3 $S seslendir ornekler/kucuk-aliskanliklar/senaryo.json                   # platform/ses (Piper fahrettin), üç stil için bir kez
 python3 $S denetle   ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik
 python3 $S kare      ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik --an 1.5 4.7 --format 16x9
-python3 $S render    ornekler/kucuk-aliskanliklar/senaryo.json --stil kagit-kesik   # → cikti/<kimlik>-kagit-kesik-9x16.mp4, -16x9.mp4, -kapak.png
+python3 $S render    ornekler/kucuk-aliskanliklar/senaryo.json --stil kagit-kesik   # → cikti/<kimlik>-kagit-kesik-9x16.mp4, -kapak.png
 python3 $S render    ornekler/kucuk-aliskanliklar/senaryo.json --stil kinetik       # kinetik şablona iletilir
-python3 $S uret      ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik     # tek adım: seslendirme yoksa üretir, sonra render
+python3 $S uret      ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik --format 16:9   # tek adım: seslendirme yoksa üretir, sonra render
 ```
 
-Stil, `--stil` ya da senaryodaki `"stil"` alanıyla seçilir. Çıktı H.264 + AAC, -14 LUFS; biçimler `9x16`, `16x9`, `1x1`, `4x5`. Hızlı prova için `render --olcek 0.25`. İki biçimin render'ı stil başına yaklaşık 1 dakika sürer.
+Stil, `--stil` ya da senaryodaki `"stil"` alanıyla seçilir. Çıktı H.264 + AAC, -14 LUFS. Biçim video başına seçilir: `--format 9:16 | 16:9 | 1:1 | 4:5 | ikisi`; verilmezse senaryodaki `"format"` alanı (aynı değerler ya da liste), o da yoksa yalnız 9:16. Kinetik de bu çözülen biçimle çağrılır. Hızlı prova için `render --olcek 0.25`. Bir biçimin render'ı stil başına yaklaşık yarım dakika sürer.
 
 ## Biçim: dört vuruş, 10 sn
 

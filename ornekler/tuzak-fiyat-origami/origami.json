@@ -1,0 +1,25 @@
+{
+  "kimlik": "tuzak-fiyat-origami",
+  "sure": 10,
+  "fps": 30,
+  "palet": {"zemin": "#F3ECDF", "koyu": "#22304A", "vurgu": "#E2603F", "ikinci": "#2E8A84", "ucuncu": "#EDB548", "acik": "#FFFBF3"},
+  "muzik": {"bpm": 96},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.35, "metin": "İki boy kahve. Çoğu, küçüğü seçer."},
+    {"id": "v1", "t": 2.80, "metin": "Araya, pahalı bir orta ekleyin."},
+    {"id": "v2", "t": 4.85, "metin": "Büyük, birden kelepir görünür."},
+    {"id": "v3", "t": 7.40, "metin": "Fiyat değil, seçenek satar."}
+  ]},
+  "sahneler": [
+    {"tur": "vitrin", "bas": 0, "baslik": {"metin": "MENÜ", "t": 0.05},
+     "nesneler": [
+       {"id": "kucuk", "tur": "kupa", "boy": 0.62, "renk": "ikinci", "ad": "KÜÇÜK", "fiyat": "60 ₺", "t": 0.25, "etiket_t": 0.95, "zipla_t": 1.75},
+       {"id": "orta", "tur": "kupa", "boy": 0.8, "renk": "ucuncu", "ad": "ORTA", "fiyat": "95 ₺", "t": 3.15, "etiket_t": 3.7, "sonuk_t": 5.7},
+       {"id": "buyuk", "tur": "kupa", "boy": 1.0, "renk": "vurgu", "ad": "BÜYÜK", "fiyat": "100 ₺", "t": 0.55, "etiket_t": 1.2, "one_t": 4.9}
+     ],
+     "rozet": {"metin": "SADECE +5 ₺", "t": 5.45}},
+    {"tur": "kapanis", "bas": 7.2, "gecis": "katla", "isaret": "turna", "isaret_t": 7.25,
+     "satirlar": [{"metin": "Fiyat değil,", "t": 7.45}, {"metin": "seçenek satar.", "t": 8.2, "renk": "ucuncu"}],
+     "alt": "TUZAK FİYAT ETKİSİ · MENÜNÜZE EKLEYİN", "alt_t": 8.95}
+  ]
+}

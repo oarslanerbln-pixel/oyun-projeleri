@@ -86,6 +86,8 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
         for k in ZAMAN_ALANLARI[sh["tur"]]:
             if k in sh and not (sh["bas"] <= sh[k] < sh["_son"]):
                 h.append(f"{ad}: {k}={sh[k]} sahnenin içinde değil ({sh['bas']}–{sh['_son']})")
+        if sh.get("logo") and not (Path(s["_klasor"]) / sh["logo"].get("dosya", "")).is_file():
+            h.append(f"{ad}: logo.dosya bulunamadı: {sh['logo'].get('dosya')}")
         for k in ("kelimeler", "satirlar"):
             for w in sh.get(k, []):
                 if not (sh["bas"] <= w["t"] < sh["_son"]):

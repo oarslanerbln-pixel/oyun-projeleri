@@ -342,6 +342,14 @@ class Cizici:
                 for j, s_ in enumerate((-1, 1)):
                     b = self.bellek(("ebant", j), lambda j=j: kagit.bant(110 * u, 44 * u, u, 100 + j))
                     self.parca(cv, b, x + s_ * (w / 2 - 10 * u), y - 4 * u, 110 * u, 44 * u, 80 + 12 * s_, 1, ("eb", j), t)
+        lg = sh.get("logo")
+        if lg:  # marka logosu: renkli kesik çıkartma gibi yapışır
+            yol = str(Path(self.s["_klasor"]) / lg["gorsel"])
+            pic, w, h = self.bellek(("logo", yol), lambda: kagit.gorsel_resim(yol, lg.get("genislik", 440) * u, P, u, 77, True))
+            x, y = self.yer((0.32, 0.81), (0.85, 0.26))
+            gor, _, _, k, da = self.giris(t, lg["t"], "pat")
+            if gor:
+                self.parca(cv, pic, x, y, w, h, 6 + da, k, "logo", t, 0.5)
         dt = sh.get("damga_t")
         if dt is not None and t >= dt:
             pic, w = self.bellek("muhur", lambda: self.muhur(al(sh, "damga.metin") or "", al(sh, "damga.orta")))

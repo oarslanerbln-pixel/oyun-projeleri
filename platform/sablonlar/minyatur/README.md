@@ -36,7 +36,7 @@ Gerekenler: `pip install skia-python numpy soundfile` (Linux'ta `apt-get install
 | --- | --- | --- |
 | `acilis` (ilk sahne) | Çerçevenin cetvel çizgileri köşelerden uzar, boya kâğıda oturur, köşk yükselir, masalar sırayla belirir | `doluluk` (başlangıçta oturanlar) |
 | `avlu` | Doluluk önceki değerden hedefe çıkar, yeni misafirler masa masa gelir | `doluluk`, `gece` (gök lacivertleşir, yıldız ve hilal çıkar, kemerler yanar), `kuyruk` (0–8, kapıda sıra), `kartus` (zirvedeki tek cümle, en çok 22 karakter) |
-| `kapanis` | Şemse açılır: lale amblemi, marka adı, alt satır; altında kırmızı çağrı şeridi; çevrede pırıltılar | `marka.ad`, `marka.alt`, `marka.cagri` |
+| `kapanis` | Şemse açılır: lale amblemi, marka adı, alt satır (ya da `marka.logo`: yuvarlak saydam PNG göbeği doldurur); altında kırmızı çağrı şeridi; çevrede pırıltılar | `marka.ad`, `marka.alt`, `marka.cagri`, `marka.logo`, `kartus` (üstte, ör. tarih) |
 
 `mekan.ikram`: `yemek` (pilav, kebap, salata kâseleri) ya da `kahve` (fincan ve ince belli çay bardakları). `tohum` değişirse misafirlerin kıyafeti, başlığı ve geliş sırası değişir. Ekranda az yazı ilkesi gereği yazı yalnız kartuşta ve kapanışta çıkar.
 

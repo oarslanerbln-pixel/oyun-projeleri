@@ -43,6 +43,12 @@ class Denetim(unittest.TestCase):
         h = copy.deepcopy(self.ham); h["sahneler"][3]["sekil"] = "M 0 100 L 50 0 L 100 100"
         self.assertEqual(zaman.denetle(yaz(h)), [])
 
+    def test_gorsel_yalniz_dairede_ve_dosya_var(self):
+        h = copy.deepcopy(self.ham); h["sahneler"][0]["gorsel"] = {"dosya": "yok.jpg", "t": 0.5}
+        self.assertTrue(any("daire" in x for x in zaman.denetle(yaz(h))))
+        h["sahneler"][0]["sekil"] = "daire"
+        self.assertTrue(any("bulunamadı" in x for x in zaman.denetle(yaz(h))))
+
     def test_iki_bicim_birden(self):
         h = copy.deepcopy(self.ham); h["sahneler"][1]["sekil"] = "kalp"
         self.assertTrue(any("tam biri" in x for x in zaman.denetle(yaz(h))))

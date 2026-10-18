@@ -64,6 +64,10 @@ class Cizici:
         self.zeminler = zaman.zemin_degisimleri(s)
         self.kalin = 0.0118 * self.u
         self.yazi_tipi = {a: skia.Typeface.MakeFromFile(font_bul(a)) for a in (800, 500)}
+        self.gorseller = {}  # sahne → skia.Image (gerçek fotoğraf, daire içine kırpılır)
+        for i, sh in enumerate(s["sahneler"]):
+            if "gorsel" in sh:
+                self.gorseller[i] = skia.Image.open(str(Path(s["_klasor"]) / sh["gorsel"]["dosya"]))
         # sayaç inişi: kamera hafifçe öne iter
         self.darbeler = [p["t"] + p["sure"] * 0.55 for p in self.pz if p.get("son")]
 
@@ -92,6 +96,29 @@ class Cizici:
         p = skia.Paint(Color=rgb, AntiAlias=True); p.setAlphaf(alfa)
         cv.drawString(metin, x - w / 2, y, f, p)
 
+    def _gorsel(self, cv, t: float) -> None:
+        """`daire` sahnesinin fotoğrafı: çizginin dairesi içinde merkezden açılır, sahne biterken kapanır.
+        `odak` [x, y] (0–1) kare kırpmanın merkezi; fotoğraf sahne boyunca çok hafif yakınlaşır."""
+        skia = self.skia
+        for i, img in self.gorseller.items():
+            sh = self.s["sahneler"][i]
+            g = sh["gorsel"]
+            ac = out_cubic(prog(t, g["t"], 0.55)) * (1 - out_cubic(prog(t, sh["_son"] - 0.05, 0.3)))
+            if ac <= 0:
+                continue
+            R = sh.get("olcek", 1.0) * 0.58 * self.u / 2 - self.kalin * 1.6
+            cx, cy = self.W / 2, self.H * sh.get("y", 0.44)
+            iw, ih = img.width(), img.height()
+            k = min(iw, ih) / (1 + 0.06 * prog(t, g["t"], sh["_son"] - g["t"]))
+            ox, oy = g.get("odak", [0.5, 0.5])
+            sx = clamp(ox * iw - k / 2, 0, iw - k); sy = clamp(oy * ih - k / 2, 0, ih - k)
+            cv.save()
+            yol = skia.Path(); yol.addCircle(cx, cy, R * ac)
+            cv.clipPath(yol, skia.ClipOp.kIntersect, True)
+            cv.drawImageRect(img, skia.Rect.MakeXYWH(sx, sy, k, k), skia.Rect.MakeLTRB(cx - R, cy - R, cx + R, cy + R),
+                             skia.SamplingOptions(skia.CubicResampler.Mitchell()), skia.Paint(AntiAlias=True))
+            cv.restore()
+
     def _cizgi_rengi(self, k: int, q: float) -> int:
         onceki = self.pal[self.pz[k - 1]["renk"]] if k else self.pal[self.pz[0]["renk"]]
         return karistir(onceki, self.pal[self.pz[k]["renk"]], clamp(q * 1.6))
@@ -111,6 +138,7 @@ class Cizici:
             if d <= t < d + 0.6:
                 z += 0.035 * math.exp(-(t - d) / 0.12) * math.sin(math.pi * min(1, (t - d) / 0.08))
         cv.translate(self.W / 2, self.H * 0.46); cv.scale(z, z); cv.translate(-self.W / 2, -self.H * 0.46)
+        self._gorsel(cv, t)
         # çizgi
         m = max(2, int(round(oran * len(x))))
         y = x[:m]

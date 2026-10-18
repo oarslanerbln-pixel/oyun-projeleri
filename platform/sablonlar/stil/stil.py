@@ -157,9 +157,9 @@ def main(argv=None):
     for h in hata: print(f'HATA: {h}', file=sys.stderr)
     if hata: return 1
     if a.komut in ('denetle', 'seslendir'):
-        if a.komut == 'denetle': print(f"tamam: {s.get('kimlik', '?')} · {stil_ad} · {motor.SURE:g} sn")
+        if a.komut == 'denetle': print(f"tamam: {s.get('kimlik', '?')} · {stil_ad} · {s.get('sure', motor.SURE):g} sn")
         return 0
-    motor.kur(s, stil_ad, ses_dizini)
+    motor.kur(s, stil_ad, ses_dizini, os.path.dirname(os.path.abspath(a.senaryo)))
     stil = importlib.import_module(motor.STILLER[stil_ad])
     ad = f"{s.get('kimlik', 'video')}-{stil_ad}"
     if a.komut == 'kare':
@@ -167,7 +167,7 @@ def main(argv=None):
         W, H = motor.boyut(a.format)
         for t in a.an:
             yol = os.path.join(klasor, f'{ad}-{a.format}-{t:05.2f}.png')
-            motor.kapak(stil.kare, yol, W, H, t); print(yol)
+            motor.kapak(stil.kare, yol, W, H, motor.sablon_an(t)); print(yol)  # --an gerçek zamandır
         return 0
     for yol in motor.calistir(ad, stil, cikti, a.format, a.olcek):
         print(yol)

@@ -31,7 +31,7 @@ Bu stillerde kamera, müzik ve efektler vuruşlara kilitlidir: müzik sakin baş
 | Vuruş | Seslendirme yuvası | Yazı yuvası ← kinetik sahne alanı |
 | --- | --- | --- |
 | 1 · kanca | 0,30–2,85 sn | `kanca` ← `buyuk-sayi.sayi` ("%1"), `kanca_alt` ← `kelimeler` ("her gün") |
-| 2 · bileşik büyüme | 3,15–5,90 sn | `sayi` ← `egri`: (1+`oran`)^`gun` ("37x"), `sayac` ← `egri.gun` (365), `sayi_alt` ← `egri.alt` ("bir yıl sonra") |
+| 2 · bileşik büyüme | 3,15–5,90 sn | `sayi` ← `egri`: (1+`oran`)^`gun` ("37x"), `sayac` ← `egri.gun` (365), `sayac_ust` ← `egri.sayac` (takvim etiketi, "GÜN"), `sayi_alt` ← `egri.alt` ("bir yıl sonra") |
 | 3 · küçük/büyük | 6,15–8,15 sn | `kucuk`, `buyuk` ← `karsitlik` ("küçük adım", "büyük fark") |
 | 4 · çağrı | 8,35–9,85 sn | `cagri` ← `kapanis.satirlar` ("Bugün başla.") |
 
@@ -40,6 +40,18 @@ Stile özel ince ayar, sahnelerden çıkanın üstüne yazar:
 ```json
 "stiller": { "izometrik": { "metin": { "cagri": "Hadi başla!" } } }
 ```
+
+### Kâğıt kesik: serbest süre ve görsel
+
+Kâğıt kesik stilinde senaryo `sure` 10–20 sn arası verilebilir. O zaman seslendirme satırlarının `t` anları dört vuruş olur ve video zamanı parça parça doğrusal bir haritayla şablon zamanına çevrilir: sahneler, müzik notaları ve efektler vuruşlarla birlikte kayar, animasyon hızları değişmez, aralar uzar. Her satır bir sonrakinden (son satır videonun bitiminden 0,15 sn) önce bitmeli; vuruşlar arası şablondakinin 1–2,5 katı olmalı. Uzun bir seslendirmeyi (ör. hazır ElevenLabs satırları) 10 sn'ye sıkıştırmadan kullanmak içindir. `kare --an` anları gerçek zamandır.
+
+`stiller.kagit-kesik.gorsel` gerçek bir görseli (kitap kapağı, ürün) çağrı sahnesinde yırtık kenarlı beyaz kâğıt kartta, yeniden çizmeden gösterir; dikeyde görsel üstte, kurdele altında, yatayda görsel solda:
+
+```json
+"stiller": { "kagit-kesik": { "gorsel": { "dosya": "kapak.png", "genislik": 0.46, "t": 12.0 } } }
+```
+
+`dosya` senaryoya göredir, `genislik` ekran genişliğine oran, `t` (şablon anı, isteğe bağlı) kartın giriş anıdır.
 
 ## Hamur: ilerleme kartı
 

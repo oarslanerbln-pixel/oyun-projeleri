@@ -296,7 +296,7 @@ def takvim(cv, x, y, t):
     parca(cv, yirtik(kutu(-110, -100, 220, 60), seed=61, amp=1.2), KIRMIZI, kalk=0.6)
     for rx in (-60, 0, 60):
         cv.drawCircle(rx, -100, 8, skia.Paint(AntiAlias=True, Color=LACI))
-    s = 'GÜN'; cv.drawString(s, -f2.measureText(s) / 2, -58, f2, skia.Paint(AntiAlias=True, Color=KAGIT))
+    s = METIN['sayac_ust']; cv.drawString(s, -f2.measureText(s) / 2, -58, f2, skia.Paint(AntiAlias=True, Color=KAGIT))
     s = str(gun); cv.drawString(s, -f.measureText(s) / 2, 80, f, skia.Paint(AntiAlias=True, Color=LACI))
     # düşen yaprak
     if 0 < p < 1:
@@ -411,9 +411,33 @@ def sahne3(cv, t, VW, VH, dik):
         serit(cv, tr_buyuk(METIN['buyuk']), VW * 0.3, VH * 0.26, 104, t, 330, p=prog(t, Z['buyuk'], 0.35), zemin=KIRMIZI, renk=KAGIT, aci=-3)
 
 
+@functools.lru_cache(maxsize=4)
+def _resim(yol):
+    r = skia.Image.open(yol)
+    if r is None:
+        raise SenaryoHatasi(f'gorsel açılamadı: {yol}')
+    return r
+
+
+def gorsel_kart(cv, t, x, y, gen):
+    """stiller.kagit-kesik.gorsel: gerçek görsel (ör. kitap kapağı) yırtık kenarlı beyaz kâğıt kartta, çizilmeden olduğu gibi."""
+    g = STIL_AYAR['gorsel']
+    r = _resim(g['dosya'])
+    w = gen; h = w * r.height() / r.width()
+    p = out_back(prog(t, g.get('t', Z['bayrak'] - 0.35), 0.4), 1.5)
+    if p <= 0: return
+    cv.save(); cv.translate(x, y); cv.rotate(-3 + 3 * (1 - p)); cv.scale(p, p)
+    k = 18
+    parca(cv, yirtik(kutu(-w / 2 - k, -h / 2 - k, w + 2 * k, h + 2 * k), seed=440, amp=1.8), KAGIT, kalk=2.0, kimlik=440, t=t)
+    cv.drawImageRect(r, skia.Rect.MakeXYWH(-w / 2, -h / 2, w, h),
+                     skia.SamplingOptions(skia.FilterMode.kLinear, skia.MipmapMode.kLinear), skia.Paint(AntiAlias=True))
+    cv.restore()
+
+
 def sahne4(cv, t, VW, VH, dik):
     cv.drawRect(skia.Rect.MakeWH(VW, VH), skia.Paint(Color=0xFFFBE3A0))
     cx, cy = VW / 2, VH * (0.44 if dik else 0.42)
+    gorsel = isinstance(STIL_AYAR.get('gorsel'), dict)
     k = math.floor(t * POZ)
     R = math.hypot(VW, VH)
     for i in range(16):  # güneş ışınları (kâğıt üçgenler)
@@ -426,12 +450,19 @@ def sahne4(cv, t, VW, VH, dik):
         cv.restore()
     yer = VH * (0.88 if dik else 0.92)
     zemin_tepeler(cv, VW, yer, t, renkler=(TEPE1, TEPE2, TEPE3), seed=410)
+    if gorsel:  # görsel üstte, kurdele altına iner (yatayda görsel solda, kurdele sağda)
+        gen = VW * STIL_AYAR['gorsel'].get('genislik', 0.44 if dik else 0.2)
+        if dik:
+            gorsel_kart(cv, t, cx, VH * 0.36, gen); cy = VH * 0.66
+        else:
+            gorsel_kart(cv, t, VW * 0.24, VH * 0.45, gen); cx = VW * 0.62
     # kurdele açılır
     bp = in_out_cubic(prog(t, Z['bayrak'], 0.45))
     boy = 112 if dik else 132
     yw = skia.Font(TF, boy).measureText(METIN['cagri'])
-    if yw > (VW - 330):  # kuyruklar dahil kadraja sığsın
-        boy *= (VW - 330) / yw; yw = VW - 330
+    sig = (VW - 330) if not (gorsel and not dik) else (VW * 0.7 - 330)
+    if yw > sig:  # kuyruklar dahil kadraja sığsın
+        boy *= sig / yw; yw = sig
     bw, bh = yw + boy * 0.9, 190
     if bp > 0:
         cv.save(); cv.translate(cx, cy); cv.rotate(-3)
@@ -445,7 +476,7 @@ def sahne4(cv, t, VW, VH, dik):
         cv.restore()
         cv.restore()
     # kahraman el sallar
-    hx = VW * (0.5 if dik else 0.5)
+    hx = VW * (0.5 if dik else (0.62 if gorsel else 0.5))
     el = 0.75 + 0.25 * math.sin(_poz_t(t) * 14)
     kahraman(cv, hx, yer - 40, 0.95 if dik else 0.8, t, adim=0, el=el * prog(t, Z['bayrak'] + 0.2, 0.2))
     # konfeti

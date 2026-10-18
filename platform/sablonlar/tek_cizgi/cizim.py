@@ -125,7 +125,8 @@ class Cizici:
         cv.restore()
         # yazılar: taban çizgisinin altında, yukarı kayarak belirir
         taban = float(x[0][1])
-        for alan, agirlik, punto, aralik in (("baslik", 800, 0.118, 0.13), ("yazi", 800, 0.085, 0.11), ("alt", 500, 0.042, 0.22)):
+        ek = 0.12 if "baslik" in sh and "yazi" in sh else 0.0  # ikisi birden varsa yazı başlığın altına iner
+        for alan, agirlik, punto, aralik in (("baslik", 800, 0.118, 0.13), ("yazi", 800, 0.085, 0.11 + ek), ("alt", 500, 0.042, 0.22 + ek)):
             if alan not in sh:
                 continue
             y_ = sh[alan]

@@ -34,11 +34,11 @@ Her sahne çizginin aldığı **tek bir biçimdir** ve şu üçünden tam birini
 
 | Alan | Ne yapar |
 | --- | --- |
-| `sekil` | Kütüphaneden bir şekil (`kruvasan`, `fincan`, `tabak`, `basak`, `saat`, `canta`, `kalp`) ya da kendi SVG yol verin (`"M 0 100 C …"`, 0–100 kutusunda, M L H V C S Q T Z). Birden çok alt yol düz çizgilerle birleştirilir; en temiz sonuç için yolu tek parça, alt kenarda başlayıp alt kenarda bitecek şekilde çizin. Marka logosu bu yolla girer. |
+| `sekil` | Kütüphaneden bir şekil (`kruvasan`, `fincan`, `tabak`, `basak`, `saat`, `canta`, `kase`, `sapka`, `kalp`; `kase` buharlı çorba kâsesi, `sapka` aşçı şapkası) ya da kendi SVG yol verin (`"M 0 100 C …"`, 0–100 kutusunda, M L H V C S Q T Z). Birden çok alt yol düz çizgilerle birleştirilir; en temiz sonuç için yolu tek parça, alt kenarda başlayıp alt kenarda bitecek şekilde çizin. Marka logosu bu yolla girer. |
 | `sayi` | Rakamları tek çizgiyle yazar (`"50"`). Her rakamın yönü, bağlantılar kısa olacak ve hiçbir bağlantı bir rakamın gövdesini kesmeyecek şekilde otomatik seçilir. |
 | `sayac` | `degerler` listesini `bas` ile `bitis_t` arasında geri sayar. Aralıklar giderek kısalır (kıtlık hissi). Son değer büyür, sahnenin `renk` rolünü alır, inişte kamera hafifçe öne iter ve tok bir vuruş çalar. |
 
-Ortak alanlar: `bas` (dönüşümün başladığı an; ilk sahnede çizgi soldan çizilerek gelir), `renk` (çizginin rolü, varsayılan `murekkep`), `zemin` (farklıysa şeklin merkezinden düz renk bir daire açılır), `olcek`, `y` (şeklin dikey merkezi, yüksekliğin oranı), `yazi` / `baslik` / `alt` (`{metin, t, renk}`; taban çizgisinin altında belirir). Bütün anlar videonun başından itibaren saniyedir. Dönüşüm 0,62 sn sürer; ortasında çizgi düğümlenmeden akıcı bir kavise yumuşar ve ip gibi kıvrılarak yeni biçimini alır.
+Ortak alanlar: `bas` (dönüşümün başladığı an; ilk sahnede çizgi soldan çizilerek gelir), `renk` (çizginin rolü, varsayılan `murekkep`), `zemin` (farklıysa şeklin merkezinden düz renk bir daire açılır), `olcek`, `y` (şeklin dikey merkezi, yüksekliğin oranı), `yazi` / `baslik` / `alt` (`{metin, t, renk}`; taban çizgisinin altında belirir; `baslik` ve `yazi` birlikte verilirse yazı başlığın altına iner, uzun yazı ekran genişliğinin %86'sına sığacak kadar küçülür). `renk` ve yazı rengi `zemin` rolü de olabilir: altın kapanış zemininde siyah çizgi gibi. Bütün anlar videonun başından itibaren saniyedir. Dönüşüm 0,62 sn sürer; ortasında çizgi düğümlenmeden akıcı bir kavise yumuşar ve ip gibi kıvrılarak yeni biçimini alır.
 
 Görsel kurallar şablonun içinde: zemin her zaman düz renktir (gradyan, parlama ya da bantlaşma yok), çizgi yuvarlak uçlu ve kenar yumuşatmalıdır, ekranda az yazı vardır. Marka değişince yalnız palet ve şekiller değişir.
 

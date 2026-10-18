@@ -63,6 +63,16 @@ SEKILLER = {
     ),
     # kâğıt alışveriş çantası; tabanı taban çizgisinin kendisi
     "canta": "M 14 96 L 20 34 L 34 34 C 34 10, 66 10, 66 34 L 80 34 L 86 96",
+    # çorba kâsesi (yandan): ayaktan yükselir, ağız çizgisinden üç buhar teli çıkar, öbür ayaktan iner
+    "kase": (
+        "M 32 92 C 30 88, 32 85, 36 84 C 18 76, 6 62, 4 46 L 22 46" + _buhar(22, 32, 46, 30) + " L 44 46"
+        + _buhar(44, 56, 46, 42) + " L 68 46" + _buhar(68, 78, 46, 30) + " L 96 46 C 94 62, 82 76, 64 84 C 68 85, 70 88, 68 92"
+    ),
+    # aşçı şapkası: bant solundan yükselir, üç kabarık tepe, bant sağından iner
+    "sapka": (
+        "M 28 96 L 28 66 C 12 64, 4 52, 8 40 C 12 28, 24 24, 32 28 C 32 14, 44 6, 54 10 C 62 4, 76 8, 78 22"
+        " C 90 22, 98 34, 94 46 C 90 58, 82 64, 72 66 L 72 96"
+    ),
     # kalp
     "kalp": (
         "M 50 92 C 30 76, 6 60, 6 36 C 6 20, 18 10, 30 10 C 40 10, 46 16, 50 24 C 54 16, 60 10, 70 10"

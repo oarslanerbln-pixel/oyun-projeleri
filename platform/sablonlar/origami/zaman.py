@@ -10,9 +10,9 @@ import json
 from pathlib import Path
 
 TURLER = ("vitrin", "kapanis")
-NESNELER = ("kupa", "kutu")
+NESNELER = ("kupa", "kutu", "kase", "tabak")
 GECISLER = ("kesme", "katla")
-ISARETLER = ("turna", "yok")
+ISARETLER = ("turna", "logo", "yok")
 ROLLER = ("zemin", "koyu", "vurgu", "ikinci", "ucuncu", "acik")
 VARSAYILAN_PALET = {"zemin": "#F3ECDF", "koyu": "#22304A", "vurgu": "#E2603F", "ikinci": "#2E8A84",
                     "ucuncu": "#EDB548", "acik": "#FFFBF3"}
@@ -122,6 +122,8 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
                 h.append(f"{ad}: satirlar gerekli")
             if sh.get("isaret", "turna") not in ISARETLER:
                 h.append(f"{ad}: işaret {', '.join(ISARETLER)} olmalı")
+            if sh.get("isaret") == "logo" and not (sh.get("logo") and (Path(s["_klasor"]) / sh["logo"]).is_file()):
+                h.append(f"{ad}: isaret logo için `logo` (saydam PNG) bulunmalı")
             for w in sh.get("satirlar", []):
                 if not (sh["bas"] <= w["t"] < sh["_son"]):
                     h.append(f"{ad}: '{w['metin']}' t={w['t']} sahnenin içinde değil")

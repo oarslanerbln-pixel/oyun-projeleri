@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROLLER = ("zemin", "murekkep", "vurgu", "kapanis")
 VARSAYILAN_PALET = {"zemin": "#F6EFE3", "murekkep": "#2B211C", "vurgu": "#D9532B", "kapanis": "#F2C14E"}
-SEKIL_ADLARI = ("kruvasan", "fincan", "tabak", "basak", "saat", "canta", "kalp")  # sekiller.SEKILLER ile aynı
+SEKIL_ADLARI = ("kruvasan", "fincan", "tabak", "basak", "saat", "canta", "kase", "sapka", "kalp")  # sekiller.SEKILLER ile aynı
 DONUSUM_SN = 0.62   # bir biçimden ötekine dönüşüm süresi
 CIZIM_SN = 1.35     # ilk sahnede çizginin soldan çizilerek gelmesi
 IRIS_SN = 0.45      # zemin rengi değişimi (şeklin merkezinden açılan düz renk daire)

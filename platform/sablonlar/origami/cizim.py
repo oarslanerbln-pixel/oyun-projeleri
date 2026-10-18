@@ -94,8 +94,32 @@ def model_kutu(renk: str) -> list[dict]:
     ]
 
 
-GENISLIK = {"kupa": 0.70, "kutu": 0.84}  # yükseklik başına
-MODEL = {"kupa": model_kupa, "kutu": model_kutu}
+def model_kase(renk: str) -> list[dict]:
+    """çorba kâsesi: geniş gövde, açık renk ağız bandı, üstte çorba yüzeyi (ucuncu)"""
+    Y = ((-1, 0), (1, 0))
+    return [
+        yuz([(-0.30, 0), (0, 0), (0, -0.55), (-0.74, -0.55)], renk, 1.0, -1, Y, YARIM, 0.0, 0.34),
+        yuz([(0, 0), (0.30, 0), (0.74, -0.55), (0, -0.55)], renk, 0.84, 0, ((0, 0), (0, -1)), PI, 0.16),
+        yuz([(-0.78, -0.55), (0, -0.55), (0, -0.66), (-0.78, -0.66)], "acik", 0.98, 0, ((-1, -0.55), (1, -0.55)), PI, 0.30, 0.28),
+        yuz([(0, -0.55), (0.78, -0.55), (0.78, -0.66), (0, -0.66)], "acik", 0.86, 2, ((0, 0), (0, -1)), PI, 0.40, 0.26),
+        yuz([(-0.70, -0.66), (0.70, -0.66), (0.54, -0.78), (-0.54, -0.78)], "ucuncu", 1.0, 2, ((-1, -0.66), (1, -0.66)), PI, 0.50, 0.26),
+    ]
+
+
+def model_tabak(renk: str) -> list[dict]:
+    """şef tabağı: açık renk tabak, ortada pilav tepesi (renk), yanında koyu et parçası"""
+    Y = ((-1, 0), (1, 0))
+    return [
+        yuz([(-0.62, 0), (0, 0), (0, -0.13), (-0.88, -0.13)], "acik", 0.98, -1, Y, YARIM, 0.0, 0.34),
+        yuz([(0, 0), (0.62, 0), (0.88, -0.13), (0, -0.13)], "acik", 0.84, 0, ((0, 0), (0, -1)), PI, 0.16),
+        yuz([(-0.50, -0.13), (0, -0.13), (0, -0.62), (-0.26, -0.56)], renk, 1.0, 0, ((-1, -0.13), (1, -0.13)), PI, 0.30, 0.3),
+        yuz([(0, -0.13), (0.50, -0.13), (0.26, -0.56), (0, -0.62)], renk, 0.82, 2, ((0, 0), (0, -1)), PI, 0.42, 0.26),
+        yuz([(0.30, -0.13), (0.70, -0.13), (0.64, -0.34), (0.36, -0.37)], "koyu", 1.0, 0, ((-1, -0.13), (1, -0.13)), PI, 0.52, 0.26),
+    ]
+
+
+GENISLIK = {"kupa": 0.70, "kutu": 0.84, "kase": 1.56, "tabak": 1.76}  # yükseklik başına
+MODEL = {"kupa": model_kupa, "kutu": model_kutu, "kase": model_kase, "tabak": model_tabak}
 
 
 def model_turna() -> list[dict]:
@@ -462,6 +486,20 @@ class Cizici:
             M.preScale(S, S)
             kanat = 0.55 * (0.5 - 0.5 * math.cos((tr - 0.7) * 4.8)) * clamp((tr - 0.7) / 0.3)
             self.yuzler(cv, model_turna(), tr, M, golge=(12 * u, 10 * u, 0.18), ek_aci={4: kanat})
+        if sh.get("isaret") == "logo" and tr >= 0 and sh.get("logo"):
+            # marka logosu (saydam PNG): kâğıt gibi dikey ekseninde dönerek açılır
+            if not hasattr(self, "_logo"):
+                self._logo = sk.Image.open(str(Path(self.s["_klasor"]) / sh["logo"]))
+            S = (360 if self.GENIS else 520) * u
+            p = prog(tr, 0, 0.5)
+            c = math.cos(YARIM * (1 - out_back(p, 1.5)))
+            if abs(c) > 0.01:
+                cy_ = H * (0.30 if self.GENIS else 0.33)
+                h_ = S * self._logo.height() / self._logo.width()
+                cv.save(); cv.translate(self.cx, cy_); cv.scale(abs(c), 1)
+                cv.drawOval(sk.Rect.MakeXYWH(-S / 2 + 12 * u, -h_ / 2 + 10 * u, S, h_), self.paint(self.P["koyu"], 0.18))
+                cv.drawImageRect(self._logo, sk.Rect.MakeXYWH(-S / 2, -h_ / 2, S, h_), sk.SamplingOptions(sk.CubicResampler.Mitchell()))
+                cv.restore()
         satirlar = sh["satirlar"]
         boy = (84 if self.GENIS else 104) * u
         y0 = H * (0.60 if self.GENIS else 0.585)

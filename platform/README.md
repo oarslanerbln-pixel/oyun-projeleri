@@ -4,4 +4,4 @@ Stüdyonun üç iş türü — animasyon videosu, oyun, marka ve kampanya — i�
 
 Şu an yalnız mimari taslağı var: [`docs/mimari.md`](docs/mimari.md). Modüller (`marka`, `metin`, `medya`, `yz-kaydi`, `ci`, `sablonlar`) taslaktaki faz sırasıyla eklenir.
 
-Seslendirme: [`ses/`](ses/README.md) (Piper yerel, ElevenLabs API). Kısa sosyal video şablonu: [`sablonlar/kinetik/`](sablonlar/kinetik/README.md) (kinetik tipografi).
+Seslendirme: [`ses/`](ses/README.md) (Piper yerel, ElevenLabs API). Kısa sosyal video şablonu: [`sablonlar/kinetik/`](sablonlar/kinetik/README.md) (kinetik tipografi). Tek çizgi marka videosu: [`sablonlar/tek_cizgi/`](sablonlar/tek_cizgi/README.md).

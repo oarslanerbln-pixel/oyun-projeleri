@@ -55,6 +55,13 @@ jobs:
           for p in ornekler/*/senaryo.json; do
             python platform/sablonlar/kinetik/kinetik.py denetle "$p" -o "$RUNNER_TEMP/kinetik"
           done
+      - name: Tek çizgi şablonu (testler ve senaryo denetimi)
+        run: |
+          python -m pip install -q numpy
+          python -m unittest discover -s platform/sablonlar/tek_cizgi/testler -v
+          for p in ornekler/*/tek-cizgi.json; do
+            python platform/sablonlar/tek_cizgi/tek_cizgi.py denetle "$p" -o "$RUNNER_TEMP/tek-cizgi"
+          done
       - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
         run: |
           for p in ornekler/*/proje.json; do

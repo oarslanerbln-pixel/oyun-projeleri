@@ -5,7 +5,7 @@
     python3 platform/sablonlar/stil/stil.py kare      senaryo.json --stil izometrik --an 1.5 4.7 [--format 16x9]
     python3 platform/sablonlar/stil/stil.py render    senaryo.json --stil izometrik [--format 9:16 | 16:9 | ikisi]
     python3 platform/sablonlar/stil/stil.py uret      senaryo.json --stil izometrik --format 16:9   # seslendirme yoksa üretir, sonra render
-`--stil kinetik` aynı komutu kinetik şablona iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
+`--stil kinetik` aynı komutu kinetik şablona, `--stil urun-vitrini` 3D ürün vitrini şablonuna (platform/sablonlar/vitrin) iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
 Format sırası: --format, yoksa senaryodaki "format" alanı ("9:16", "16:9", "ikisi" ya da liste), yoksa yalnız 9:16.
 Çıktı varsayılanı senaryonun yanındaki `cikti/` klasörü; seslendirme `cikti/seslendirme/` (üç stilde ortak).
 """
@@ -16,7 +16,7 @@ SABLONLAR = os.path.dirname(BURADA)
 sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
-TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan']
+TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini']
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 
 
@@ -39,6 +39,17 @@ def _kinetik(argv):
     sys.path.insert(0, os.path.join(SABLONLAR, 'kinetik'))
     import kinetik
     return kinetik.main(argv)
+
+
+def _vitrin(argv):
+    sys.path.insert(0, os.path.join(SABLONLAR, 'vitrin'))
+    import vitrin
+    ileri, atla = [], False  # --stil çıkarılır; geri kalan bayraklar vitrin.py'de aynı
+    for x in argv:
+        if atla: atla = False; continue
+        if x == '--stil': atla = True; continue
+        ileri.append(x)
+    return vitrin.main(ileri)
 
 
 def _bumper(a):
@@ -87,6 +98,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     with open(a.senaryo, encoding='utf-8') as f:
         s = json.load(f)
+    if (a.stil or s.get('stil')) == 'urun-vitrini':  # kendi senaryo biçimi (vitrin.json) ve süresi var
+        return _vitrin(argv)
     if (a.stil or s.get('stil')) == 'mekan':  # biçim varsayılanı varyanta göre (tv → 16:9), mekan.py çözer
         if a.komut == 'kare' and '--format' not in argv: a.format = None
         return _mekan(a)
@@ -128,7 +141,8 @@ def main(argv=None):
         import seslendirme
         satirlar = [{'id': x['id'], 'metin': x['metin']} for x in s.get('seslendirme', {}).get('satirlar', [])]
         try:
-            k = seslendirme.uret(satirlar, __import__('pathlib').Path(ses_dizini), a.saglayici, {'ses': a.ses})
+            k = seslendirme.uret(satirlar, __import__('pathlib').Path(ses_dizini), a.saglayici,
+                                 {'ses': a.ses, 'saglayici': s.get('seslendirme', {}).get('saglayici')})
         except seslendirme.SeslendirmeHatasi as e:
             print(f'HATA: {e}', file=sys.stderr); return 2
         for x in k['satirlar']:

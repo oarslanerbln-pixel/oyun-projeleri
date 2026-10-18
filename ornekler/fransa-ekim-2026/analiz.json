@@ -1,0 +1,89 @@
+{
+  "kimlik": "fransa-ekim-2026",
+  "sablon": "analiz",
+  "sure": 60,
+  "fps": 30,
+  "format": "16:9",
+  "tema": "koyu",
+  "seri": "Analiz",
+  "konu": "Fransa · Ekim 2026",
+  "tarih": "18 Ekim 2026",
+  "muzik": {"bpm": 96, "akorlar": [[50, 53, 57, 62], [46, 50, 53, 58], [53, 57, 60, 65], [48, 52, 55, 60]]},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.9, "metin": "Fransa'da neler oluyor? Bütçe, borç ve sokak. Üç başlıkta özetleyelim."},
+    {"id": "v1", "t": 6.6, "metin": "Başbakan Sébastien Lecornu'nun hükümeti, 1 Ekim'de 2027 bütçesini açıkladı. Hedef, bütçe açığını yüzde beşe indirmek.",
+     "okunus": "Başbakan Sebastiyen Lökornü'nün hükümeti, bir Ekim'de iki bin yirmi yedi bütçesini açıkladı. Hedef, bütçe açığını yüzde beşe indirmek."},
+    {"id": "v2", "t": 14.0, "metin": "Bağımsız mali denetim kurulu ise planın büyüme varsayımını iyimser buluyor."},
+    {"id": "v3", "t": 18.4, "metin": "Kamu borcu da tırmanıyor. Geçen yıl yüzde 115'i aşan borcun, gelecek yıl yüzde 122'ye yaklaşması bekleniyor.",
+     "okunus": "Kamu borcu da tırmanıyor. Geçen yıl yüzde yüz on beşi aşan borcun, gelecek yıl yüzde yüz yirmi ikiye yaklaşması bekleniyor."},
+    {"id": "v4", "t": 26.0, "metin": "Piyasalar tedirgin. Fransa ile Almanya'nın 10 yıllık borçlanma faizleri arasındaki fark, Ekim başında 2012'den bu yana en yüksek seviyeye çıktı.",
+     "okunus": "Piyasalar tedirgin. Fransa ile Almanya'nın on yıllık borçlanma faizleri arasındaki fark, Ekim başında iki bin on ikiden bu yana en yüksek seviyeye çıktı."},
+    {"id": "v5", "t": 34.6, "metin": "Gerginlik sokağa da taştı. 17 Ekim'de ülke genelinde 110 gösteri düzenlendi. Lyon ve Limoges'da binalar ateşe verildi.",
+     "okunus": "Gerginlik sokağa da taştı. On yedi Ekim'de ülke genelinde yüz on gösteri düzenlendi. Lyon ve Limoj'da binalar ateşe verildi."},
+    {"id": "v6", "t": 42.8, "metin": "Katılım ise tartışmalı. İçişleri Bakanlığı 550 bin, sendikalar 800 bin kişi diyor.",
+     "okunus": "Katılım ise tartışmalı. İçişleri Bakanlığı beş yüz elli bin, sendikalar sekiz yüz bin kişi diyor."},
+    {"id": "v7", "t": 49.4, "metin": "Gözler şimdi Kasım'daki bütçe oylamasında. Ardından, Nisan'da cumhurbaşkanlığı seçimi geliyor."}
+  ]},
+  "sahneler": [
+    {"tur": "baslik", "bas": 0, "ust": "Analiz · Fransa", "baslik": "Fransa'da neler\noluyor?",
+     "alt": "Bütçe, borç ve sokak: Ekim 2026'nın özeti", "harita": true},
+
+    {"tur": "cubuk", "bas": 6.0, "baslik": "Bütçe açığı yüzde 5 hedefinde", "alt": "Kamu açığı, GSYH'ye oranı (%)",
+     "on_ek": "%", "basamak": 1, "eksen_max": 7,
+     "kaynak": "INSEE (2024–2025 gerçekleşen) · 2027 bütçe taslağı, Euronews 01.10.2026 · Yüksek Kamu Maliyesi Konseyi (HCFP)",
+     "cubuklar": [
+       {"etiket": "2024", "deger": 5.8, "not": "gerçekleşen", "t": 7.0},
+       {"etiket": "2025", "deger": 5.1, "not": "gerçekleşen", "t": 7.5},
+       {"etiket": "2026", "deger": 5.4, "not": "tahmin", "tahmin": true, "t": 8.0},
+       {"etiket": "2027", "deger": 5.0, "not": "hükümet hedefi", "tahmin": true, "vurgu": true, "t": 11.4}
+     ]},
+
+    {"tur": "cizgi", "bas": 18.0, "baslik": "Kamu borcu tırmanıyor", "alt": "Kamu borcu, GSYH'ye oranı (%)",
+     "on_ek": "%", "basamak": 1, "cizim_t": 19.0, "cizim_sure": 4.2,
+     "kaynak": "INSEE, Mayıs 2026 (2024–2025) · Hükümet tahmini, 2027 bütçe taslağı (2026–2027)",
+     "noktalar": [
+       {"etiket": "2024", "deger": 112.6},
+       {"etiket": "2025", "deger": 115.7},
+       {"etiket": "2026", "deger": 119.3, "tahmin": true},
+       {"etiket": "2027", "deger": 121.7, "tahmin": true}
+     ]},
+
+    {"tur": "sayac", "bas": 25.6, "baslik": "Piyasalar tedirgin", "alt": "Fransa ve Almanya 10 yıllık tahvil faizi farkı (baz puan)",
+     "kaynak": "10 yıllık OAT–Bund farkı, ideal-investisseur.fr günlük veri, 16.10.2026",
+     "kartlar": [
+       {"etiket": "Fark · 16 Ekim", "deger": 137.4, "basamak": 1, "birim": "bp", "t": 27.4, "not": "Fransa %4,79 · Almanya %3,42"},
+       {"etiket": "Ekim zirvesi · 2 Ekim", "deger": 146.9, "basamak": 1, "birim": "bp", "vurgu": true, "t": 29.6,
+        "not": "Euro borç krizinden bu yana en geniş fark"},
+       {"etiket": "En yüksek seviye", "deger": 2012, "yil": true, "baslangic": 2026, "t": 31.4, "not": "yılından bu yana"}
+     ]},
+
+    {"tur": "harita", "bas": 34.2, "baslik": "17 Ekim: gerginlik sokakta", "alt": "Hayat pahalılığı protestoları",
+     "kaynak": "Fransa İçişleri Bakanlığı; Al Jazeera, Connexion, ABC News · 17.10.2026",
+     "noktalar": [
+       {"ad": "Paris", "lon": 2.35, "lat": 48.86, "etiket": "110.000 katılımcı", "t": 36.0},
+       {"ad": "Lyon", "lon": 4.84, "lat": 45.76, "etiket": "Turizm ofisi ateşe verildi", "yon": "alt", "t": 39.6},
+       {"ad": "Limoges", "lon": 1.26, "lat": 45.83, "etiket": "Belediye binası ateşe verildi", "yon": "sol", "t": 40.4}
+     ],
+     "kpi": {"deger": 110, "etiket": "gösteri, ülke genelinde", "t": 37.4,
+             "ekler": [{"baslik": "Neden?", "metin": "Hayat pahalılığı, ücretler ve emeklilik", "t": 38.6}]}},
+
+    {"tur": "karsilastirma", "bas": 42.4, "baslik": "Kaç kişi katıldı?", "alt": "17 Ekim protestolarına katılım, iki farklı sayım",
+     "kaynak": "İçişleri Bakanı Laurent Nuñez · CGT ve öğrenci örgütleri; Al Jazeera, France 24 · 17.10.2026",
+     "sol": {"etiket": "İçişleri Bakanlığı", "deger": 550000, "not": "resmî sayım", "t": 44.4},
+     "sag": {"etiket": "Sendikalar", "deger": 800000, "not": "düzenleyicilerin sayımı", "t": 46.4}},
+
+    {"tur": "zaman", "bas": 48.8, "baslik": "Sırada ne var?", "bugun": 2,
+     "kaynak": "Euronews, Fortune, Allianz Trade · Ekim 2026",
+     "olaylar": [
+       {"tarih": "1 Ekim", "metin": "2027 bütçe taslağı açıklandı", "t": 49.6},
+       {"tarih": "2 Ekim", "metin": "Faiz farkı 2012'den bu yana zirvede", "t": 50.1},
+       {"tarih": "17 Ekim", "metin": "Ülke çapında hayat pahalılığı protestoları", "vurgu": true, "t": 50.6},
+       {"tarih": "Kasım", "metin": "Mecliste bütçe oylaması (planlanan)", "durum": "gelecek", "t": 51.4},
+       {"tarih": "Nisan 2027", "metin": "Cumhurbaşkanlığı seçimi", "durum": "gelecek", "t": 53.4}
+     ]},
+
+    {"tur": "kapanis", "bas": 56.6, "baslik": "Fransa: bütçe, borç ve sokak", "alt": "Gelişmeleri takip etmeye devam edeceğiz.",
+     "kaynaklar": ["INSEE", "Euronews", "Yüksek Kamu Maliyesi Konseyi", "ideal-investisseur.fr", "Al Jazeera", "France 24", "Connexion",
+                   "ABC News", "Fortune", "Allianz Trade", "Harita: Natural Earth"]}
+  ]
+}

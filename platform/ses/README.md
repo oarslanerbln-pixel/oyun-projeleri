@@ -4,7 +4,7 @@ Seslendirme adımı: metin satırlarından teslime hazır 48 kHz mono WAV dosyal
 
 ```sh
 python3 platform/ses/seslendirme.py sesler                                   # kullanılabilir sesler ve lisansları
-python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme  # otomatik: anahtar varsa ElevenLabs, yoksa Piper "fahrettin"
+python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme  # varsayılan Piper "fahrettin"
 python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme --saglayici elevenlabs --ses <voice_id>
 python3 platform/ses/seslendirme.py kullanim                                 # ElevenLabs'te harcanan karakterler
 ```
@@ -19,14 +19,18 @@ python3 platform/ses/seslendirme.py kullanim                                 # E
 
 | Ad | Ne | Gereken |
 | --- | --- | --- |
-| `otomatik` (varsayılan) | `ELEVENLABS_API_KEY` ortamda varsa `elevenlabs`, yoksa `piper`. ElevenLabs'e ulaşılamazsa (ağ, kota, anahtar) uyarır ve Piper ile devam eder; render durmaz. | |
+| `otomatik` (varsayılan) | `piper`. İş ElevenLabs isterse `elevenlabs`: senaryoda (ya da `satirlar.json`'da) `"seslendirme": {"saglayici": "elevenlabs"}`. Anahtar yoksa ya da ElevenLabs'e ulaşılamazsa (ağ, kota) uyarır ve Piper ile devam eder; render durmaz. | |
 | `piper` | Yerel, ücretsiz sinirsel TTS (sherpa-onnx). Türkçe sesler: `fahrettin`, `fettah` (CC0, ticari işe uygun), `dfki` (CC BY-NC-SA, ticari işte reddedilir). Almanca: `thorsten` (erkek), `kerstin` (kadın, düşük kalite modeli); ikisi de CC0. | `pip install sherpa-onnx numpy`. Ses modeli ilk kullanımda GitHub'dan (`k2-fsa/sherpa-onnx` sürümü `tts-models`) `~/.cache/studyo/piper` altına iner; `PIPER_SES_DIZINI` ile değiştirilir. |
 | `elevenlabs` | Ücretli API, `eleven_multilingual_v2` (dili metinden anlar; Türkçe ve Almanca). | `ELEVENLABS_API_KEY` (ortam değişkeni; depoya, dosyaya yazılmaz). Ağ izninde `api.elevenlabs.io` açık olmalı. Ses `mp3_44100_128` olarak indirilip ffmpeg ile çözülür, çünkü `pcm_44100` yalnız Pro planda var (Pro hesapta `ELEVENLABS_OUTPUT_FORMAT=pcm_44100`). Ücretsiz planda yalnız hazır sesler (George, Bella, Liam...) API'den kullanılabilir; kütüphane sesleri ve ticari kullanım ücretli plan ister. |
+
+### ElevenLabs ne zaman
+
+Her işte değil: müşteri işleri ve öne çıkan videolar gibi sesin fark yarattığı işlerde, siparişte ya da senaryoda seçilir. Seri üretimde (kanal videoları, testler, önizlemeler) Piper kalır. `--saglayici elevenlabs` komut satırında zorlar ve anahtar yoksa açık hatayla durur.
 
 ### ElevenLabs sesi nasıl seçilir
 
 1. Komut satırında `--ses <voice_id>`.
-2. Senaryoda `seslendirme.ses`: bir voice_id ya da bir Piper adı. Piper adı verilirse (`kerstin` gibi) onun dili ve cinsiyeti alınır ve o dilin varsayılan ElevenLabs sesi kullanılır; böylece eski senaryolar değişmeden ElevenLabs'e geçer.
+2. Senaryoda `seslendirme.ses`: bir voice_id ya da bir Piper adı. Piper adı verilirse (`kerstin` gibi) onun dili ve cinsiyeti alınır ve o dilin varsayılan ElevenLabs sesi kullanılır; böylece eski senaryoya yalnız `"saglayici": "elevenlabs"` eklemek yeter.
 3. Ortam: `ELEVENLABS_VOICE_ID_TR`, `ELEVENLABS_VOICE_ID_DE` (dile özel), `ELEVENLABS_VOICE_ID` (hepsi).
 4. Varsayılan: hazır çok dilli sesler, erkek **George** (`JBFqnCBsd6RMkjVDRZzb`), kadın **Matilda** (`XrExE9yKIg1WjnnlVkGX`). Dile özel seçimler (ör. e-kitap için beğenilen Almanca ses) `ELEVEN_DIL_SESLERI`'ne yazılır.
 

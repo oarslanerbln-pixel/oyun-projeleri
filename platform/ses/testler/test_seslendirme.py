@@ -44,8 +44,10 @@ class ElevenLabs(unittest.TestCase):
         with mock.patch.dict(os.environ, {}, clear=True):
             self.assertEqual(seslendirme.saglayici_coz("otomatik"), "piper")
         with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "k"}, clear=True):
-            self.assertEqual(seslendirme.saglayici_coz(None), "elevenlabs")
-            self.assertEqual(seslendirme.saglayici_coz("piper"), "piper")
+            # anahtar olsa da varsayılan Piper; ElevenLabs işe göre seçilir
+            self.assertEqual(seslendirme.saglayici_coz(None), "piper")
+            self.assertEqual(seslendirme.saglayici_coz(None, {"saglayici": "elevenlabs"}), "elevenlabs")
+            self.assertEqual(seslendirme.saglayici_coz("piper", {"saglayici": "elevenlabs"}), "piper")
 
     def test_istek_bicimi(self):
         yakalanan = {}
@@ -124,10 +126,10 @@ class Uret(unittest.TestCase):
                 mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "k", "STUDYO_SES_ONBELLEK": str(Path(tmp) / "ob")}, clear=True), \
                 mock.patch.dict(seslendirme.SAGLAYICILAR, {"elevenlabs": sahte_eleven}):
             satirlar = [{"id": "a", "metin": "Bugün başla."}, {"id": "b", "metin": "Her gün yüzde bir."}]
-            k1 = seslendirme.uret(satirlar, Path(tmp) / "c1")
+            k1 = seslendirme.uret(satirlar, Path(tmp) / "c1", "elevenlabs")
             self.assertEqual(k1["saglayici"], "elevenlabs")
             self.assertEqual(k1["kullanim"]["karakter"], len("Bugün başla.") + len("Her gün yüzde bir."))
-            k2 = seslendirme.uret(satirlar, Path(tmp) / "c2")  # aynı metin: kredi harcanmaz
+            k2 = seslendirme.uret(satirlar, Path(tmp) / "c2", "elevenlabs")  # aynı metin: kredi harcanmaz
             self.assertEqual(len(cagri), 2)
             self.assertEqual((k2["kullanim"]["karakter"], k2["kullanim"]["onbellek"]), (0, 2))
             self.assertEqual([s["sure"] for s in k1["satirlar"]], [s["sure"] for s in k2["satirlar"]])
@@ -140,7 +142,7 @@ class Uret(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, \
                 mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "k", "STUDYO_SES_ONBELLEK": tmp}, clear=True), \
                 mock.patch.dict(seslendirme.SAGLAYICILAR, {"elevenlabs": bozuk, "piper": ton}):
-            k = seslendirme.uret([{"id": "a", "metin": "kısa"}], Path(tmp) / "c")
+            k = seslendirme.uret([{"id": "a", "metin": "kısa"}], Path(tmp) / "c", ayar={"saglayici": "elevenlabs"})
             self.assertEqual(k["saglayici"], "piper")
             with self.assertRaises(seslendirme.SeslendirmeHatasi):  # açıkça istenince düşmez
                 seslendirme.uret([{"id": "a", "metin": "kısa"}], Path(tmp) / "c", "elevenlabs")

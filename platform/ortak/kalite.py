@@ -299,7 +299,22 @@ def kare_kontrol(yol: Path, b: dict, kontakt: Path | None) -> tuple[list[dict], 
     return out, olcum
 
 
-def kontakt_yaz(kareler: list, hedef: Path, dikey: bool) -> Path:
+def arayuz_tara(kk):
+    """Dikey karede Reels / TikTok / Shorts arayüzünün kapattığı bölgeleri kırmızıya boyar (yerinde)."""
+    import numpy as np
+    hh, ww, _ = kk.shape
+    a = ARAYUZ_9X16
+    for sl in (np.s_[: int(hh * a["ust"]), :], np.s_[hh - int(hh * a["alt"]):, :],
+               np.s_[:, ww - int(ww * a["sag"]):], np.s_[:, : int(ww * a["sol"])]):
+        bolge = kk[sl].astype(np.float32)
+        bolge[..., 0] = bolge[..., 0] * 0.75 + 255 * 0.25
+        bolge[..., 1:] *= 0.75
+        kk[sl] = bolge.astype(np.uint8)
+    return kk
+
+
+def kontakt_yaz(kareler: list, hedef: Path, dikey: bool, sutun: int = 4) -> Path:
+    """`kareler`: (an ya da etiket, RGB dizi) çiftleri. Saniye verilirse etiket "x.xx sn" olur."""
     import numpy as np
     yuk = 480 if dikey else 270
     kucukler = []
@@ -308,16 +323,8 @@ def kontakt_yaz(kareler: list, hedef: Path, dikey: bool) -> Path:
         adim = max(1, round(h / yuk))
         kk = k[::adim, ::adim].copy()
         if dikey:
-            hh, ww, _ = kk.shape
-            a = ARAYUZ_9X16
-            for sl in (np.s_[: int(hh * a["ust"]), :], np.s_[hh - int(hh * a["alt"]):, :],
-                       np.s_[:, ww - int(ww * a["sag"]):], np.s_[:, : int(ww * a["sol"])]):
-                bolge = kk[sl].astype(np.float32)
-                bolge[..., 0] = bolge[..., 0] * 0.75 + 255 * 0.25
-                bolge[..., 1:] *= 0.75
-                kk[sl] = bolge.astype(np.uint8)
+            arayuz_tara(kk)
         kucukler.append((t, kk))
-    sutun = 4
     hh = max(k.shape[0] for _, k in kucukler)
     ww = max(k.shape[1] for _, k in kucukler)
     satir = (len(kucukler) + sutun - 1) // sutun
@@ -336,7 +343,7 @@ def kontakt_yaz(kareler: list, hedef: Path, dikey: bool) -> Path:
         im = Image.fromarray(tuval)
         d = ImageDraw.Draw(im)
         for x, y, t in yerler:
-            d.text((x, y), f"{t:5.2f} sn", fill=(30, 30, 30))
+            d.text((x, y), f"{t:5.2f} sn" if isinstance(t, (int, float)) else str(t), fill=(30, 30, 30))
         im.save(hedef)
     except ImportError:
         H, W, _ = tuval.shape

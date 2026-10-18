@@ -42,7 +42,8 @@ def cikti_klasoru(s: dict, arg: str | None) -> Path:
 def seslendir(s: dict, cikti: Path, saglayici: str, ses: str | None) -> dict:
     import seslendirme
     satirlar = [{"id": x["id"], "metin": x["metin"]} for x in s["seslendirme"]["satirlar"]]
-    return seslendirme.uret(satirlar, cikti / "seslendirme", saglayici, {"ses": ses})
+    return seslendirme.uret(satirlar, cikti / "seslendirme", saglayici,
+                            {"ses": ses, "saglayici": s["seslendirme"].get("saglayici")})
 
 
 def master(gir: Path, ara: Path) -> None:

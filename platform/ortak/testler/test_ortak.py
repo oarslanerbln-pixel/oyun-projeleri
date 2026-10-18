@@ -143,6 +143,53 @@ class BandingBirim(unittest.TestCase):
         self.assertEqual(kalite.banding_orani(kare), 0.0)
 
 
+@unittest.skipUnless(NUMPY and importlib.util.find_spec("skia") and importlib.util.find_spec("PIL"), "skia, numpy ya da PIL yok")
+class Onizleme(unittest.TestCase):
+    def test_iki_stil_tek_sayfa(self):
+        import onizleme
+        from PIL import Image
+        with tempfile.TemporaryDirectory() as tmp:
+            hedef = Path(tmp) / "onizleme.png"
+            r = onizleme.onizle([str(DEPO / "ornekler/tuzak-fiyat-origami/origami.json"),
+                                 "tek-cizgi=" + str(DEPO / "ornekler/hamurkar-firin/tek-cizgi.json")], hedef, [2.0, 6.0])
+            self.assertEqual([x["stil"] for x in r["stiller"]], ["origami", "tek-cizgi"])
+            self.assertTrue(all(len(x["kareler"]) == 2 and "hata" not in x for x in r["stiller"]))
+            w, h = Image.open(hedef).size
+            self.assertGreater(h, w)  # 2 satır x 2 sütun dikey kare
+
+    def test_sablon_bulma(self):
+        import onizleme
+        self.assertEqual(onizleme.sablon_bul({}, DEPO / "platform/sablonlar/kolaj/ornek/senaryo.json", None), "kolaj")
+        self.assertEqual(onizleme.sablon_bul({"stil": "hamur"}, Path("x.json"), None), "hamur")
+        self.assertEqual(onizleme.sablon_bul({}, Path("x.json"), "izometrik"), "izometrik")
+        self.assertEqual(onizleme.sablon_bul({}, Path("/is/kolaj-ses/kolaj-ses.json"), None), "kolaj")
+        self.assertEqual(onizleme.anlar_bul({"sure": 10}, None), [1.5, 5.0, 8.5])
+
+
+@unittest.skipUnless(FFMPEG, "ffmpeg yok")
+class Devir(unittest.TestCase):
+    def test_ozet_ve_notlar_korunur(self):
+        import devir
+        with tempfile.TemporaryDirectory() as tmp:
+            kok = Path(tmp) / "musteri"
+            (kok / "kolaj-ses" / "cikti" / "is").mkdir(parents=True)
+            senaryo = {"sure": 2, "sahneler": [], "seslendirme": {"satirlar": []}}
+            (kok / "kolaj-ses" / "kolaj-ses.json").write_text(json.dumps(senaryo), encoding="utf-8")
+            (kok / "kolaj-ses" / "kolaj-ses.v1.json").write_text(json.dumps(senaryo), encoding="utf-8")
+            ffmpeg("-f", "lavfi", "-i", "testsrc2=s=1080x1920:d=2:r=30", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                   str(kok / "kolaj-ses" / "video-9x16.mp4"))
+            ffmpeg("-f", "lavfi", "-i", "testsrc2=s=1080x1920:d=1:r=30", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                   str(kok / "kolaj-ses" / "cikti" / "is" / "sessiz-9x16.mp4"))
+            devir.main([str(kok), "--not", "başlık büyüsün"])
+            devir.main([str(kok), "--not", "logo sağ altta"])
+            m = (kok / "DEVIR.md").read_text(encoding="utf-8")
+            self.assertIn("video-9x16.mp4` · 1080x1920 · 2.0 sn", m)
+            self.assertNotIn("sessiz", m)  # ara çıktılar listelenmez
+            self.assertNotIn("v1.json", m)  # eski senaryo sürümleri de
+            self.assertIn("kolaj/kolaj.py render", m)
+            self.assertTrue("başlık büyüsün" in m and "logo sağ altta" in m)
+
+
 class CiCalistirici(unittest.TestCase):
     def setUp(self):
         sys.path.insert(0, str(DEPO / "platform" / "ci"))

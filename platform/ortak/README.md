@@ -6,8 +6,10 @@
 | --- | --- |
 | `mastering.py` | EBU R128 ölçümü ve sosyal video mastering'i: 16 kHz alçak geçiren, -14 LUFS, tepe sınırlayıcı, 48 kHz. Çıktının gerçek tepesi -2 dBTP'yi aşarsa sınırı indirip yeniden yazar; böylece AAC'den sonra teslim dosyası -1 dBTP altında kalır. |
 | `formatlar.py` | Tek format tablosu (9x16, 16x9, 1x1, 4x5). `9:16` ve `9x16` yazımlarının ikisini de kabul eder; `coz()` komut satırı → senaryo `format` alanı → varsayılan sırasıyla seçer, `ikisi` 9x16 + 16x9 demektir. |
-| `akis.py` | Çıktı klasörü, seslendirme (`otomatik`: ElevenLabs anahtarı varsa ElevenLabs, yoksa Piper), ses + görüntü birleştirme. Birleştirme sonunda kalite kapısını çalıştırır. |
+| `akis.py` | Çıktı klasörü, seslendirme (varsayılan Piper; senaryo `seslendirme.saglayici: "elevenlabs"` derse ElevenLabs), ses + görüntü birleştirme. Birleştirme sonunda kalite kapısını çalıştırır. |
 | `kalite.py` | Kalite kapısı (aşağıda). |
+| `devir.py` | İşin teslim klasörüne kısa `DEVIR.md` yazar: teslim edilen videolar ve kalite sonuçları, senaryolar ve yeniden üretme komutları, seslendirme, kararlar. Revizyon thread'i eski konuşma yerine bunu okur. Kullanım: `devir.py <klasör> --not "karar"`. |
+| `onizleme.py` | Render'dan önce önizleme: her stil için birkaç kare tek sayfada, banding ve netlik ölçüsüyle. 4 stil yaklaşık 15 sn. Kullanım: `onizleme.py kolaj=a.json origami=b.json -o onizleme.png`. |
 
 Şablon tarafında kullanım (platform bir Python paketi olamadığı için yol eklenir):
 

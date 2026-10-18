@@ -38,10 +38,13 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: ffmpeg (render ve türev testleri; Ubuntu paketi librsvg ile derli)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
-      - name: Stil şablonu bağımlılıkları (skia için EGL/GL kitaplıkları; Inter fontTools ile örneklenir)
+      - name: Görüntü şablonu bağımlılıkları (skia için EGL/GL, Inter; skia kurulunca kinetik render testi de koşar)
         run: |
-          sudo apt-get install -y -qq --no-install-recommends libegl1 libgl1
+          sudo apt-get install -y -qq --no-install-recommends libegl1 libgl1 fonts-inter
           python -m pip install -q skia-python numpy soundfile fonttools
+          # fonts-inter beklenen statik ağırlıkları vermezse kinetik, stil şablonunun örneklediği Inter'i kullanır
+          python -c "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import motor; motor.yazi_tipi(800); motor.yazi_tipi(700)"
+          ls /usr/share/fonts/opentype/inter/Inter-ExtraBold.otf 2>/dev/null || echo "KINETIK_FONT_DIZINI=$HOME/.cache/studyo/fonts" >> "$GITHUB_ENV"
       - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil)
         run: |
           for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil; do

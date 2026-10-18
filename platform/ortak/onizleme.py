@@ -52,10 +52,12 @@ def sablon_bul(senaryo: dict, yol: Path, ad: str | None) -> str:
         return ad
     if senaryo.get("stil"):
         return senaryo["stil"]
-    bilinen = set(KOMUTLAR) | _stil_secenekleri()
+    bilinen = sorted(set(KOMUTLAR) | _stil_secenekleri(), key=len, reverse=True)
     for parca in [yol.stem, *reversed(yol.resolve().parent.parts)]:  # önce dosya adı, sonra klasörler
-        if parca.replace("_", "-") in bilinen:
-            return parca.replace("_", "-")
+        parca = parca.replace("_", "-")
+        for ad in bilinen:  # "kolaj-ses" gibi ekli adlar da sayılır
+            if parca == ad or parca.startswith(ad + "-"):
+                return ad
     return "kinetik"
 
 

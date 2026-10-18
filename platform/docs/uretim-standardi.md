@@ -23,13 +23,15 @@ Stüdyoda her videonun aynı yoldan geçmesi için çalışma kuralları. Amaç 
 | 4 | **Seslendirme** | `seslendirme/*.wav` | Varsayılan Piper. ElevenLabs yalnız brif isterse; önce tek kısa satırla ses denenir, sonra tam metin bir kez üretilir |
 | 5 | **Render** | Yalnız brifteki format(lar) | Seçilen stil(ler) için, bir kez |
 | 6 | **Kalite kapısı** | `<ad>.kalite.json`, `<ad>.kontakt.png` | Sonuç `kaldi` ise teslim edilmez, düzeltilir. `uyarili` ise uyarının nedeni teslim mesajında bir cümleyle yazar. Claude yalnız kontakt sayfasına bakar, kareleri tek tek açmaz |
-| 7 | **Teslim ve kapanış** | Proje klasöründe teslim klasörü, maliyet satırı | Teslim mesajı: dosyalar, kalite sonucu, harcanan ses kredisi. Maliyet satırı yazılır, thread kapanır |
+| 7 | **Teslim ve kapanış** | Teslim klasörü, `DEVIR.md`, maliyet satırı | Teslim mesajı: dosyalar, kalite sonucu, harcanan ses kredisi. `devir.py` ile devir özeti yazılır (kararlar ve Atilla'nın geri bildirimi `--not` ile), maliyet satırı eklenir, thread kapanır |
 
 ```sh
 # 2. adım: önizleme (birkaç saniye; ses ve video yok)
 python3 platform/ortak/onizleme.py kolaj=is/kolaj.json origami=is/origami.json -o is/onizleme.png
 # 5–6. adım: render; kalite kapısı kendiliğinden çalışır
 python3 platform/sablonlar/stil/stil.py uret is/senaryo.json --stil <ad> --format 9:16
+# 7. adım: devir özeti (her teslimde güncellenir; önceki notlar korunur)
+python3 platform/ortak/devir.py /mnt/project-files/<müşteri> --not "Atilla tabağın büyük görünmesini istedi"
 ```
 
 ## 3. Teslim tanımı (hepsi sağlanmadan "teslim" denmez)
@@ -43,7 +45,8 @@ python3 platform/sablonlar/stil/stil.py uret is/senaryo.json --stil <ad> --forma
 
 ## 4. Revizyon
 
-- Revizyon yeni bir thread'de, eski teslimin 5–10 satırlık özetiyle başlar (brif + ne değişecek). Eski konuşma taşınmaz.
+- Revizyon yeni bir thread'de başlar ve yalnız teslim klasöründeki `DEVIR.md`'yi, brifi ve istenen değişikliği okur. Eski thread okunmaz, eski konuşma taşınmaz; gereken her şey (dosyalar, kalite sonucu, yeniden üretme komutu, kararlar) devir dosyasındadır.
+- Revizyon bitince `devir.py` yeniden çalışır ve yeni kararlar `--not` ile eklenir.
 - Yalnız değişen şey yeniden üretilir: metin değiştiyse o satırın sesi (gerisi önbellekten gelir) ve yalnız ilgili format.
 - Aynı videoda üçüncü revizyon turu gelirse sebep brife yazılır (brif mi eksikti, şablon mu yetmedi) ki bir sonraki siparişte tekrarlanmasın.
 
@@ -53,9 +56,10 @@ python3 platform/sablonlar/stil/stil.py uret is/senaryo.json --stil <ad> --forma
 2. **Şablondan üretim tek komutla.** Üretim thread'i şablon kodu yazmaz.
 3. **Önce önizleme, sonra tek render** (akıştaki 2. ve 3. adım).
 4. **Çok stilli isteklerde önce kareler, sonra 1–2 video.** Bütün stillerin tam videosu yalnız açıkça istenirse.
-5. **Kalite kapısı göz yerine.** Rapor ve tek kontakt sayfası okunur.
-6. **Aynı anda en fazla 3 iş thread'i.** Fazlası sıraya girer; haftalık kullanım limiti bir günde dolmasın.
-7. **Ses:** Piper varsayılan; ElevenLabs işe göre, önbellekten, önce kısa deneme.
+5. **Kalite kapısı göz yerine.** Claude kareleri tek tek açmaz; `kalite.json` raporunu ve tek kontakt sayfasını okur. Önizlemede de yalnız `onizleme.png` açılır. Bir görüntü dosyası, aynı bilgiyi taşıyan birkaç kareden çok daha az token tutar.
+6. **Devir dosyası hafıza yerine.** Bir işe dönülürken thread geçmişi değil `DEVIR.md` okunur.
+7. **Aynı anda en fazla 3 iş thread'i.** Fazlası sıraya girer; haftalık kullanım limiti bir günde dolmasın.
+8. **Ses:** Piper varsayılan; ElevenLabs işe göre, önbellekten, önce kısa deneme.
 
 ## 6. Ölçüm
 

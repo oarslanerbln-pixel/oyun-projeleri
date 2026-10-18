@@ -42,5 +42,6 @@ __pycache__/
 
 # Platform şablonlarının üretilmiş çıktısı (yeniden üretilir)
 cikti/
-# Node bağımlılıkları (three.js şablonları: npm install)
+
+# Node bağımlılıkları (3D şablonlar: npm install)
 node_modules/

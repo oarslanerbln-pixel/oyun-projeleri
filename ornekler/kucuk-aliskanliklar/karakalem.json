@@ -1,0 +1,25 @@
+{
+  "kimlik": "kucuk-aliskanliklar-karakalem",
+  "sure": 10.2,
+  "fps": 30,
+  "format": ["9x16"],
+  "palet": {"kagit": "#F7F4EC", "grafit": "#34343A", "vurgu": "#E0703E"},
+  "karakter": {"ad": "Mert", "sac": "daginik", "sac_rengi": "#4A4A52", "gozluk": true, "ten": "#F3EEE4", "kazak": "#D8D5CE", "pantolon": "#4A4A52"},
+  "muzik": {"bpm": 90},
+  "seslendirme": {
+    "vurgulu": ["yüzde", "otuz", "yedi", "kat"],
+    "satirlar": [
+      {"id": "v0", "t": 0.45, "metin": "Büyük hedefler göz korkutur."},
+      {"id": "v1", "t": 3.25, "metin": "Ama her gün, sadece yüzde bir daha iyi ol."},
+      {"id": "v2", "t": 6.95, "metin": "Bir yılda ne olur?"},
+      {"id": "v3", "t": 8.5, "metin": "Otuz yedi kat!"}
+    ]
+  },
+  "sahneler": [
+    {"tur": "hedef", "bas": 0},
+    {"tur": "adimlar", "bas": 2.967, "adet": 5, "buyume": 1.62, "etiket": "+%1"},
+    {"tur": "sonuc", "bas": 6.967,
+     "damga": {"metin": "37 kat", "alt": "1 yılda", "t": 8.3},
+     "baslik": {"metin": "Küçük alışkanlıkların gücü", "t": 8.633}}
+  ]
+}

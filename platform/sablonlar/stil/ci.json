@@ -59,6 +59,21 @@
     },
     {
       "dosyalar": [
+        "ornekler/*/senaryo.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/stil.py",
+        "denetle",
+        "{dosya}",
+        "--stil",
+        "piksel",
+        "-o",
+        "{gecici}/stil"
+      ]
+    },
+    {
+      "dosyalar": [
         "ornekler/*/sadakat-karti.json"
       ],
       "komut": [

@@ -1,0 +1,17 @@
+{
+  "$aciklama": "3D kitap vitrini örneği (urun.tur kitap): e-kitap tanıtımı. Kapak görseli yoksa marka renkleriyle düz bir kapak çizilir; gerçek kapak için urun.kapak ile PNG/JPG verin.",
+  "kimlik": "demli-kahve-e-kitap",
+  "stil": "urun-vitrini",
+  "marka": "ornekler/demli-kahve/marka/marka.json",
+  "sure": 15,
+  "format": "9:16",
+  "muzik": { "tempo": 92 },
+  "giris": "Evde kafe kahvesi?",
+  "urun": { "tur": "kitap", "ust": "ÜCRETSİZ E-KİTAP", "etiket": "DEMLEME", "alt": "Evde kahve rehberi" },
+  "ozellikler": [
+    { "metin": "12 tarif", "alt": "V60'tan French press'e", "odak": "on" },
+    { "metin": "Adım adım", "alt": "Her tarif tek sayfada", "odak": "ic" },
+    { "metin": "Ücretsiz", "alt": "PDF, hemen indir", "odak": "yan" }
+  ],
+  "final": { "cagri": "Hemen indir", "alt": "demlikahve.com/rehber" }
+}

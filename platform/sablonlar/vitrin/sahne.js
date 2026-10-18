@@ -262,7 +262,9 @@ async function kitapKur() {
   const sirtRenk = A.urun.govde ? renk(A.urun.govde) : kenarRengi(doku);
   const karton = new THREE.MeshPhysicalMaterial({ color: sirtRenk, roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.5 });
   const ic = new THREE.MeshStandardMaterial({ color: renk(SAYFA).multiplyScalar(0.97), roughness: 0.9 });
-  const onYuz = new THREE.MeshPhysicalMaterial({ map: doku, roughness: 0.42, clearcoat: 0.35, clearcoatRoughness: 0.4 });
+  // kapak kendi rengini taşır (emissive), ışık yalnız gölge ve parlama ekler: sıcak stüdyo ışığı baskıyı soldurup sarartmasın
+  const onYuz = new THREE.MeshPhysicalMaterial({ map: doku, color: new THREE.Color(0.26, 0.26, 0.26), emissive: '#ffffff', emissiveMap: doku,
+    emissiveIntensity: 0.70, roughness: 0.5, clearcoat: 0.2, clearcoatRoughness: 0.45 });
   const sayfaYan = new THREE.MeshStandardMaterial({ map: sayfaKenari(true), roughness: 0.95 });
   const sayfaUst = new THREE.MeshStandardMaterial({ map: sayfaKenari(false), roughness: 0.95 });
   const sayfaOn = new THREE.MeshStandardMaterial({ map: icSayfa(w - tas * 2, h - tas * 2), roughness: 0.92 });
@@ -414,11 +416,12 @@ function ozellikCiz(t) {
     const od = ODAK[o.odak] || ODAK.on;
     const [px, py] = ekranda(urun.localToWorld(new THREE.Vector3(...od)));
     const nab = (t - o.bas) * 2.2 % 1;
-    cx.globalAlpha = g;
+    // kitapta halka yok: kapak görselinin ortasında (çoğu zaman bir yüz ya da başlık) durur, kamera odağı zaten gösterir
+    cx.globalAlpha = KITAP.kapak ? 0 : g;
     cx.strokeStyle = R.vurgu; cx.lineWidth = 3 * U;
     cx.beginPath(); cx.arc(px, py, (10 + 22 * nab) * U * outBack(prog(t, o.bas + 0.1, 0.4)), 0, Math.PI * 2);
-    cx.globalAlpha = g * (1 - nab); cx.stroke();
-    cx.globalAlpha = g; cx.fillStyle = R.vurgu;
+    cx.globalAlpha = KITAP.kapak ? 0 : g * (1 - nab); cx.stroke();
+    cx.globalAlpha = KITAP.kapak ? 0 : g; cx.fillStyle = R.vurgu;
     cx.beginPath(); cx.arc(px, py, 7 * U * outBack(prog(t, o.bas + 0.05, 0.35)), 0, Math.PI * 2); cx.fill();
 
     const no = String(i + 1).padStart(2, '0');

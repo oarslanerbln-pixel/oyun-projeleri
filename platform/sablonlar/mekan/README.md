@@ -1,4 +1,4 @@
-# platform/sablonlar/vitrin
+# platform/sablonlar/mekan
 
 Gerçek ürün fotoğraflarıyla iki kullanım: mekândaki ekranda dönen **TV vitrini** ve kısa **Reel reklamı**. Renk, yazı tipi ve logo [`marka.json`](../../marka/README.md)'dan, metin ve fotoğraflar senaryodan gelir. Görüntü ve müzik kodla üretilir; ücretli servis gerekmez.
 
@@ -9,10 +9,10 @@ Gerçek ürün fotoğraflarıyla iki kullanım: mekândaki ekranda dönen **TV v
 
 ```sh
 S=platform/sablonlar/stil/stil.py
-python3 $S denetle senaryo.json --stil vitrin
-python3 $S kare    senaryo.json --stil vitrin --an 4 13 22          # önizleme PNG
-python3 $S uret    senaryo.json --stil vitrin                       # Reel'de seslendirme yoksa önce üretir
-python3 platform/sablonlar/vitrin/vitrin.py render senaryo.json --olcek 0.25   # doğrudan da çalışır
+python3 $S denetle senaryo.json --stil mekan
+python3 $S kare    senaryo.json --stil mekan --an 4 13 22          # önizleme PNG
+python3 $S uret    senaryo.json --stil mekan                       # Reel'de seslendirme yoksa önce üretir
+python3 platform/sablonlar/mekan/mekan.py render senaryo.json --olcek 0.25   # doğrudan da çalışır
 ```
 
 45 sn'lik bir TV döngüsü 1080p'de yaklaşık 4 dakikada, 15 sn'lik Reel yaklaşık 1,5 dakikada çıkar.
@@ -21,7 +21,7 @@ python3 platform/sablonlar/vitrin/vitrin.py render senaryo.json --olcek 0.25   #
 
 ```json
 {
-  "kimlik": "the-leaf-tv", "stil": "vitrin", "varyant": "tv", "dil": "de", "format": "16:9",
+  "kimlik": "the-leaf-tv", "stil": "mekan", "varyant": "tv", "dil": "de", "format": "16:9",
   "marka": "marka.json",
   "sahneler": [
     { "tur": "marka", "sure": 9, "foto": "foto/marka-gorseli.jpg", "ust": "Willkommen", "baslik": "The Leaf Berlin", "alt": "Lounge · Fancy Drinks · Chef Kitchen" },

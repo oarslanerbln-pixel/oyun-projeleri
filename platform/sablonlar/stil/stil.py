@@ -16,7 +16,7 @@ SABLONLAR = os.path.dirname(BURADA)
 sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
-TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'vitrin']
+TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan']
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 
 
@@ -55,10 +55,10 @@ def _bumper(a):
     return bumper.main(ileri)
 
 
-def _vitrin(a):
-    """Fotoğraflı vitrin (mekân TV döngüsü / Reel): platform/sablonlar/vitrin. Biçim varsayılanı varyanta göre."""
-    sys.path.insert(0, os.path.join(SABLONLAR, 'vitrin'))
-    import vitrin
+def _mekan(a):
+    """Fotoğraflı mekân şablonu ( TV döngüsü / Reel): platform/sablonlar/mekan. Biçim varsayılanı varyanta göre."""
+    sys.path.insert(0, os.path.join(SABLONLAR, 'mekan'))
+    import mekan
     ileri = [a.komut, a.senaryo] + (['-o', a.cikti] if a.cikti else [])
     if a.komut in ('seslendir', 'uret'):
         ileri += ['--saglayici', a.saglayici] + (['--ses', a.ses] if a.ses else [])
@@ -66,7 +66,7 @@ def _vitrin(a):
         ileri += ['--an'] + [str(t) for t in a.an] + (['--format', a.format] if a.format else [])
     elif a.komut in ('render', 'uret'):
         ileri += (['--format'] + a.format if a.format else []) + ['--olcek', str(a.olcek)]
-    return vitrin.main(ileri)
+    return mekan.main(ileri)
 
 
 def main(argv=None):
@@ -87,9 +87,9 @@ def main(argv=None):
     a = ap.parse_args(argv)
     with open(a.senaryo, encoding='utf-8') as f:
         s = json.load(f)
-    if (a.stil or s.get('stil')) == 'vitrin':  # biçim varsayılanı varyanta göre (tv → 16:9), vitrin çözer
+    if (a.stil or s.get('stil')) == 'mekan':  # biçim varsayılanı varyanta göre (tv → 16:9), mekan.py çözer
         if a.komut == 'kare' and '--format' not in argv: a.format = None
-        return _vitrin(a)
+        return _mekan(a)
     if a.komut in ('render', 'uret'):
         try:
             a.format = formatlar(a.format or s.get('format'))

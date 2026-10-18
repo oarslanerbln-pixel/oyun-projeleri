@@ -1,10 +1,10 @@
-"""Vitrin şablonu: gerçek ürün fotoğrafları + marka.json → mekân TV döngüsü ya da kısa sosyal reklam (Reel).
+"""Mekân şablonu: gerçek ürün fotoğrafları + marka.json → mekân TV döngüsü ya da kısa sosyal reklam (Reel).
 
-    python3 platform/sablonlar/vitrin/vitrin.py denetle   senaryo.json
-    python3 platform/sablonlar/vitrin/vitrin.py seslendir senaryo.json [--saglayici elevenlabs --ses <id>]
-    python3 platform/sablonlar/vitrin/vitrin.py kare      senaryo.json --an 2 11.5 [--format 16:9]
-    python3 platform/sablonlar/vitrin/vitrin.py render    senaryo.json [--format 16:9 | 9:16 | ...] [--olcek 0.25]
-`stil.py <komut> senaryo.json --stil vitrin` aynı komutları buraya iletir (`uret` = seslendirme yoksa üret + render).
+    python3 platform/sablonlar/mekan/mekan.py denetle   senaryo.json
+    python3 platform/sablonlar/mekan/mekan.py seslendir senaryo.json [--saglayici elevenlabs --ses <id>]
+    python3 platform/sablonlar/mekan/mekan.py kare      senaryo.json --an 2 11.5 [--format 16:9]
+    python3 platform/sablonlar/mekan/mekan.py render    senaryo.json [--format 16:9 | 9:16 | ...] [--olcek 0.25]
+`stil.py <komut> senaryo.json --stil mekan` aynı komutları buraya iletir (`uret` = seslendirme yoksa üret + render).
 
 Varyantlar:
     tv    Mekândaki ekran için kesintisiz döngü. Yavaş yakınlaşma, uzun yumuşak geçişler, büyük yazı, koyu zemin;
@@ -796,7 +796,7 @@ def seslendir(yol, cikti=None, saglayici='piper', ses=None):
 
 def calistir(yol, cikti, boyutlar, olcek=1.0):
     g = Gorunum(yol)
-    ad = g.s.get('kimlik', 'vitrin')
+    ad = g.s.get('kimlik', 'mekan')
     is_ = os.path.join(cikti, 'is'); os.makedirs(is_, exist_ok=True)
     ses = ses_uret(g, yol, is_, _ses_dizini(yol, g.s, cikti))
     ciz = lambda cv, t, W_, H_: kare(cv, t, W_, H_, g)
@@ -853,7 +853,7 @@ def main(argv=None):
     for h in hata: print(f'HATA: {h}', file=sys.stderr)
     if hata: return 1
     if a.komut in ('denetle', 'seslendir'):
-        print(f"tamam: {s.get('kimlik', '?')} · vitrin/{varyant(s)} · {zaman_cizelgesi(s)[1]:g} sn"); return 0
+        print(f"tamam: {s.get('kimlik', '?')} · mekan/{varyant(s)} · {zaman_cizelgesi(s)[1]:g} sn"); return 0
     try:
         boyutlar = formatlar(getattr(a, 'format', None) or s.get('format') or ('16:9' if varyant(s) == 'tv' else '9:16'))
     except ValueError as e:
@@ -863,7 +863,7 @@ def main(argv=None):
         klasor = os.path.join(cikti, 'kareler'); os.makedirs(klasor, exist_ok=True)
         W, H = motor.boyut(boyutlar[0])
         for t in a.an:
-            yol = os.path.join(klasor, f"{s.get('kimlik', 'vitrin')}-{boyutlar[0]}-{t:05.2f}.png")
+            yol = os.path.join(klasor, f"{s.get('kimlik', 'mekan')}-{boyutlar[0]}-{t:05.2f}.png")
             motor.kapak(lambda cv, t_, W_, H_: kare(cv, t_, W_, H_, g), yol, W, H, t); print(yol)
         return 0
     for yol in calistir(a.senaryo, cikti, boyutlar, a.olcek):

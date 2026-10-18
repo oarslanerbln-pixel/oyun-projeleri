@@ -18,7 +18,7 @@ python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme --sa
 
 | Ad | Ne | Gereken |
 | --- | --- | --- |
-| `piper` (varsayılan) | Yerel, ücretsiz sinirsel TTS (sherpa-onnx). Türkçe sesler: `fahrettin`, `fettah` (CC0, ticari işe uygun), `dfki` (CC BY-NC-SA, ticari işte reddedilir). | `pip install sherpa-onnx numpy`. Ses modeli ilk kullanımda GitHub'dan (`k2-fsa/sherpa-onnx` sürümü `tts-models`) `~/.cache/studyo/piper` altına iner; `PIPER_SES_DIZINI` ile değiştirilir. |
+| `piper` (varsayılan) | Yerel, ücretsiz sinirsel TTS (sherpa-onnx). Türkçe sesler: `fahrettin`, `fettah` (CC0, ticari işe uygun), `dfki` (CC BY-NC-SA, ticari işte reddedilir). Almanca: `thorsten` (CC0). | `pip install sherpa-onnx numpy`. Ses modeli ilk kullanımda GitHub'dan (`k2-fsa/sherpa-onnx` sürümü `tts-models`) `~/.cache/studyo/piper` altına iner; `PIPER_SES_DIZINI` ile değiştirilir. |
 | `elevenlabs` | Ücretli API, `eleven_multilingual_v2`, Türkçe. | `ELEVENLABS_API_KEY`; ses kimliği `--ses` ya da `ELEVENLABS_VOICE_ID`. Anahtar yoksa adım açık bir HATA ile durur. **Gerçek anahtarla henüz denenmedi.** |
 
 ## Cila

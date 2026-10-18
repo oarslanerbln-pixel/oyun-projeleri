@@ -16,7 +16,7 @@ SABLONLAR = os.path.dirname(BURADA)
 sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
-TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper']
+TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'vitrin']
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 
 
@@ -55,6 +55,20 @@ def _bumper(a):
     return bumper.main(ileri)
 
 
+def _vitrin(a):
+    """Fotoğraflı vitrin (mekân TV döngüsü / Reel): platform/sablonlar/vitrin. Biçim varsayılanı varyanta göre."""
+    sys.path.insert(0, os.path.join(SABLONLAR, 'vitrin'))
+    import vitrin
+    ileri = [a.komut, a.senaryo] + (['-o', a.cikti] if a.cikti else [])
+    if a.komut in ('seslendir', 'uret'):
+        ileri += ['--saglayici', a.saglayici] + (['--ses', a.ses] if a.ses else [])
+    if a.komut == 'kare':
+        ileri += ['--an'] + [str(t) for t in a.an] + (['--format', a.format] if a.format else [])
+    elif a.komut in ('render', 'uret'):
+        ileri += (['--format'] + a.format if a.format else []) + ['--olcek', str(a.olcek)]
+    return vitrin.main(ileri)
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
@@ -73,6 +87,9 @@ def main(argv=None):
     a = ap.parse_args(argv)
     with open(a.senaryo, encoding='utf-8') as f:
         s = json.load(f)
+    if (a.stil or s.get('stil')) == 'vitrin':  # biçim varsayılanı varyanta göre (tv → 16:9), vitrin çözer
+        if a.komut == 'kare' and '--format' not in argv: a.format = None
+        return _vitrin(a)
     if a.komut in ('render', 'uret'):
         try:
             a.format = formatlar(a.format or s.get('format'))

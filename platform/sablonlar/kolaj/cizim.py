@@ -124,6 +124,16 @@ class Cizici:
             px, py = x + hx * math.cos(r) - hy * math.sin(r), y + hx * math.sin(r) + hy * math.cos(r)
             self.parca(cv, pic, px, py, w, h, ha + aci + da, k, ("h", tohum, i), t, 1.4)
 
+    def guvenli_y(self, y, y_tanim, boy, max_w, tohum):
+        """dikeyde yazı bloğunu Reels bantlarının (üst %10, alt %22) dışında tutar"""
+        if self.GENIS:
+            return y
+        harfler = self.bellek(("yazi", y_tanim["metin"], boy, max_w, tohum),
+                              lambda: kagit.kesik_yazi(y_tanim["metin"], boy * self.u, max_w, self.P, self.u, tohum))
+        ust = min(hy - h / 2 for _, _, hy, _, h, _ in harfler)
+        alt = max(hy + h / 2 for _, _, hy, _, h, _ in harfler)
+        return min(max(y, self.H * 0.105 - ust), self.H * 0.77 - alt)
+
     def zemin(self, cv):
         cv.drawColor(renk(self.P["zemin"]))
         cv.drawPaint(kagit.doku_boyasi(0.5, 1))
@@ -171,8 +181,8 @@ class Cizici:
         # fiş: yazıcıdan çıkar gibi satır satır uzar
         fw = 700 * u if not self.GENIS else 560 * u
         fx, _ = self.yer((0.57, 0), (0.62, 0))
-        satir = 92 * u if not self.GENIS else 64 * u
-        pay = 0 if self.GENIS else 100 * u  # dikeyde başlık üst güvenli alanın altında kalsın (telefon arayüzü)
+        satir = 80 * u if not self.GENIS else 64 * u
+        pay = 0 if self.GENIS else 190 * u  # dikeyde başlık Reels üst bandının (%10) altında kalsın
         bas_h = (210 * u if not self.GENIS else 170 * u) + pay
         kalemler = sh.get("kalemler", [])
         anlar = zaman.kalem_anlari(sh)
@@ -237,18 +247,20 @@ class Cizici:
         # bardaklar: her kahve bir bardak daha
         n = sh.get("nesne")
         if n:
-            yerler = [((0.24, 0.60, 8, 0.92, (-1, 0)), (0.15, 0.60, 8, 0.9, (-1, 0))),
-                      ((0.78, 0.69, -11, 0.8, (1, 0)), (0.33, 0.68, -11, 0.78, (0, 1))),
-                      ((0.52, 0.74, -3, 0.84, (0, 1)), (0.86, 0.72, 5, 0.76, (1, 0)))]
+            # dikeyde hepsi alt %22'lik Reels bandının üstünde kalır
+            yerler = [((0.2, 0.615, 8, 0.8, (-1, 0)), (0.15, 0.60, 8, 0.9, (-1, 0))),
+                      ((0.81, 0.635, -11, 0.72, (1, 0)), (0.33, 0.68, -11, 0.78, (0, 1))),
+                      ((0.52, 0.66, -3, 0.74, (0, 1)), (0.86, 0.72, 5, 0.76, (1, 0)))]
             for i, (d, y_) in enumerate(yerler[: n.get("adet", 3)]):
                 (x, yy, a, k, yon) = y_ if self.GENIS else d
-                px, py = x * W, yy * H + (0 if self.GENIS else 60 * u)  # fiş uzadıkça biraz aşağı
+                px, py = x * W, yy * H
                 self.nesne(cv, n, px, py, a, k, t, n["t"] + 0.42 * i, "kaydir", yon, tohum=40 + i,
                            bant_aci=[-28, 22, -14][i])
         d = sh.get("damga")
         if d:
-            x, y = self.yer((0.5, 0.85), (0.3, 0.2))
-            self.yazi(cv, d, x, y, 190, W * 0.88, t, -5, tohum=7)
+            x, y = self.yer((0.5, 0.728), (0.3, 0.2))
+            y = self.guvenli_y(y, d, 170 if not self.GENIS else 190, W * 0.88, 7)
+            self.yazi(cv, d, x, y, 170 if not self.GENIS else 190, W * 0.88, t, -5, tohum=7)
 
     def fis_yolu(self, w, h):
         """Fiş: üstü ekran dışında, altı yırtılmış testere dişi."""
@@ -268,11 +280,12 @@ class Cizici:
         gp, _ = self.gazete_sayfasi(gw, gh, 22)
         self.parca(cv, gp, W / 2, H / 2, gw, gh, 1.2)
         if sh.get("ust"):
-            x, y = self.yer((0.5, 0.15), (0.5, 0.14))
+            x, y = self.yer((0.5, 0.165), (0.5, 0.14))
+            y = self.guvenli_y(y, sh["ust"], 128 if not self.GENIS else 110, W * (0.88 if not self.GENIS else 0.8), 11)
             self.yazi(cv, sh["ust"], x, y, 128 if not self.GENIS else 110, W * (0.88 if not self.GENIS else 0.8), t, -2, tohum=11)
         n = sh.get("nesne")
         if n:
-            x, y = self.yer((0.5, 0.405), (0.25, 0.53))
+            x, y = self.yer((0.5, 0.383), (0.25, 0.53))
             self.nesne(cv, n, x, y, -4, 1.0, t, n["t"], "kaydir", (-1, 0), tohum=61, bant_aci=-24)
             # buhar: kupanın üstünde üç kıvrımlı kalem çizgisi (bardak/kupa dışında istenirse buhar: true)
             for i in range(3 if n.get("buhar", n.get("tur") in ("kupa", "bardak")) else 0):
@@ -283,7 +296,7 @@ class Cizici:
                                 karistir(P["murekkep"], P["gazete"], 0.35), 8 * u, 0.75)
         et = sh.get("esit_t")
         if et is not None:
-            ex, ey = self.yer((0.5, 0.548), (0.5, 0.53))
+            ex, ey = self.yer((0.5, 0.518), (0.5, 0.53))
             arti = sh.get("isaret", "=") == "+"
             for i, dy in enumerate((0, 0) if arti else (-30, 30)):
                 pic = self.bellek(("esit", i), lambda i=i: kagit.kagit(250 * u, 40 * u, P["vurgu"], u, 70 + i, yirtik="lr", genlik=5)[0])
@@ -292,8 +305,12 @@ class Cizici:
                     aci = (-3 + 93 * i) if arti else (-3 + 4 * i)
                     self.parca(cv, pic, ex, ey + dy * u, 250 * u, 40 * u, aci + da, k * (0.68 if arti else 1), ("esit", i), t)
         n2 = sh.get("nesne2")
-        if sh.get("alt"):
-            x, y = self.yer((0.5, 0.885), (0.5, 0.86))
+        if n2:
+            x, y = self.yer((0.5, 0.607), (0.75, 0.53))
+            self.nesne(cv, n2, x, y, 3, 1.0, t, n2["t"], "carp", tohum=62, bant_aci=18)
+        if sh.get("alt"):  # alt yazı ikinci nesnenin üstünde kalır (dikeyde ikisi yakın)
+            x, y = self.yer((0.5, 0.732), (0.5, 0.86))
+            y = self.guvenli_y(y, sh["alt"], 120 if not self.GENIS else 104, W * 0.9, 12)
             self.yazi(cv, sh["alt"], x, y, 120 if not self.GENIS else 104, W * 0.9, t, 2, tohum=12)
             ct = sh.get("cizgi_t")
             if ct is not None:
@@ -303,9 +320,6 @@ class Cizici:
                 c = self.bellek("alt_cizgi", lambda: kagit.kalem_yolu(
                     [(x - yari + i * yari / 5, alt_y + 9 * u * math.sin(i * 1.7)) for i in range(11)]))
                 kagit.kalem_ciz(cv, c, out_cubic(prog(t, ct, 0.3)), P["vurgu"], 12 * u)
-        if n2:
-            x, y = self.yer((0.5, 0.705), (0.75, 0.53))
-            self.nesne(cv, n2, x, y, 3, 1.0, t, n2["t"], "carp", tohum=62, bant_aci=18)
 
     def ciz_kapanis(self, cv, sh, t):
         u, P, W, H = self.u, self.P, self.W, self.H
@@ -318,9 +332,9 @@ class Cizici:
         self.parca(cv, pano, px, py, pw, ph, -2)
         n = sh.get("nesne")
         if n:
-            for i, (d, y_) in enumerate([((0.83, 0.12, 24, 0.85, (1, 0)), (0.86, 0.14, 24, 0.75, (1, 0))),
-                                         ((0.17, 0.83, -18, 0.8, (-1, 0)), (0.08, 0.8, -18, 0.7, (-1, 0))),
-                                         ((0.36, 0.9, 40, 0.6, (0, 1)), (0.92, 0.86, 40, 0.6, (1, 0)))]):
+            for i, (d, y_) in enumerate([((0.83, 0.15, 24, 0.85, (1, 0)), (0.86, 0.14, 24, 0.75, (1, 0))),
+                                         ((0.15, 0.735, -18, 0.8, (-1, 0)), (0.08, 0.8, -18, 0.7, (-1, 0))),
+                                         ((0.33, 0.745, 40, 0.6, (0, 1)), (0.92, 0.86, 40, 0.6, (1, 0)))]):
                 x, y, a, k, yon = y_ if self.GENIS else d
                 self.nesne(cv, n, x * W, y * H, a, k, t, n["t"] + 0.15 * i, "kaydir", yon, tohum=90 + i)
         m = sh.get("marka")
@@ -338,7 +352,7 @@ class Cizici:
         a = sh.get("alt")
         if a and t >= a["t"]:
             pic, w, h = self.bellek("etiket", lambda: self.etiket(a["metin"]))
-            x, y = self.yer((0.47, 0.535), (0.38, 0.74))
+            x, y = self.yer((0.47, 0.515), (0.38, 0.74))
             gor, dx, dy, k, da = self.giris(t, a["t"], "kaydir", (0, 1))
             self.parca(cv, pic, x + dx, y + dy, w, h, 1.5, 1, "etiket", t)
             if t >= a["t"] + 0.2:
@@ -349,14 +363,14 @@ class Cizici:
         if lg:  # marka logosu: renkli kesik çıkartma gibi yapışır
             yol = str(Path(self.s["_klasor"]) / lg["gorsel"])
             pic, w, h = self.bellek(("logo", yol), lambda: kagit.gorsel_resim(yol, lg.get("genislik", 440) * u, P, u, 77, True))
-            x, y = self.yer((0.32, 0.81), (0.85, 0.26))
+            x, y = self.yer((0.3, 0.668), (0.85, 0.26))
             gor, _, _, k, da = self.giris(t, lg["t"], "pat")
             if gor:
                 self.parca(cv, pic, x, y, w, h, 6 + da, k, "logo", t, 0.5)
         dt = sh.get("damga_t")
         if dt is not None and t >= dt:
             pic, w = self.bellek("muhur", lambda: self.muhur(al(sh, "damga.metin") or "", al(sh, "damga.orta")))
-            x, y = self.yer((0.68, 0.675), (0.78, 0.6))
+            x, y = self.yer((0.71, 0.645), (0.78, 0.6))
             gor, _, _, k, da = self.giris(t, dt, "pat")
             self.parca(cv, pic, x, y, w, w, -12 + da, k, "muhur", t, 0.5)
 

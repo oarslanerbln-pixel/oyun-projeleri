@@ -90,13 +90,13 @@ class Cizici:
         def yap():
             if n.get("gorsel"):
                 yol = str(Path(self.s["_klasor"]) / n["gorsel"])
-                pic, w, h = kagit.gorsel_resim(yol, n.get("genislik", 420) * self.u, self.P, self.u, tohum)
+                pic, w, h = kagit.gorsel_resim(yol, n.get("genislik", 420) * self.u, self.P, self.u, tohum, n.get("renkli", False))
                 return pic, w, h
             r = nesneler.NESNELER[n["tur"]](self.u, self.P)
             w, h, sil, gri, spot = r[:5]
             ust = r[5] if len(r) > 5 else ()
             return kagit.kesik_resim(w, h, sil, gri, spot, self.P, self.u, tohum, nesneler.HUCRE[n["tur"]], ustler=ust), w, h
-        return self.bellek(("nesne", n.get("tur"), n.get("gorsel"), tohum), yap)
+        return self.bellek(("nesne", n.get("tur"), n.get("gorsel"), n.get("renkli"), tohum), yap)
 
     def nesne(self, cv, n, x, y, aci, olcek, t, t0, tur="kaydir", yon=(-1, 0), tohum=1, bant_aci=None):
         gor, dx, dy, k, da = self.giris(t, t0, tur, yon)
@@ -199,14 +199,15 @@ class Cizici:
         y = 80 * u + 80 * u
         cv.drawString(baslik, (fw - fb.measureText(baslik)) / 2, y, fb, ink)
         y += 46 * u
-        alt = "*** FİŞ ***"
+        alt = sh.get("alt_baslik", "*** FİŞ ***")
         cv.drawString(alt, (fw - fk.measureText(alt)) / 2, y, fk, soluk)
-        for i, metin in enumerate(kalemler):
+        for i, kalem in enumerate(kalemler):
             if t < anlar[i]:
                 break
             yy = 80 * u + bas_h + satir * (i + 0.72)
+            # kalem: "METİN" (tutar ₺ simgesi, uydurma rakam yok) ya da ["METİN", "16,90 €"] (gerçek fiyat)
+            metin, fiyat = (kalem, "₺" * (2 + (i * 7) % 3)) if isinstance(kalem, str) else kalem
             cv.drawString(metin, 40 * u, yy, fk, ink)
-            fiyat = "₺" * (2 + (i * 7) % 3)
             cv.drawString(fiyat, fw - 40 * u - fl.measureText(fiyat), yy, fl, ink)
             nokta_x0 = 48 * u + fk.measureText(metin); nokta_x1 = fw - 52 * u - fl.measureText(fiyat)
             x = nokta_x0
@@ -220,7 +221,8 @@ class Cizici:
             yy += satir * 1.15
             ft = skia.Font(self.tf["courier"], 56 * u * kb); fl2 = skia.Font(self.tf["inter"], 54 * u * kb)
             cv.drawString(sh.get("toplam", "TOPLAM"), 40 * u, yy, ft, ink)
-            cv.drawString("₺₺₺₺₺", fw - 40 * u - fl2.measureText("₺₺₺₺₺"), yy, fl2, ink)
+            tf = sh.get("toplam_fiyat", "₺₺₺₺₺")
+            cv.drawString(tf, fw - 40 * u - fl2.measureText(tf), yy, fl2, ink)
             self._toplam = (fw / 2, yy - 18 * u)
             ct = sh.get("cember_t")
             if ct is not None:
@@ -280,11 +282,13 @@ class Cizici:
         et = sh.get("esit_t")
         if et is not None:
             ex, ey = self.yer((0.5, 0.548), (0.5, 0.53))
-            for i, dy in enumerate((-30, 30)):
+            arti = sh.get("isaret", "=") == "+"
+            for i, dy in enumerate((0, 0) if arti else (-30, 30)):
                 pic = self.bellek(("esit", i), lambda i=i: kagit.kagit(250 * u, 40 * u, P["vurgu"], u, 70 + i, yirtik="lr", genlik=5)[0])
                 gor, _, _, k, da = self.giris(t, et + 0.07 * i, "pat")
                 if gor:
-                    self.parca(cv, pic, ex, ey + dy * u, 250 * u, 40 * u, -3 + 4 * i + da, k, ("esit", i), t)
+                    aci = (-3 + 93 * i) if arti else (-3 + 4 * i)
+                    self.parca(cv, pic, ex, ey + dy * u, 250 * u, 40 * u, aci + da, k * (0.68 if arti else 1), ("esit", i), t)
         n2 = sh.get("nesne2")
         if sh.get("alt"):
             x, y = self.yer((0.5, 0.885), (0.5, 0.86))
@@ -340,7 +344,7 @@ class Cizici:
                     self.parca(cv, b, x + s_ * (w / 2 - 10 * u), y - 4 * u, 110 * u, 44 * u, 80 + 12 * s_, 1, ("eb", j), t)
         dt = sh.get("damga_t")
         if dt is not None and t >= dt:
-            pic, w = self.bellek("muhur", lambda: self.muhur(al(sh, "damga.metin") or ""))
+            pic, w = self.bellek("muhur", lambda: self.muhur(al(sh, "damga.metin") or "", al(sh, "damga.orta")))
             x, y = self.yer((0.68, 0.675), (0.78, 0.6))
             gor, _, _, k, da = self.giris(t, dt, "pat")
             self.parca(cv, pic, x, y, w, w, -12 + da, k, "muhur", t, 0.5)
@@ -372,8 +376,8 @@ class Cizici:
         cv.drawString(metin, 35 * u, h / 2 + 15 * u, f, boya(renk(P["murekkep"], 0.9)))
         return rec.finishRecordingAsPicture(), w, h
 
-    def muhur(self, metin):
-        """Yuvarlak lastik mühür: çevrede yazı, ortada simit halkası; mürekkep yer yer tutmamış."""
+    def muhur(self, metin, orta=None):
+        """Yuvarlak lastik mühür: çevrede yazı, ortada simit halkası ya da `orta` yazısı; mürekkep yer yer tutmamış."""
         u, P = self.u, self.P
         R = 170 * u
         w = 2 * R + 20 * u
@@ -399,7 +403,12 @@ class Cizici:
                 cv.drawString(ch, -f.measureText(ch) / 2, 14 * u, f, boya(renk(P["vurgu"])))
                 cv.restore()
                 aci += gw / rr
-        cv.drawOval(skia.Rect(c - 62 * u, c - 40 * u, c + 62 * u, c + 40 * u), boya(renk(P["vurgu"]), stroke=24 * u))
+        if orta:  # ortada simit halkası yerine kısa yazı (ör. "GRATIS")
+            fo = skia.Font(self.tf["anton"], 64 * u)
+            fo.setSize(64 * u * min(1.0, 190 * u / fo.measureText(orta)))
+            cv.drawString(orta, c - fo.measureText(orta) / 2, c + fo.getSize() * 0.36, fo, boya(renk(P["vurgu"])))
+        else:
+            cv.drawOval(skia.Rect(c - 62 * u, c - 40 * u, c + 62 * u, c + 40 * u), boya(renk(P["vurgu"]), stroke=24 * u))
         sil = skia.Paint(AntiAlias=True)
         sil.setShader(kagit.doku(256, 9).makeShader(skia.TileMode.kRepeat, skia.TileMode.kRepeat))
         sil.setBlendMode(skia.BlendMode.kDstOut)

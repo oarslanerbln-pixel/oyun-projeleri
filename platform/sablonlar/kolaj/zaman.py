@@ -11,7 +11,7 @@ from pathlib import Path
 
 TURLER = ("fis", "esitlik", "kapanis")
 GECISLER = ("kesme", "yirt", "kaydir")
-NESNELER = ("bardak", "kupa", "simit", "cekirdek")
+NESNELER = ("bardak", "kupa", "simit", "cekirdek", "kase", "tabak")
 ROLLER = ("zemin", "kagit", "gazete", "murekkep", "vurgu", "ikinci", "marka")
 VARSAYILAN_PALET = {"zemin": "#C9A67A", "kagit": "#FBF8F1", "gazete": "#E9E3D5", "murekkep": "#221A16",
                     "vurgu": "#D63A2C", "ikinci": "#E0A243", "marka": "#3B2418"}
@@ -139,6 +139,11 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
                     h.append(f"{ad}: {k}.gorsel bulunamadı: {n['gorsel']}")
             elif n.get("tur") not in NESNELER:
                 h.append(f"{ad}: {k}.tur {', '.join(NESNELER)} olmalı (ya da gorsel: dosya.png)")
+        for j, kalem in enumerate(sh.get("kalemler") or []):
+            if not (isinstance(kalem, str) or (isinstance(kalem, list) and len(kalem) == 2 and all(isinstance(x, str) for x in kalem))):
+                h.append(f"{ad}: kalemler[{j}] \"METİN\" ya da [\"METİN\", \"FİYAT\"] olmalı")
+        if sh.get("isaret", "=") not in ("=", "+"):
+            h.append(f"{ad}: isaret '=' ya da '+' olmalı")
         for k in ("ust", "alt", "damga", "marka"):
             y = sh.get(k)
             if isinstance(y, dict) and "son" in y and y["son"] < y.get("t", 0):

@@ -256,8 +256,9 @@ def kesik_resim(w: float, h: float, sil: skia.Path, gri_ciz, spotlar, P: dict, u
     return rec.finishRecordingAsPicture()
 
 
-def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int):
-    """Herhangi bir PNG/JPG → kesik yarım ton parça. Saydamlık varsa siluet odur, yoksa makas kesikli dikdörtgen."""
+def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int, renkli: bool = False):
+    """Herhangi bir PNG/JPG → kesik yarım ton parça. Saydamlık varsa siluet odur, yoksa makas kesikli dikdörtgen.
+    renkli: yarım tona çevirmeden, renkli dergi fotoğrafı gibi kesilir (yemek gibi rengiyle satan ürünler)."""
     img = skia.Image.MakeFromEncoded(skia.Data.MakeFromFileName(yol))
     k = hedef_w / img.width()
     w, h = img.width() * k, img.height() * k
@@ -280,10 +281,27 @@ def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int):
                 x += 1
         sil = skia.Op(sil, sil, skia.PathOp.kUnion_PathOp)
 
+    ornekleme = skia.SamplingOptions(skia.CubicResampler.Mitchell()) if renkli else skia.SamplingOptions(skia.FilterMode.kLinear)
+    if renkli:
+        rnd = random.Random(tohum)
+        kenar = makas(sil, 11 * u, 28 * u, rnd)
+        m = 50 * u
+        rec = skia.PictureRecorder()
+        cv = rec.beginRecording(skia.Rect(-m, -m, w + m, h + m))
+        golge(cv, kenar, u)
+        cv.drawPath(kenar, boya(renk(P["kagit"])))
+        cv.save(); cv.clipPath(sil, skia.ClipOp.kIntersect, True)
+        cv.drawImageRect(img, skia.Rect(0, 0, w, h), ornekleme, skia.Paint(AntiAlias=True))
+        cv.restore()
+        cv.save(); cv.clipPath(kenar, skia.ClipOp.kIntersect, True)
+        cv.drawPaint(doku_boyasi(0.8, tohum % 5))
+        cv.restore()
+        return rec.finishRecordingAsPicture(), w, h
+
     def gri_ciz(cv):
         p = skia.Paint(AntiAlias=True)
         p.setColorFilter(skia.ColorFilters.Matrix([0.3, 0.59, 0.11, 0, 0] * 3 + [0, 0, 0, 1, 0]))
-        cv.drawImageRect(img, skia.Rect(0, 0, w, h), skia.SamplingOptions(skia.FilterMode.kLinear), p)
+        cv.drawImageRect(img, skia.Rect(0, 0, w, h), ornekleme, p)
     return kesik_resim(w, h, sil, gri_ciz, [], P, u, tohum), w, h
 
 

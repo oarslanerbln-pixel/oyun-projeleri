@@ -211,7 +211,11 @@ class Cizici:
     def buyuk_sayi(self, cv, t, sh):
         P, u, cx, cy = self.P, self.u, self.cx, self.cy
         self.zemin(cv, t, "vurgu")
-        yb = cy - (400 if not self.GENIS else 345) * u
+        # uzun sayı (fiyat gibi "16,90 €") halkaya sığmak için küçülmesin: halka büyür, üst ve etiket açılır
+        dogal = self.genislik(sh["sayi"], 400 * u)
+        azami = 520 * u if dogal <= 520 * u else min(dogal, (760 if not self.GENIS else 640) * u)
+        ek = (azami - 520 * u) / 2
+        yb = cy - (400 if not self.GENIS else 345) * u - ek
         if sh.get("ust"):
             self.slam(cv, sh["ust"], cx, yb, 80 * u, P["zemin"], t, sh.get("ust_t", sh["bas"] + 0.05), track=0.12)
         t0 = sh["sayi_t"]
@@ -219,13 +223,13 @@ class Cizici:
         if pr > 0:  # dönen kesikli halka
             q = self.paint(P["ikinci"], 1, stroke=16 * u)
             q.setPathEffect(self.sk.DashPathEffect.Make([38 * u, 26 * u], (t * 220 * u) % (64 * u)))
-            cv.drawCircle(cx, cy + 10 * u, 300 * u * pr, q)
-        self.slam(cv, sh["sayi"], cx - 14 * u, cy + 10 * u, 400 * u, P["zemin"], t, t0, azami=520 * u)
+            cv.drawCircle(cx, cy + 10 * u, (300 * u + ek) * pr, q)
+        self.slam(cv, sh["sayi"], cx - 14 * u, cy + 10 * u, 400 * u, P["zemin"], t, t0, azami=azami)
         self.halka(cv, t, t0, cx, cy, 200 * u, 700 * u, P["zemin"], 18)
         if sh.get("etiket"):
             pd = out_expo(prog(t, sh.get("etiket_t", t0 + 0.5), 0.35))
             if pd > 0:
-                yd = cy + (360 if not self.GENIS else 330) * u
+                yd = cy + (360 if not self.GENIS else 330) * u + ek
                 fs = self.sigdir(sh["etiket"], 104 * u, 560 * u)
                 bw, bh = self.genislik(sh["etiket"], fs) + 100 * u, 150 * u
                 x0 = lerp(-bw, cx - bw / 2, pd)

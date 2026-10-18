@@ -955,7 +955,11 @@ class Cizici:
             y += boy * 1.05
         alt = self.marka.get("alt")
         if alt:
-            f2 = self.font("metin", R * 0.11)
+            boy2 = R * 0.11
+            f2 = self.font("metin", boy2)
+            while f2.measureText(alt) > R * 1.1 and boy2 > 16:  # uzun alt satır beyaz göbekten taşmasın
+                boy2 *= 0.95
+                f2 = self.font("metin", boy2)
             w = f2.measureText(alt)
             cv.drawString(alt, -w / 2, y + R * 0.07, f2, boya(ALTIN_KOYU, a))
         cv.restore()

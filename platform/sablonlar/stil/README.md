@@ -15,6 +15,7 @@ python3 $S kare      ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik 
 python3 $S render    ornekler/kucuk-aliskanliklar/senaryo.json --stil kagit-kesik   # → cikti/<kimlik>-kagit-kesik-9x16.mp4, -kapak.png
 python3 $S render    ornekler/kucuk-aliskanliklar/senaryo.json --stil kinetik       # kinetik şablona iletilir
 python3 $S uret      ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik --format 16:9   # tek adım: seslendirme yoksa üretir, sonra render
+python3 $S uret      ornekler/demli-kahve/bumper.json --stil bumper              # 6 sn marka bumper'ı (../bumper), seslendirmesiz
 ```
 
 Stil, `--stil` ya da senaryodaki `"stil"` alanıyla seçilir. Çıktı H.264 + AAC, -14 LUFS. Biçim video başına seçilir: `--format 9:16 | 16:9 | 1:1 | 4:5 | ikisi`; verilmezse senaryodaki `"format"` alanı (aynı değerler ya da liste), o da yoksa yalnız 9:16. Kinetik de bu çözülen biçimle çağrılır. Hızlı prova için `render --olcek 0.25`. Bir biçimin render'ı stil başına yaklaşık yarım dakika sürer.

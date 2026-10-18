@@ -85,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("senaryo")
         p.add_argument("-o", "--cikti")
         if ad == "seslendir":
-            p.add_argument("--saglayici", default="piper"); p.add_argument("--ses")
+            p.add_argument("--saglayici", default="otomatik"); p.add_argument("--ses")
         if ad == "kare":
             p.add_argument("--an", type=float, nargs="+", required=True)
             p.add_argument("--format", default="9x16", choices=sorted(FORMATLAR))

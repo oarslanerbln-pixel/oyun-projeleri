@@ -3,13 +3,17 @@
     python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme
     python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme --saglayici elevenlabs --ses <voice_id>
     python3 platform/ses/seslendirme.py sesler
+    python3 platform/ses/seslendirme.py kullanim          # ElevenLabs'te harcanan karakterler (iş başına)
 
 `satirlar.json`: {"satirlar": [{"id": "v0", "metin": "Her gün, sadece yüzde bir daha iyi ol."}, ...]}
 Her satır `<id>.wav` olur; aynı klasöre süreleri içeren `seslendirme.json` yazılır (kurgu zamanlaması buradan okur).
 
 Sağlayıcılar (`SAGLAYICILAR`):
+  otomatik    varsayılan: ELEVENLABS_API_KEY varsa elevenlabs, yoksa piper. ElevenLabs'e ulaşılamazsa
+              uyarıp piper'a döner (render durmaz).
   piper       yerel, ücretsiz. Ses modeli ilk kullanımda GitHub'dan indirilir (huggingface.co kapalı olabilir).
-  elevenlabs  ücretli API. ELEVENLABS_API_KEY yoksa açık bir hatayla durur.
+  elevenlabs  ücretli API. ELEVENLABS_API_KEY yoksa açık bir hatayla durur. Her satır önbelleğe yazılır:
+              aynı metin + ses + ayar ikinci kez kredi harcamaz. Harcanan karakterler kullanim.jsonl'a yazılır.
 Her iki sağlayıcının ham çıktısı aynı "cila" zincirinden geçer: gövde temizliği, varlık, yumuşak
 sıkıştırma, satır başına -16 LUFS ve soxr ile 48 kHz'e çevirme.
 """
@@ -17,6 +21,7 @@ sıkıştırma, satır başına -16 LUFS ve soxr ile 48 kHz'e çevirme.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import json
 import os
@@ -24,6 +29,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import urllib.error
 import urllib.request
 import wave
@@ -34,17 +40,38 @@ HEDEF_LUFS = -16.0
 
 # Piper sesleri: lisans ticari işte kullanılabilirliği belirler (lisans kapısı).
 PIPER_SESLERI = {
-    "fahrettin": {"dil": "tr", "kod": "tr_TR", "lisans": "CC0", "ticari": True},
-    "fettah": {"dil": "tr", "kod": "tr_TR", "lisans": "CC0", "ticari": True},
-    "dfki": {"dil": "tr", "kod": "tr_TR", "lisans": "CC BY-NC-SA 4.0", "ticari": False},
-    "thorsten": {"dil": "de", "kod": "de_DE", "lisans": "CC0", "ticari": True},
-    "kerstin": {"dil": "de", "kod": "de_DE", "lisans": "CC0", "ticari": True, "kalite": "low"},  # kadın sesi; yalnız low var
+    "fahrettin": {"dil": "tr", "kod": "tr_TR", "lisans": "CC0", "ticari": True, "cinsiyet": "erkek"},
+    "fettah": {"dil": "tr", "kod": "tr_TR", "lisans": "CC0", "ticari": True, "cinsiyet": "erkek"},
+    "dfki": {"dil": "tr", "kod": "tr_TR", "lisans": "CC BY-NC-SA 4.0", "ticari": False, "cinsiyet": "erkek"},
+    "thorsten": {"dil": "de", "kod": "de_DE", "lisans": "CC0", "ticari": True, "cinsiyet": "erkek"},
+    "kerstin": {"dil": "de", "kod": "de_DE", "lisans": "CC0", "ticari": True, "cinsiyet": "kadin", "kalite": "low"},  # yalnız low var
 }
 PIPER_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-{kod}-{ses}-{kalite}.tar.bz2"
 PIPER_ONBELLEK = Path(os.environ.get("PIPER_SES_DIZINI", Path.home() / ".cache" / "studyo" / "piper"))
 
 ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}?output_format=pcm_44100"
 ELEVEN_MODEL = "eleven_multilingual_v2"
+# Dil zorlaması (language_code) yalnız bu modellerde var; multilingual_v2 dili metinden anlar, alanı görürse reddeder.
+ELEVEN_DIL_ZORLAYAN = ("eleven_turbo_v2_5", "eleven_flash_v2_5")
+ELEVEN_AYAR = {"stability": 0.45, "similarity_boost": 0.8, "style": 0.3, "use_speaker_boost": True}
+# Varsayılan sesler: ElevenLabs'in hazır, çok dilli sesleri (multilingual_v2 ile Türkçe ve Almanca okur).
+# Dile özel seçim (ör. e-kitap testinde beğenilen Almanca ses) ELEVEN_DIL_SESLERI'ne, kanal ya da müşteri
+# sesi senaryonun `seslendirme.ses` alanına (voice_id) yazılır. Ortam: ELEVENLABS_VOICE_ID[_TR|_DE].
+ELEVEN_SESLERI = {
+    "erkek": {"ad": "George", "id": "JBFqnCBsd6RMkjVDRZzb"},
+    "kadin": {"ad": "Matilda", "id": "XrExE9yKIg1WjnnlVkGX"},
+}
+ELEVEN_DIL_SESLERI: dict[str, dict[str, dict]] = {}
+
+
+def _onbellek_koku() -> Path:
+    """Ücretli seslerin önbelleği. Proje klasörü varsa orada (bütün oturumlar paylaşır), yoksa ~/.cache."""
+    if os.environ.get("STUDYO_SES_ONBELLEK"):
+        return Path(os.environ["STUDYO_SES_ONBELLEK"])
+    proje = Path("/mnt/project-files")
+    if proje.is_dir() and os.access(proje, os.W_OK):
+        return proje / ".onbellek" / "ses"
+    return Path.home() / ".cache" / "studyo" / "ses"
 
 # Konuşmayı netleştiren zincir (ffmpeg). Sıra: gövde temizliği → çamur → varlık → hava → sıkıştırma.
 CILA = ",".join([
@@ -104,25 +131,39 @@ def piper_indir(ses: str) -> Path:
     return hedef
 
 
+def eleven_ayar(ayar: dict) -> dict:
+    """Ayarı istek parametrelerine çözer: ses kimliği, model, dil, ses ayarları.
+
+    `ses` bir ElevenLabs voice_id ise o kullanılır. Piper ses adıysa (senaryolar `kerstin` gibi
+    Piper adları taşır) dili ve cinsiyeti alınır, o dilin varsayılan ElevenLabs sesi seçilir.
+    """
+    ses = ayar.get("ses") or ""
+    piper_bilgi = PIPER_SESLERI.get(ses)
+    dil = ayar.get("dil") or (piper_bilgi or {}).get("dil") or "tr"
+    if not ses or piper_bilgi:
+        cinsiyet = ayar.get("cinsiyet") or (piper_bilgi or {}).get("cinsiyet") or "erkek"
+        ses = (os.environ.get(f"ELEVENLABS_VOICE_ID_{dil.upper()}") or os.environ.get("ELEVENLABS_VOICE_ID")
+               or ELEVEN_DIL_SESLERI.get(dil, {}).get(cinsiyet, {}).get("id") or ELEVEN_SESLERI[cinsiyet]["id"])
+    model = ayar.get("model") or ELEVEN_MODEL
+    return {"ses": ses, "model": model, "dil": dil, "voice_settings": dict(ELEVEN_AYAR, **(ayar.get("voice_settings") or {}))}
+
+
 def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int]:
     anahtar = os.environ.get("ELEVENLABS_API_KEY", "")
     if not anahtar:
         raise SeslendirmeHatasi("ELEVENLABS_API_KEY ortam değişkeni yok; anahtar eklenene kadar --saglayici piper kullanın")
-    ses = ayar.get("ses") or os.environ.get("ELEVENLABS_VOICE_ID", "")
-    if not ses:
-        raise SeslendirmeHatasi("ElevenLabs ses kimliği yok: --ses <voice_id> ya da ELEVENLABS_VOICE_ID verin")
-    govde = {
-        "text": metin,
-        "model_id": ayar.get("model") or ELEVEN_MODEL,
-        "language_code": ayar.get("dil", "tr"),
-        "voice_settings": {"stability": 0.45, "similarity_boost": 0.8, "style": 0.3, "use_speaker_boost": True},
-    }
-    istek = urllib.request.Request(ELEVEN_URL.format(ses=ses), data=json.dumps(govde).encode("utf-8"), method="POST",
+    e = eleven_ayar(ayar)
+    govde = {"text": metin, "model_id": e["model"], "voice_settings": e["voice_settings"]}
+    if e["model"] in ELEVEN_DIL_ZORLAYAN:
+        govde["language_code"] = e["dil"]
+    istek = urllib.request.Request(ELEVEN_URL.format(ses=e["ses"]), data=json.dumps(govde).encode("utf-8"), method="POST",
                                    headers={"xi-api-key": anahtar, "Content-Type": "application/json", "Accept": "audio/pcm"})
     try:
         pcm = (ag or _ac)(istek)
-    except urllib.error.HTTPError as e:
-        raise SeslendirmeHatasi(f"ElevenLabs {e.code}: {e.read()[:300].decode('utf-8', 'replace')}") from e
+    except urllib.error.HTTPError as h:
+        raise SeslendirmeHatasi(f"ElevenLabs {h.code}: {h.read()[:300].decode('utf-8', 'replace')}") from h
+    except (urllib.error.URLError, OSError) as h:
+        raise SeslendirmeHatasi(f"ElevenLabs'e ulaşılamadı ({h}); ağ izni: api.elevenlabs.io") from h
     return pcm, 44100
 
 
@@ -132,6 +173,45 @@ def _ac(istek) -> bytes:
 
 
 SAGLAYICILAR = {"piper": piper, "elevenlabs": elevenlabs}
+UCRETLI = {"elevenlabs"}  # satır önbelleği ve karakter kaydı bunlar için
+
+
+def saglayici_coz(saglayici: str | None) -> str:
+    """`otomatik` (ya da boş): ELEVENLABS_API_KEY varsa elevenlabs, yoksa piper."""
+    if saglayici in (None, "", "otomatik"):
+        return "elevenlabs" if os.environ.get("ELEVENLABS_API_KEY") else "piper"
+    return saglayici
+
+
+def _onbellek_anahtari(saglayici: str, metin: str, ayar: dict) -> str:
+    cozulmus = eleven_ayar(ayar) if saglayici == "elevenlabs" else ayar
+    ham = json.dumps({"s": saglayici, "m": metin, "a": cozulmus}, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(ham.encode("utf-8")).hexdigest()[:32]
+
+
+def _ucretli_uret(saglayici: str, metin: str, ayar: dict, sayac: dict) -> tuple[bytes, int]:
+    """Önbellekte varsa oradan okur (kredi harcamaz); yoksa API'den alıp önbelleğe yazar."""
+    kok = _onbellek_koku() / saglayici
+    yol = kok / f"{_onbellek_anahtari(saglayici, metin, ayar)}.wav"
+    if yol.exists():
+        with wave.open(str(yol), "rb") as w:
+            sayac["onbellek"] += 1
+            return w.readframes(w.getnframes()), w.getframerate()
+    pcm, sr = SAGLAYICILAR[saglayici](metin, ayar)
+    kok.mkdir(parents=True, exist_ok=True)
+    gecici = yol.with_suffix(".yaziliyor")
+    wav_yaz(gecici, pcm, sr)
+    gecici.replace(yol)
+    sayac["karakter"] += len(metin)
+    sayac["api"] += 1
+    return pcm, sr
+
+
+def kullanim_yaz(kayit: dict) -> None:
+    yol = _onbellek_koku() / "kullanim.jsonl"
+    yol.parent.mkdir(parents=True, exist_ok=True)
+    with open(yol, "a", encoding="utf-8") as f:
+        f.write(json.dumps(kayit, ensure_ascii=False) + "\n")
 
 
 # ---------- cila ve yazma ----------
@@ -169,24 +249,62 @@ def sure(yol: Path) -> float:
         return w.getnframes() / w.getframerate()
 
 
-def uret(satirlar: list[dict], cikti: Path, saglayici: str = "piper", ayar: dict | None = None) -> dict:
+def uret(satirlar: list[dict], cikti: Path, saglayici: str | None = "otomatik", ayar: dict | None = None) -> dict:
+    otomatik = saglayici in (None, "", "otomatik")
+    saglayici = saglayici_coz(saglayici)
     if saglayici not in SAGLAYICILAR:
         raise SeslendirmeHatasi(f"bilinmeyen sağlayıcı: {saglayici}")
     ayar = ayar or {}
+    try:
+        return _uret(satirlar, cikti, saglayici, ayar)
+    except SeslendirmeHatasi as e:
+        if not (otomatik and saglayici != "piper"):
+            raise
+        print(f"UYARI: {saglayici} kullanılamadı ({e}); Piper ile devam ediliyor", file=sys.stderr)
+        p_ayar = dict(ayar)
+        if p_ayar.get("ses") not in PIPER_SESLERI:  # voice_id Piper'da yok: dile göre Piper sesi
+            p_ayar["ses"] = "thorsten" if (ayar.get("dil") or "tr") == "de" else None
+        return _uret(satirlar, cikti, "piper", p_ayar)
+
+
+def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict:
     cikti.mkdir(parents=True, exist_ok=True)
-    kayit = {"saglayici": saglayici, "ses": ayar.get("ses"), "satirlar": []}
+    ses = eleven_ayar(ayar)["ses"] if saglayici == "elevenlabs" else (ayar.get("ses") or "fahrettin")
+    kayit = {"saglayici": saglayici, "ses": ses, "satirlar": []}
+    sayac = {"karakter": 0, "api": 0, "onbellek": 0}
     with tempfile.TemporaryDirectory() as tmp:
         for s in satirlar:
             ham = Path(tmp) / f"{s['id']}.ham.wav"
             ara = Path(tmp) / f"{s['id']}.ara.wav"
             son = cikti / f"{s['id']}.wav"
-            pcm, sr = SAGLAYICILAR[saglayici](s["metin"], ayar)
+            if saglayici in UCRETLI:
+                pcm, sr = _ucretli_uret(saglayici, s["metin"], ayar, sayac)
+            else:
+                pcm, sr = SAGLAYICILAR[saglayici](s["metin"], ayar)
             wav_yaz(ham, pcm, sr)
             subprocess.run(cila_komutu(ham, ara), check=True)
             subprocess.run(seviye_komutu(ara, son, HEDEF_LUFS - olc_lufs(ara)), check=True)
             kayit["satirlar"].append({"id": s["id"], "metin": s["metin"], "sure": round(sure(son), 3)})
+    if saglayici in UCRETLI:
+        kayit["kullanim"] = dict(sayac)
+        kullanim_yaz({"zaman": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "saglayici": saglayici, "ses": ses,
+                      "is": str(cikti.resolve()), **sayac})
+        print(f"{saglayici}: {sayac['karakter']} karakter harcandı ({sayac['api']} satır API, "
+              f"{sayac['onbellek']} satır önbellekten)", file=sys.stderr)
     (cikti / "seslendirme.json").write_text(json.dumps(kayit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return kayit
+
+
+def kullanim_ozeti() -> dict:
+    yol = _onbellek_koku() / "kullanim.jsonl"
+    toplam = {"karakter": 0, "api": 0, "onbellek": 0, "is": 0}
+    if yol.exists():
+        for satir in yol.read_text(encoding="utf-8").splitlines():
+            k = json.loads(satir)
+            toplam["is"] += 1
+            for a in ("karakter", "api", "onbellek"):
+                toplam[a] += k.get(a, 0)
+    return toplam
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -194,19 +312,28 @@ def main(argv: list[str] | None = None) -> int:
     alt = ap.add_subparsers(dest="komut", required=True)
     u = alt.add_parser("uret")
     u.add_argument("satirlar"); u.add_argument("-o", "--cikti", required=True)
-    u.add_argument("--saglayici", default="piper", choices=sorted(SAGLAYICILAR))
-    u.add_argument("--ses"); u.add_argument("--hiz", type=float, default=1.0)
+    u.add_argument("--saglayici", default="otomatik", choices=["otomatik", *sorted(SAGLAYICILAR)])
+    u.add_argument("--ses"); u.add_argument("--dil", help="tr, de, ... (ElevenLabs varsayılan sesi için)")
+    u.add_argument("--hiz", type=float, default=1.0)
     u.add_argument("--ticari-degil", action="store_true", help="ticari olmayan lisanslı seslere izin ver")
     alt.add_parser("sesler")
+    alt.add_parser("kullanim")
     a = ap.parse_args(argv)
+    if a.komut == "kullanim":
+        t = kullanim_ozeti()
+        print(f"ElevenLabs: {t['karakter']} karakter, {t['is']} iş, {t['api']} satır API, {t['onbellek']} satır önbellekten"
+              f" (kayıt: {_onbellek_koku() / 'kullanim.jsonl'})")
+        return 0
     if a.komut == "sesler":
         for ad, b in PIPER_SESLERI.items():
             print(f"piper  {ad:10} {b['dil']}  {b['lisans']:16} {'ticari' if b['ticari'] else 'ticari değil'}")
-        print("elevenlabs  --ses <voice_id>  (ELEVENLABS_API_KEY gerekir)")
+        for c, b in ELEVEN_SESLERI.items():
+            print(f"elevenlabs {b['ad']:10} {c:6} varsayılan ({b['id']})")
+        print("elevenlabs  --ses <voice_id>  (ELEVENLABS_API_KEY gerekir; anahtar varsa varsayılan sağlayıcı)")
         return 0
     veri = json.loads(Path(a.satirlar).read_text(encoding="utf-8"))
     try:
-        k = uret(veri["satirlar"], Path(a.cikti), a.saglayici, {"ses": a.ses, "hiz": a.hiz, "ticari": not a.ticari_degil})
+        k = uret(veri["satirlar"], Path(a.cikti), a.saglayici, {"ses": a.ses, "dil": a.dil, "hiz": a.hiz, "ticari": not a.ticari_degil})
     except SeslendirmeHatasi as e:
         print(f"HATA: {e}", file=sys.stderr)
         return 2

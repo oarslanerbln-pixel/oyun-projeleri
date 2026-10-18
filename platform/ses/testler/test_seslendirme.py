@@ -29,10 +29,22 @@ class ElevenLabs(unittest.TestCase):
             with self.assertRaisesRegex(seslendirme.SeslendirmeHatasi, "ELEVENLABS_API_KEY"):
                 seslendirme.elevenlabs("merhaba", {"ses": "x"})
 
-    def test_ses_kimligi_yoksa_hata(self):
+    def test_ses_verilmezse_dilin_varsayilani(self):
         with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "k"}, clear=True):
-            with self.assertRaisesRegex(seslendirme.SeslendirmeHatasi, "ses kimliği"):
-                seslendirme.elevenlabs("merhaba", {})
+            self.assertEqual(seslendirme.eleven_ayar({})["ses"], seslendirme.ELEVEN_SESLERI["erkek"]["id"])
+            # senaryolardaki Piper adı: dili ve cinsiyeti alınır
+            e = seslendirme.eleven_ayar({"ses": "kerstin"})
+            self.assertEqual((e["ses"], e["dil"]), (seslendirme.ELEVEN_SESLERI["kadin"]["id"], "de"))
+            self.assertEqual(seslendirme.eleven_ayar({"ses": "abc123"})["ses"], "abc123")
+        with mock.patch.dict(os.environ, {"ELEVENLABS_VOICE_ID_DE": "almanca"}, clear=True):
+            self.assertEqual(seslendirme.eleven_ayar({"dil": "de"})["ses"], "almanca")
+
+    def test_otomatik_saglayici(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(seslendirme.saglayici_coz("otomatik"), "piper")
+        with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "k"}, clear=True):
+            self.assertEqual(seslendirme.saglayici_coz(None), "elevenlabs")
+            self.assertEqual(seslendirme.saglayici_coz("piper"), "piper")
 
     def test_istek_bicimi(self):
         yakalanan = {}
@@ -50,7 +62,10 @@ class ElevenLabs(unittest.TestCase):
         self.assertIn("/text-to-speech/abc?output_format=pcm_44100", yakalanan["url"])
         self.assertEqual(yakalanan["basliklar"]["Xi-api-key"], "gizli")
         self.assertEqual(yakalanan["govde"]["text"], "Bugün başla.")
-        self.assertEqual(yakalanan["govde"]["language_code"], "tr")
+        self.assertNotIn("language_code", yakalanan["govde"])  # multilingual_v2 dil alanını reddeder
+        with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "gizli"}, clear=True):
+            seslendirme.elevenlabs("Heute.", {"ses": "abc", "model": "eleven_flash_v2_5", "dil": "de"}, ag=ag)
+        self.assertEqual(yakalanan["govde"]["language_code"], "de")
 
 
 class Piper(unittest.TestCase):
@@ -79,6 +94,38 @@ class Uret(unittest.TestCase):
             self.assertLess(k["satirlar"][0]["sure"], 0.2 + 0.05 * 4 + 0.2)
             kayit = json.loads((Path(tmp) / "seslendirme.json").read_text(encoding="utf-8"))
             self.assertEqual(kayit["saglayici"], "sahte")
+
+    def test_onbellek_ve_kullanim_kaydi(self):
+        cagri = []
+
+        def sahte_eleven(metin, ayar):
+            cagri.append(metin)
+            return ton(metin, ayar)
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "k", "STUDYO_SES_ONBELLEK": str(Path(tmp) / "ob")}, clear=True), \
+                mock.patch.dict(seslendirme.SAGLAYICILAR, {"elevenlabs": sahte_eleven}):
+            satirlar = [{"id": "a", "metin": "Bugün başla."}, {"id": "b", "metin": "Her gün yüzde bir."}]
+            k1 = seslendirme.uret(satirlar, Path(tmp) / "c1")
+            self.assertEqual(k1["saglayici"], "elevenlabs")
+            self.assertEqual(k1["kullanim"]["karakter"], len("Bugün başla.") + len("Her gün yüzde bir."))
+            k2 = seslendirme.uret(satirlar, Path(tmp) / "c2")  # aynı metin: kredi harcanmaz
+            self.assertEqual(len(cagri), 2)
+            self.assertEqual((k2["kullanim"]["karakter"], k2["kullanim"]["onbellek"]), (0, 2))
+            self.assertEqual([s["sure"] for s in k1["satirlar"]], [s["sure"] for s in k2["satirlar"]])
+            self.assertEqual(seslendirme.kullanim_ozeti()["karakter"], k1["kullanim"]["karakter"])
+
+    def test_otomatikte_eleven_hatasi_pipera_doner(self):
+        def bozuk(metin, ayar):
+            raise seslendirme.SeslendirmeHatasi("ElevenLabs'e ulaşılamadı")
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "k", "STUDYO_SES_ONBELLEK": tmp}, clear=True), \
+                mock.patch.dict(seslendirme.SAGLAYICILAR, {"elevenlabs": bozuk, "piper": ton}):
+            k = seslendirme.uret([{"id": "a", "metin": "kısa"}], Path(tmp) / "c")
+            self.assertEqual(k["saglayici"], "piper")
+            with self.assertRaises(seslendirme.SeslendirmeHatasi):  # açıkça istenince düşmez
+                seslendirme.uret([{"id": "a", "metin": "kısa"}], Path(tmp) / "c", "elevenlabs")
 
     def test_bilinmeyen_saglayici(self):
         with self.assertRaises(seslendirme.SeslendirmeHatasi):

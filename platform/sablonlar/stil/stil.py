@@ -77,7 +77,7 @@ def main(argv=None):
         p = alt.add_parser(ad)
         p.add_argument('senaryo'); p.add_argument('-o', '--cikti'); p.add_argument('--stil', choices=TUM_STILLER)
         if ad in ('seslendir', 'uret'):
-            p.add_argument('--saglayici', default='piper'); p.add_argument('--ses')
+            p.add_argument('--saglayici', default='otomatik'); p.add_argument('--ses')
         if ad == 'kare':
             p.add_argument('--an', type=float, nargs='+', required=True)
             p.add_argument('--format', default='9x16', type=lambda x: formatlar(x)[0])

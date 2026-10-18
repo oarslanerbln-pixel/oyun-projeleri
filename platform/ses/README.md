@@ -21,7 +21,7 @@ python3 platform/ses/seslendirme.py kullanim                                 # E
 | --- | --- | --- |
 | `otomatik` (varsayılan) | `piper`. İş ElevenLabs isterse `elevenlabs`: senaryoda (ya da `satirlar.json`'da) `"seslendirme": {"saglayici": "elevenlabs"}`. Anahtar yoksa ya da ElevenLabs'e ulaşılamazsa (ağ, kota) uyarır ve Piper ile devam eder; render durmaz. | |
 | `piper` | Yerel, ücretsiz sinirsel TTS (sherpa-onnx). Türkçe sesler: `fahrettin`, `fettah` (CC0, ticari işe uygun), `dfki` (CC BY-NC-SA, ticari işte reddedilir). Almanca: `thorsten` (erkek), `kerstin` (kadın, düşük kalite modeli); ikisi de CC0. | `pip install sherpa-onnx numpy`. Ses modeli ilk kullanımda GitHub'dan (`k2-fsa/sherpa-onnx` sürümü `tts-models`) `~/.cache/studyo/piper` altına iner; `PIPER_SES_DIZINI` ile değiştirilir. |
-| `elevenlabs` | Ücretli API, `eleven_multilingual_v2` (dili metinden anlar; Türkçe ve Almanca). | `ELEVENLABS_API_KEY` (ortam değişkeni; depoya, dosyaya yazılmaz). Ağ izninde `api.elevenlabs.io` açık olmalı. İstek biçimi testlerde doğrulandı; bulut ortamının ağı ElevenLabs'e kapalı olduğu için gerçek anahtarla henüz denenmedi. |
+| `elevenlabs` | Ücretli API, `eleven_multilingual_v2` (dili metinden anlar; Türkçe ve Almanca). | `ELEVENLABS_API_KEY` (ortam değişkeni; depoya, dosyaya yazılmaz). Ağ izninde `api.elevenlabs.io` açık olmalı. Ses `mp3_44100_128` olarak indirilip ffmpeg ile çözülür, çünkü `pcm_44100` yalnız Pro planda var (Pro hesapta `ELEVENLABS_OUTPUT_FORMAT=pcm_44100`). Ücretsiz planda yalnız hazır sesler (George, Bella, Liam...) API'den kullanılabilir; kütüphane sesleri ve ticari kullanım ücretli plan ister. |
 
 ### ElevenLabs ne zaman
 

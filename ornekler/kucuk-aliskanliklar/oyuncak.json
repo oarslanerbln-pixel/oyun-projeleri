@@ -1,0 +1,22 @@
+{
+  "kimlik": "kucuk-aliskanliklar-oyuncak",
+  "sure": 10,
+  "fps": 30,
+  "palet": {"gok_ust": "#FFD9C4", "gok_alt": "#FFB8A0", "gok_ust_son": "#FFF1C9", "gok_alt_son": "#FFCFA0",
+            "ada": "#FFF3E4", "kahraman": "#FF6B5B", "kolon_bas": "#5CC9B5", "kolon_orta": "#7DA7F0", "kolon_son": "#FFC94A",
+            "yazi_yuz": "#FFF8EC", "yazi_yan": "#FF6B5B", "doruk_yuz": "#FFC94A", "doruk_yan": "#E59A1E"},
+  "muzik": {"bpm": 120, "ilk_vurus": 0.1},
+  "kolonlar": {"adet": 52, "oran": 37.4},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Her gün, sadece yüzde bir daha iyi ol."},
+    {"id": "v1", "t": 3.15, "metin": "Bir yıl sonra, otuz yedi kat güçlüsün."},
+    {"id": "v2", "t": 6.15, "metin": "Küçük adım. Büyük fark."},
+    {"id": "v3", "t": 8.35, "metin": "Bugün başla."}
+  ]},
+  "sahneler": [
+    {"tur": "adimlar", "bas": 0, "ziplamalar": [1.1, 2.3], "yazi": {"metin": "%1", "t": 1.45, "son_t": 2.85}},
+    {"tur": "buyume", "bas": 3.1, "doruk_t": 4.6, "yazi": {"metin": "37×"}, "kutlama": [4.95, 5.45]},
+    {"tur": "karsitlik", "bas": 6.1, "vinc_t": 6.72, "kutlama": [7.0]},
+    {"tur": "kapanis", "bas": 8.1, "inis_t": 8.36, "zipla_t": 8.68, "yazi": {"metin": "Bugün başla.", "t": 8.72}}
+  ]
+}

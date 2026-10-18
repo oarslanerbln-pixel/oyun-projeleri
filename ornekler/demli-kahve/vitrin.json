@@ -1,0 +1,24 @@
+{
+  "$aciklama": "3D ürün vitrini örneği: platform/sablonlar/vitrin. Ürün kodla kurulan kahve paketi; gerçek ürün için urun.model ile .glb verin.",
+  "kimlik": "demli-kahve-vitrin",
+  "stil": "urun-vitrini",
+  "marka": "ornekler/demli-kahve/marka/marka.json",
+  "sure": 12,
+  "format": "9:16",
+  "muzik": { "tempo": 96 },
+  "urun": {
+    "tur": "paket",
+    "etiket": "DEMLİ",
+    "ust": "KAHVE",
+    "alt": "Etiyopya · Yirgacheffe",
+    "agirlik": "250 g",
+    "sus": "kahve-cekirdegi"
+  },
+  "ozellikler": [
+    { "metin": "Taze kavrum", "alt": "Kavrulduğu hafta kapında", "odak": "on" },
+    { "metin": "Aroma valfi", "alt": "Kokusu ilk günkü gibi", "odak": "ust" },
+    { "metin": "Tek köken", "alt": "Etiyopya yaylalarından", "odak": "yan" }
+  ],
+  "final": { "cagri": "Şimdi dene", "alt": "demlikahve.com" },
+  "seslendirme": { "satirlar": [ { "id": "v0", "metin": "Demli Kahve. Sabahın en sıcak hali.", "t": "final" } ] }
+}

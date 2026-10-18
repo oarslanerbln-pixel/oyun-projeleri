@@ -1,8 +1,7 @@
 name: Platform testleri
 
-# Mimari §4.5 mantığın platform/ci altında workflow_call olarak durmasını öneriyor; ancak GitHub
-# yeniden kullanılabilir iş akışlarını yalnız .github/workflows altından çağırabiliyor. Bu yüzden
-# şimdilik tek iş akışı burada; modül başına çağırıcılara bölünmesi ikinci projeyle gelir.
+# Mimari §4.5: CI mantığı platform/ci altında. Bu dosya yalnız sistem paketlerini kurar; hangi
+# testlerin ve örnek denetimlerinin koşacağını platform/ci/calistir.py modül klasörlerinden bulur.
 on:
   pull_request:
     paths:
@@ -38,87 +37,15 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: ffmpeg (render ve türev testleri; Ubuntu paketi librsvg ile derli)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
-      - name: Görüntü şablonu bağımlılıkları (skia için EGL/GL, Inter; skia kurulunca kinetik render testi de koşar)
+      - name: Görüntü şablonu bağımlılıkları (skia için EGL/GL, Inter)
         run: |
           sudo apt-get install -y -qq --no-install-recommends libegl1 libgl1 fonts-inter
-          python -m pip install -q skia-python numpy soundfile fonttools
+          python -m pip install -q skia-python numpy soundfile fonttools pillow
           # fonts-inter beklenen statik ağırlıkları vermezse kinetik, stil şablonunun örneklediği Inter'i kullanır
-          python -c "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import motor; motor.yazi_tipi(800); motor.yazi_tipi(700)"
-          # hamur stili Baloo 2 kullanır (Türkçe harfler tam); ağırlıkları önceden örnekle
-          python -c "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import hamur; [hamur.yazi_tipi_baloo(w) for w in (600, 700, 800)]"
           ls /usr/share/fonts/opentype/inter/Inter-ExtraBold.otf 2>/dev/null || echo "KINETIK_FONT_DIZINI=$HOME/.cache/studyo/fonts" >> "$GITHUB_ENV"
-      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil, bumper, mekan, origami, kolaj, minyatur)
-        run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil platform/sablonlar/bumper platform/sablonlar/mekan platform/sablonlar/origami platform/sablonlar/kolaj platform/sablonlar/minyatur; do
-            echo "::group::$d"
-            python -m unittest discover -s "$d/testler" -v
-            echo "::endgroup::"
-          done
-      - name: Örnek projeleri denetle ve üret
-        run: |
-          for p in ornekler/*/proje.json; do
-            python platform/sablonlar/animasyon/animasyon.py uret "$p" -o "$RUNNER_TEMP/cikti/$(basename "$(dirname "$p")")"
-          done
-      - name: Senaryoları stillerde denetle (kinetik, kâğıt kesik, izometrik, hamur)
-        run: |
-          for p in ornekler/*/senaryo.json; do
-            python platform/sablonlar/kinetik/kinetik.py denetle "$p" -o "$RUNNER_TEMP/kinetik"
-            for stil in kagit-kesik izometrik hamur; do
-              python platform/sablonlar/stil/stil.py denetle "$p" --stil "$stil" -o "$RUNNER_TEMP/stil"
-            done
-          done
-          for p in ornekler/*/sadakat-karti.json; do
-            python platform/sablonlar/stil/stil.py denetle "$p" --stil hamur -o "$RUNNER_TEMP/stil"
-          done
-          for p in ornekler/*/bumper.json ornekler/*/imza.json; do
-            [ -e "$p" ] && python platform/sablonlar/stil/stil.py denetle "$p" --stil bumper
-          done
-      - name: Origami senaryolarını denetle
-        run: |
-          for p in ornekler/*/origami.json; do
-            python platform/sablonlar/origami/origami.py denetle "$p" -o "$RUNNER_TEMP/origami"
-          done
-      - name: Kolaj senaryolarını denetle
-        run: |
-          for p in platform/sablonlar/kolaj/ornek/senaryo.json ornekler/*/kolaj.json; do
-            [ -e "$p" ] || continue
-            python platform/sablonlar/kolaj/kolaj.py denetle "$p" -o "$RUNNER_TEMP/kolaj"
-          done
-      - name: Minyatür senaryolarını denetle
-        run: |
-          for p in ornekler/*/minyatur.json; do
-            python platform/sablonlar/minyatur/minyatur.py denetle "$p" -o "$RUNNER_TEMP/minyatur"
-          done
-      - name: Tek çizgi şablonu (testler ve senaryo denetimi)
-        run: |
-          python -m pip install -q numpy
-          python -m unittest discover -s platform/sablonlar/tek_cizgi/testler -v
-          for p in ornekler/*/tek-cizgi.json; do
-            python platform/sablonlar/tek_cizgi/tek_cizgi.py denetle "$p" -o "$RUNNER_TEMP/tek-cizgi"
-          done
-      - name: Çizgi roman şablonu (testler ve senaryo denetimi)
-        run: |
-          python -m pip install -q numpy scipy
-          python -m unittest discover -s platform/sablonlar/cizgi_roman/testler -v
-          for p in ornekler/*/cizgi-roman.json; do
-            python platform/sablonlar/cizgi_roman/cizgi_roman.py denetle "$p" -o "$RUNNER_TEMP/cizgi-roman"
-          done
-      - name: Risograf şablonu (testler ve senaryo denetimi)
-        run: |
-          python -m pip install -q numpy scipy
-          python -m unittest discover -s platform/sablonlar/risograf/testler -v
-          for p in ornekler/*/risograf.json; do
-            python platform/sablonlar/risograf/risograf.py denetle "$p" -o "$RUNNER_TEMP/risograf"
-          done
-      - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
-        run: |
-          for p in ornekler/*/proje.json; do
-            python platform/uretim/uretim.py plan "$p"
-            python platform/uretim/uretim.py denetle "$p"
-          done
-      - name: Örnek projelerin render'ı (bumper; YZ klibi yoksa yer tutucu)
-        run: |
-          for p in ornekler/*/proje.json; do
-            python platform/sablonlar/animasyon/animasyon.py render "$p" --teslim youtube-bumper \
-              -o "$RUNNER_TEMP/render/$(basename "$(dirname "$p")")"
-          done
+      # Modüller kendini bildirir: her testler/ klasörü ve her ci.json (platform/ci/calistir.py).
+      # Yeni şablon bu dosyaya dokunmadan CI'a girer.
+      - name: Modül hazırlıkları (ci.json içindeki pip paketleri ve yazı tipi önbellekleri)
+        run: python platform/ci/calistir.py hazirla
+      - name: Testler ve örnek denetimleri
+        run: python platform/ci/calistir.py test

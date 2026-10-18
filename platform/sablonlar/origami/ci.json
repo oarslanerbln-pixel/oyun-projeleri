@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/origami.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/origami.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/origami"
+      ]
+    }
+  ]
+}

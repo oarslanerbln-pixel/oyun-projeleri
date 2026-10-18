@@ -1,0 +1,9 @@
+{
+  "pip": ["numpy", "scipy"],
+  "denetle": [
+    {
+      "dosyalar": ["ornekler/*/cizgi-roman.json"],
+      "komut": ["{python}", "{modul}/cizgi_roman.py", "denetle", "{dosya}", "-o", "{gecici}/cizgi-roman"]
+    }
+  ]
+}

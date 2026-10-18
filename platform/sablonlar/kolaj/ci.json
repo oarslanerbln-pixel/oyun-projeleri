@@ -1,0 +1,18 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "platform/sablonlar/kolaj/ornek/senaryo.json",
+        "ornekler/*/kolaj.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/kolaj.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/kolaj"
+      ]
+    }
+  ]
+}

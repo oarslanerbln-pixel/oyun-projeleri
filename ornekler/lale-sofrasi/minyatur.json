@@ -1,0 +1,23 @@
+{
+  "kimlik": "lale-sofrasi-minyatur",
+  "not": "Hayali örnek marka. İlke: sosyal kanıt (dolu masalar ve kapıdaki sıra, 'herkes buraya geliyor' hissi) ve hafif kıtlık (yer kalmıyor). Ekranda sayı yok, uydurma iddia yok.",
+  "sure": 10,
+  "format": "9:16",
+  "marka": {"ad": "Lale Sofrası", "alt": "Lokanta", "cagri": "Yerinizi ayırtın"},
+  "mekan": {"ikram": "yemek"},
+  "sahneler": [
+    {"tur": "acilis", "bas": 0, "doluluk": 0.09},
+    {"tur": "avlu", "bas": 2.3, "doluluk": 0.45},
+    {"tur": "avlu", "bas": 5.2, "doluluk": 1.0, "gece": true, "kuyruk": 5, "kartus": "Her akşam dolu"},
+    {"tur": "kapanis", "bas": 7.8}
+  ],
+  "seslendirme": {
+    "satirlar": [
+      {"id": "v0", "t": 0.5, "metin": "Bu sofraya bir kez oturan,"},
+      {"id": "v1", "t": 2.4, "metin": "bir dahaki sefere dostlarını getirir."},
+      {"id": "v2", "t": 5.5, "metin": "Akşam olunca, yer kalmıyor."},
+      {"id": "v3", "t": 7.85, "metin": "Lale Sofrası. Yerinizi ayırtın."}
+    ]
+  },
+  "muzik": {"bpm": 96, "makam": "rast"}
+}

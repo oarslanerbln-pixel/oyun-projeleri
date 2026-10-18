@@ -38,9 +38,9 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: ffmpeg (render ve türev testleri; Ubuntu paketi librsvg ile derli)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
-      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses)
+      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik)
         run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses; do
+          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik; do
             echo "::group::$d"
             python -m unittest discover -s "$d/testler" -v
             echo "::endgroup::"
@@ -49,6 +49,11 @@ jobs:
         run: |
           for p in ornekler/*/proje.json; do
             python platform/sablonlar/animasyon/animasyon.py uret "$p" -o "$RUNNER_TEMP/cikti/$(basename "$(dirname "$p")")"
+          done
+      - name: Kinetik senaryoları denetle
+        run: |
+          for p in ornekler/*/senaryo.json; do
+            python platform/sablonlar/kinetik/kinetik.py denetle "$p" -o "$RUNNER_TEMP/kinetik"
           done
       - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
         run: |

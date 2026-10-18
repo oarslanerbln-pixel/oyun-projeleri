@@ -47,9 +47,9 @@ jobs:
           # hamur stili Baloo 2 kullanır (Türkçe harfler tam); ağırlıkları önceden örnekle
           python -c "import sys; sys.path.insert(0, 'platform/sablonlar/stil'); import hamur; [hamur.yazi_tipi_baloo(w) for w in (600, 700, 800)]"
           ls /usr/share/fonts/opentype/inter/Inter-ExtraBold.otf 2>/dev/null || echo "KINETIK_FONT_DIZINI=$HOME/.cache/studyo/fonts" >> "$GITHUB_ENV"
-      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil, bumper, mekan)
+      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, stil, bumper, mekan, origami, kolaj, minyatur)
         run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil platform/sablonlar/bumper platform/sablonlar/mekan; do
+          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/stil platform/sablonlar/bumper platform/sablonlar/mekan platform/sablonlar/origami platform/sablonlar/kolaj platform/sablonlar/minyatur; do
             echo "::group::$d"
             python -m unittest discover -s "$d/testler" -v
             echo "::endgroup::"
@@ -72,6 +72,29 @@ jobs:
           done
           for p in ornekler/*/bumper.json ornekler/*/imza.json; do
             [ -e "$p" ] && python platform/sablonlar/stil/stil.py denetle "$p" --stil bumper
+          done
+      - name: Origami senaryolarını denetle
+        run: |
+          for p in ornekler/*/origami.json; do
+            python platform/sablonlar/origami/origami.py denetle "$p" -o "$RUNNER_TEMP/origami"
+          done
+      - name: Kolaj senaryolarını denetle
+        run: |
+          for p in platform/sablonlar/kolaj/ornek/senaryo.json ornekler/*/kolaj.json; do
+            [ -e "$p" ] || continue
+            python platform/sablonlar/kolaj/kolaj.py denetle "$p" -o "$RUNNER_TEMP/kolaj"
+          done
+      - name: Minyatür senaryolarını denetle
+        run: |
+          for p in ornekler/*/minyatur.json; do
+            python platform/sablonlar/minyatur/minyatur.py denetle "$p" -o "$RUNNER_TEMP/minyatur"
+          done
+      - name: Tek çizgi şablonu (testler ve senaryo denetimi)
+        run: |
+          python -m pip install -q numpy
+          python -m unittest discover -s platform/sablonlar/tek_cizgi/testler -v
+          for p in ornekler/*/tek-cizgi.json; do
+            python platform/sablonlar/tek_cizgi/tek_cizgi.py denetle "$p" -o "$RUNNER_TEMP/tek-cizgi"
           done
       - name: Örnek projelerin üretim planı ve lisans kapısı (prova sağlayıcı, ağ yok)
         run: |

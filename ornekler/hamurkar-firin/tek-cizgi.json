@@ -1,0 +1,25 @@
+{
+  "kimlik": "hamurkar-kitlik",
+  "not": "Hayali örnek marka. İlke: kıtlık + kayıp kaçınma (sınırlı günlük parti, geç kalanın kaybı).",
+  "sure": 10,
+  "fps": 30,
+  "format": ["9x16"],
+  "palet": {"zemin": "#F6EFE3", "murekkep": "#2B211C", "vurgu": "#D9532B", "kapanis": "#F2C14E"},
+  "muzik": {"bpm": 96},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Her sabah, sadece elli kruvasan."},
+    {"id": "v1", "t": 3.15, "metin": "Dokuzda, geriye üç tane kalıyor."},
+    {"id": "v2", "t": 6.15, "metin": "Geç kalan, sadece kokusunu alır."},
+    {"id": "v3", "t": 8.35, "metin": "Hamurkâr. Her sabah yedide."}
+  ]},
+  "sahneler": [
+    {"bas": 0, "sekil": "kruvasan"},
+    {"bas": 1.4, "sayi": "50"},
+    {"bas": 3.0, "sayac": {"degerler": [50, 38, 24, 12, 3], "bitis_t": 4.25}, "renk": "vurgu",
+     "yazi": {"metin": "kaldı", "t": 4.45, "renk": "vurgu"}},
+    {"bas": 6.0, "sekil": "tabak"},
+    {"bas": 8.0, "sekil": "basak", "zemin": "kapanis", "olcek": 0.62, "y": 0.36,
+     "baslik": {"metin": "Hamurkâr", "t": 8.35},
+     "alt": {"metin": "Her sabah 07:00 · sınırlı parti", "t": 9.0}}
+  ]
+}

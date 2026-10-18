@@ -258,7 +258,7 @@ def kesik_resim(w: float, h: float, sil: skia.Path, gri_ciz, spotlar, P: dict, u
 
 def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int, renkli: bool = False):
     """Herhangi bir PNG/JPG → kesik yarım ton parça. Saydamlık varsa siluet odur, yoksa makas kesikli dikdörtgen.
-    renkli: yarım tona çevirmeden, renkli dergi fotoğrafı gibi kesilir (yemek gibi rengiyle satan ürünler)."""
+    renkli=True: yarım tona çevirmeden kendi renkleriyle kesilir (kitap kapağı, yemek ve ürün fotoğrafı gibi okunması/rengiyle satması gerekenler)."""
     img = skia.Image.MakeFromEncoded(skia.Data.MakeFromFileName(yol))
     k = hedef_w / img.width()
     w, h = img.width() * k, img.height() * k
@@ -292,7 +292,7 @@ def gorsel_resim(yol: str, hedef_w: float, P: dict, u: float, tohum: int, renkli
         cv.drawPath(kenar, boya(renk(P["kagit"])))
         cv.drawImageRect(img, skia.Rect(0, 0, w, h), ornekleme, skia.Paint(AntiAlias=True))  # kenarı kendi saydamlığı (basamaksız)
         cv.save(); cv.clipPath(kenar, skia.ClipOp.kIntersect, True)
-        cv.drawPaint(doku_boyasi(0.8, tohum % 5))
+        cv.drawPaint(doku_boyasi(0.5, tohum % 5))
         cv.restore()
         return rec.finishRecordingAsPicture(), w, h
 

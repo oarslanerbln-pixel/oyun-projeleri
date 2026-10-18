@@ -172,7 +172,8 @@ class Cizici:
         fw = 700 * u if not self.GENIS else 560 * u
         fx, _ = self.yer((0.57, 0), (0.62, 0))
         satir = 92 * u if not self.GENIS else 64 * u
-        bas_h = 210 * u if not self.GENIS else 170 * u
+        pay = 0 if self.GENIS else 100 * u  # dikeyde başlık üst güvenli alanın altında kalsın (telefon arayüzü)
+        bas_h = (210 * u if not self.GENIS else 170 * u) + pay
         kalemler = sh.get("kalemler", [])
         anlar = zaman.kalem_anlari(sh)
         k = 0.0
@@ -196,17 +197,18 @@ class Cizici:
         kb = 1.0 if self.GENIS else 1.15
         fb = skia.Font(self.tf["courier"], 60 * u * kb); fk = skia.Font(self.tf["courier"], 40 * u * kb); fl = skia.Font(self.tf["inter"], 38 * u * kb)
         baslik = sh.get("baslik", "KAFE")
-        y = 80 * u + 80 * u
+        y = 80 * u + 80 * u + pay
         cv.drawString(baslik, (fw - fb.measureText(baslik)) / 2, y, fb, ink)
         y += 46 * u
-        alt = sh.get("alt_baslik", "*** FİŞ ***")
+        alt = sh.get("fis_alt", "*** FİŞ ***")
+        para = sh.get("para", "₺")
         cv.drawString(alt, (fw - fk.measureText(alt)) / 2, y, fk, soluk)
         for i, kalem in enumerate(kalemler):
             if t < anlar[i]:
                 break
             yy = 80 * u + bas_h + satir * (i + 0.72)
-            # kalem: "METİN" (tutar ₺ simgesi, uydurma rakam yok) ya da ["METİN", "16,90 €"] (gerçek fiyat)
-            metin, fiyat = (kalem, "₺" * (2 + (i * 7) % 3)) if isinstance(kalem, str) else kalem
+            # kalem: "METİN" (tutar `para` simgesi, uydurma rakam yok) ya da ["METİN", "16,90 €"] (gerçek fiyat)
+            metin, fiyat = (kalem, para * (2 + (i * 7) % 3)) if isinstance(kalem, str) else kalem
             cv.drawString(metin, 40 * u, yy, fk, ink)
             cv.drawString(fiyat, fw - 40 * u - fl.measureText(fiyat), yy, fl, ink)
             nokta_x0 = 48 * u + fk.measureText(metin); nokta_x1 = fw - 52 * u - fl.measureText(fiyat)
@@ -221,8 +223,8 @@ class Cizici:
             yy += satir * 1.15
             ft = skia.Font(self.tf["courier"], 56 * u * kb); fl2 = skia.Font(self.tf["inter"], 54 * u * kb)
             cv.drawString(sh.get("toplam", "TOPLAM"), 40 * u, yy, ft, ink)
-            tf = sh.get("toplam_fiyat", "₺₺₺₺₺")
-            cv.drawString(tf, fw - 40 * u - fl2.measureText(tf), yy, fl2, ink)
+            tutar = sh.get("toplam_tutar", para * 5)
+            cv.drawString(tutar, fw - 40 * u - fl2.measureText(tutar), yy, fl2, ink)
             self._toplam = (fw / 2, yy - 18 * u)
             ct = sh.get("cember_t")
             if ct is not None:
@@ -240,13 +242,13 @@ class Cizici:
                       ((0.52, 0.74, -3, 0.84, (0, 1)), (0.86, 0.72, 5, 0.76, (1, 0)))]
             for i, (d, y_) in enumerate(yerler[: n.get("adet", 3)]):
                 (x, yy, a, k, yon) = y_ if self.GENIS else d
-                px, py = x * W, yy * H
+                px, py = x * W, yy * H + (0 if self.GENIS else 60 * u)  # fiş uzadıkça biraz aşağı
                 self.nesne(cv, n, px, py, a, k, t, n["t"] + 0.42 * i, "kaydir", yon, tohum=40 + i,
                            bant_aci=[-28, 22, -14][i])
         d = sh.get("damga")
         if d:
-            x, y = self.yer((0.5, 0.875), (0.3, 0.2))
-            self.yazi(cv, d, x, y, 190, W * 0.92, t, -5, tohum=7)
+            x, y = self.yer((0.5, 0.85), (0.3, 0.2))
+            self.yazi(cv, d, x, y, 190, W * 0.88, t, -5, tohum=7)
 
     def fis_yolu(self, w, h):
         """Fiş: üstü ekran dışında, altı yırtılmış testere dişi."""
@@ -272,8 +274,8 @@ class Cizici:
         if n:
             x, y = self.yer((0.5, 0.405), (0.25, 0.53))
             self.nesne(cv, n, x, y, -4, 1.0, t, n["t"], "kaydir", (-1, 0), tohum=61, bant_aci=-24)
-            # buhar: kupanın üstünde üç kıvrımlı kalem çizgisi
-            for i in range(3):
+            # buhar: kupanın üstünde üç kıvrımlı kalem çizgisi (bardak/kupa dışında istenirse buhar: true)
+            for i in range(3 if n.get("buhar", n.get("tur") in ("kupa", "bardak")) else 0):
                 bx = x + (-70 + 60 * i) * u - 20 * u
                 rnd = _h("buhar", i, int(t * 6))
                 pts = [(bx + 16 * u * math.sin(j * 1.3 + i) + rnd.uniform(-2, 2) * u, y - 205 * u - j * 24 * u) for j in range(5)]
@@ -329,6 +331,7 @@ class Cizici:
                 pic, w, h = self.bellek(("marka", i), lambda i=i, k_=k_: self.marka_seridi(k_, i))
                 yerler = [((0.46, 0.29), (0.33, 0.3)), ((0.56, 0.415), (0.44, 0.52))]
                 x, y = self.yer(*yerler[min(i, 1)]) if i < 2 else self.yer((0.5, 0.33 + 0.13 * i), (0.38, 0.36 + 0.2 * i))
+                x = min(max(x, w / 2 + 30 * u), self.W - w / 2 - 30 * u)
                 gor, _, _, k, da = self.giris(t, anlar[i], "pat")
                 if gor:
                     self.parca(cv, pic, x, y, w, h, (-4 if i % 2 == 0 else 3) + da, k, ("m", i), t)
@@ -361,6 +364,9 @@ class Cizici:
         u, P = self.u, self.P
         f = kagit.font_boyu("fraunces", 150 * u)
         w = f.measureText(kelime) + 110 * u
+        if w > self.W * 0.9:  # uzun kelime: şerit ekrandan taşmasın, yazı küçülür
+            f = kagit.font_boyu("fraunces", 150 * u * (self.W * 0.9 - 110 * u) / (w - 110 * u))
+            w = f.measureText(kelime) + 110 * u
         h = 250 * u
         zem = [P["kagit"], P["ikinci"], P["vurgu"]][i % 3]
         pic, dis = kagit.kagit(w, h, zem, u, 120 + i, yirtik="lr" if i % 2 == 0 else "tb", genlik=8)

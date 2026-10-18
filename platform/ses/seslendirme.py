@@ -49,7 +49,10 @@ PIPER_SESLERI = {
 PIPER_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-{kod}-{ses}-{kalite}.tar.bz2"
 PIPER_ONBELLEK = Path(os.environ.get("PIPER_SES_DIZINI", Path.home() / ".cache" / "studyo" / "piper"))
 
-ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}?output_format=pcm_44100"
+ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}?output_format={bicim}"
+# pcm_44100 yalnız Pro ve üstünde; ücretsiz ve Starter planlarda en iyi biçim mp3_44100_128 (ffmpeg ile çözülür).
+# Pro hesapta ELEVENLABS_OUTPUT_FORMAT=pcm_44100 ile kayıpsız alınır.
+ELEVEN_BICIM = os.environ.get("ELEVENLABS_OUTPUT_FORMAT", "mp3_44100_128")
 ELEVEN_MODEL = "eleven_multilingual_v2"
 # Dil zorlaması (language_code) yalnız bu modellerde var; multilingual_v2 dili metinden anlar, alanı görürse reddeder.
 ELEVEN_DIL_ZORLAYAN = ("eleven_turbo_v2_5", "eleven_flash_v2_5")
@@ -145,7 +148,8 @@ def eleven_ayar(ayar: dict) -> dict:
         ses = (os.environ.get(f"ELEVENLABS_VOICE_ID_{dil.upper()}") or os.environ.get("ELEVENLABS_VOICE_ID")
                or ELEVEN_DIL_SESLERI.get(dil, {}).get(cinsiyet, {}).get("id") or ELEVEN_SESLERI[cinsiyet]["id"])
     model = ayar.get("model") or ELEVEN_MODEL
-    return {"ses": ses, "model": model, "dil": dil, "voice_settings": dict(ELEVEN_AYAR, **(ayar.get("voice_settings") or {}))}
+    return {"ses": ses, "model": model, "dil": dil, "bicim": ayar.get("bicim") or ELEVEN_BICIM,
+            "voice_settings": dict(ELEVEN_AYAR, **(ayar.get("voice_settings") or {}))}
 
 
 def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int]:
@@ -156,15 +160,28 @@ def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int]:
     govde = {"text": metin, "model_id": e["model"], "voice_settings": e["voice_settings"]}
     if e["model"] in ELEVEN_DIL_ZORLAYAN:
         govde["language_code"] = e["dil"]
-    istek = urllib.request.Request(ELEVEN_URL.format(ses=e["ses"]), data=json.dumps(govde).encode("utf-8"), method="POST",
-                                   headers={"xi-api-key": anahtar, "Content-Type": "application/json", "Accept": "audio/pcm"})
+    pcm_mi = e["bicim"].startswith("pcm_")
+    istek = urllib.request.Request(ELEVEN_URL.format(ses=e["ses"], bicim=e["bicim"]), data=json.dumps(govde).encode("utf-8"),
+                                   method="POST", headers={"xi-api-key": anahtar, "Content-Type": "application/json",
+                                                           "Accept": "audio/pcm" if pcm_mi else "audio/mpeg"})
     try:
-        pcm = (ag or _ac)(istek)
+        veri = (ag or _ac)(istek)
     except urllib.error.HTTPError as h:
         raise SeslendirmeHatasi(f"ElevenLabs {h.code}: {h.read()[:300].decode('utf-8', 'replace')}") from h
     except (urllib.error.URLError, OSError) as h:
         raise SeslendirmeHatasi(f"ElevenLabs'e ulaşılamadı ({h}); ağ izni: api.elevenlabs.io") from h
-    return pcm, 44100
+    if pcm_mi:
+        return veri, int(e["bicim"].split("_")[1])
+    return _coz(veri, 44100), 44100
+
+
+def _coz(veri: bytes, sr: int) -> bytes:
+    """Sıkıştırılmış ses (mp3) → mono int16 PCM."""
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", "pipe:0", "-f", "s16le", "-ac", "1",
+                        "-ar", str(sr), "pipe:1"], input=veri, capture_output=True)
+    if r.returncode != 0 or not r.stdout:
+        raise SeslendirmeHatasi(f"ElevenLabs sesi çözülemedi: {r.stderr[:200].decode('utf-8', 'replace')}")
+    return r.stdout
 
 
 def _ac(istek) -> bytes:

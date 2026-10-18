@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -56,16 +57,33 @@ class ElevenLabs(unittest.TestCase):
             return b"\x00\x00" * 10
 
         with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "gizli"}, clear=True):
-            pcm, sr = seslendirme.elevenlabs("Bugün başla.", {"ses": "abc"}, ag=ag)
-        self.assertEqual(sr, 44100)
+            pcm, sr = seslendirme.elevenlabs("Bugün başla.", {"ses": "abc", "bicim": "pcm_24000"}, ag=ag)
+        self.assertEqual(sr, 24000)
         self.assertEqual(len(pcm), 20)
-        self.assertIn("/text-to-speech/abc?output_format=pcm_44100", yakalanan["url"])
+        self.assertIn("/text-to-speech/abc?output_format=pcm_24000", yakalanan["url"])
         self.assertEqual(yakalanan["basliklar"]["Xi-api-key"], "gizli")
         self.assertEqual(yakalanan["govde"]["text"], "Bugün başla.")
         self.assertNotIn("language_code", yakalanan["govde"])  # multilingual_v2 dil alanını reddeder
         with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "gizli"}, clear=True):
-            seslendirme.elevenlabs("Heute.", {"ses": "abc", "model": "eleven_flash_v2_5", "dil": "de"}, ag=ag)
+            seslendirme.elevenlabs("Heute.", {"ses": "abc", "model": "eleven_flash_v2_5", "dil": "de", "bicim": "pcm_24000"}, ag=ag)
         self.assertEqual(yakalanan["govde"]["language_code"], "de")
+
+    def test_varsayilan_mp3_cozulur(self):
+        # pcm_44100 yalnız Pro planda; varsayılan mp3_44100_128 indirilir ve PCM'e çözülür
+        mp3 = subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=0.5",
+                              "-ar", "44100", "-ac", "1", "-b:a", "128k", "-f", "mp3", "pipe:1"],
+                             capture_output=True, check=True).stdout
+        yakalanan = {}
+
+        def ag(istek):
+            yakalanan["url"] = istek.full_url
+            return mp3
+
+        with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "gizli"}, clear=True):
+            pcm, sr = seslendirme.elevenlabs("Heute.", {"ses": "abc"}, ag=ag)
+        self.assertIn("output_format=mp3_44100_128", yakalanan["url"])
+        self.assertEqual(sr, 44100)
+        self.assertAlmostEqual(len(pcm) / 2 / sr, 0.5, delta=0.06)
 
 
 class Piper(unittest.TestCase):

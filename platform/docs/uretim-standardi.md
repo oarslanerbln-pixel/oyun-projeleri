@@ -42,6 +42,8 @@ python3 platform/ortak/devir.py /mnt/project-files/<müşteri> --not "Atilla tab
 - Müzik var (Atilla'nın içerik kuralı); ses ve müzik lisansı teslim klasöründe yazılı.
 - Marka renkleri ve logo marka dosyasından; metin yazım ve rakam kontrolünden geçmiş (fiyat, tarih, adres).
 - Yalnız istenen formatlar; dosya adları `<marka>-<konu>-<stil>-<format>.mp4`.
+- Panel, açılış sayfası ya da HTML teslimi: sayfa kapısı (`platform/ortak/sayfa.py`) `gecti` ya da gerekçeli `uyarili`; telefonda yana kayma, ekrandan taşan öğe, okunmaz kontrast ve kırık görsel yok. Claude yalnız `<ad>.sayfa.png` kontakt sayfasına bakar.
+- YZ görseli (`platform/uretim/gorsel.py`): önce `flux-schnell` taslak varyantları, seçilen fikir final modelle (`flux-ultra`, `recraft`, `recraft-svg`) bir kez. Final görsel hedefe büyütülmez; `gorsel-kaydi.csv` teslim klasöründe kalır (model, maliyet, lisans).
 
 ## 4. Revizyon
 

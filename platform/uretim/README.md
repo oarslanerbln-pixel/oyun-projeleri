@@ -46,6 +46,29 @@ python3 platform/sablonlar/animasyon/animasyon.py render ornekler/demli-kahve/pr
 
 Yeni bağdaştırıcı `saglayici.py` içinde `uret(is_, hedef, ayar, ag) -> Path` imzalı bir işlevdir ve `BAGDASTIRICILAR`'a tür adıyla eklenir.
 
+## Görsel üretimi (`gorsel.py`)
+
+Kodla çizilemeyen durağan görseller için: fotogerçekçi hero görsel, foto zemin, illüstrasyon, ikon ve logo taslağı. Modeller `gorseller.json`'da, hepsi fal.ai kuyruğu üzerinden (`FAL_KEY`), abonelik yok.
+
+```sh
+python3 platform/uretim/gorsel.py plan "seramik fincan, sabah ışığı" --model flux-ultra --boyut 9:16 --marka ornekler/demli-kahve/marka/marka.json
+python3 platform/uretim/gorsel.py uret "seramik fincan, sabah ışığı" --model flux-schnell --adet 4 -o is/taslak.png   # 4 ucuz varyant
+python3 platform/uretim/gorsel.py uret "seramik fincan, sabah ışığı" --model flux-ultra --tohum 3 -o teslim/hero.png --yer "reel açılışı"
+python3 platform/uretim/gorsel.py uret "kahve çekirdeği ikonu, düz" --model recraft-svg --boyut 1:1 -o teslim/ikon.svg --marka …/marka.json
+```
+
+| Model | Ne için | Yaklaşık fiyat (kontrol 2026-10-18) |
+| --- | --- | --- |
+| `flux-schnell` | Taslak varyantlar, kompozisyon seçimi. Büyütülerek hedefe getirilir, teslime girmez | 0,003 $ / MP |
+| `flux-ultra` | Final fotogerçekçi görsel, ~4 MP üretir, hedefe küçültülür | 0,06 $ / görsel |
+| `recraft` | İllüstrasyon; `--marka` verilince marka renkleri palet olur, `--stil realistic_image` ile foto | 0,04 $ / görsel |
+| `recraft-svg` | Vektör ikon, logo taslağı, düz illüstrasyon (SVG) | 0,08 $ / görsel |
+| `kuru` | Prova: isteği `.kuru.json`'a yazar, ağa çıkmaz | 0 |
+
+Kurallar: `--marka` markanın üslup cümlesini prompt'un başına ekler. Çıktı hedef ölçüye kaplanıp ortadan kırpılır; final modelde büyütme gerekiyorsa HATA verir (bulanık teslim yok), ham dosya `<ad>.ham.png` olarak kalır. `--butce` (varsayılan 1 $) aşılırsa hiçbir istek gönderilmez. Her üretim çıktının yanındaki `gorsel-kaydi.csv`'ye yz-kaydi sütunlarıyla yazılır; aynı istek (model + prompt + ölçü + tohum + stil + renkler) ikinci kez ödenmez, aynı hamdan başka kırpma çıkar. Model yolları ve fiyatlar gerçek anahtarla henüz denenmedi; ilk işte fal.ai model sayfasında doğrulanmalı.
+
+Bulut oturumunda çalışması için ortamda `FAL_KEY` gizli değişkeni ve ağ izninde `queue.fal.run`, `fal.media`, `v3.fal.media` alan adları gerekir.
+
 ## Kayıt sütunları
 
 Mimarideki `dosya, sinif, model, tarih, prompt, kullanildigi_yer, kaynak_ozeti, arac, duzenleme` + üretim için `istek_ozeti` (önbellek anahtarı), `maliyet_usd`, `lisans` (`ticari | ticari-degil | kuru`), `tohum`. `kaynak_ozeti` çıktı dosyasının SHA-256'sıdır (dosya yeniden adlandırılsa da bulunur), `istek_ozeti` isteğin.

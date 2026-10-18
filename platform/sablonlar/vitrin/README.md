@@ -36,4 +36,4 @@ Zamanlar müzik ızgarasına oturtulur: giriş (karanlıktan ışık açılır, 
 
 Node 18+ ve ffmpeg; `npm install` (three 0.170, playwright) ilk render'da kendiliğinden çalışır, tarayıcı indirmez (`CHROMIUM` ortam değişkeni ya da Playwright'ın kurulu Chromium'u). Python: `numpy soundfile fonttools` (+ seslendirme için `sherpa-onnx`). Yazı tipi Inter (SIL OFL 1.1), stil şablonuyla aynı önbellekten (`~/.cache/studyo/fonts`).
 
-Render süresi GPU'suz 4 çekirdekte 12 sn'lik bir biçim için yaklaşık 8 dakika (kare başına ~1,3 sn, SwiftShader); GPU'lu makinede çok daha hızlı. Prova için `--olcek 0.5`.
+Render süresi GPU'suz 4 çekirdekte 12 sn'lik bir biçim için yaklaşık 10 dakika (kare başına ~1,6 sn, SwiftShader); GPU'lu makinede çok daha hızlı. Prova için `--olcek 0.5`.

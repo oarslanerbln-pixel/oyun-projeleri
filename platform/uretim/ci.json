@@ -1,0 +1,26 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/proje.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/uretim.py",
+        "plan",
+        "{dosya}"
+      ]
+    },
+    {
+      "dosyalar": [
+        "ornekler/*/proje.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/uretim.py",
+        "denetle",
+        "{dosya}"
+      ]
+    }
+  ]
+}

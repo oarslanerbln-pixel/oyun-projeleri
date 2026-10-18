@@ -38,9 +38,9 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: ffmpeg (render ve türev testleri; Ubuntu paketi librsvg ile derli)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
-      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, origami, kolaj, minyatur)
+      - name: Birim testleri (marka, metin, medya, animasyon, uretim, ses, kinetik, origami, kolaj, minyatur, golge_oyunu)
         run: |
-          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/origami platform/sablonlar/kolaj platform/sablonlar/minyatur; do
+          for d in platform/marka platform/metin platform/medya platform/sablonlar/animasyon platform/uretim platform/ses platform/sablonlar/kinetik platform/sablonlar/origami platform/sablonlar/kolaj platform/sablonlar/minyatur platform/sablonlar/golge_oyunu; do
             echo "::group::$d"
             python -m unittest discover -s "$d/testler" -v
             echo "::endgroup::"
@@ -70,6 +70,11 @@ jobs:
         run: |
           for p in ornekler/*/minyatur.json; do
             python platform/sablonlar/minyatur/minyatur.py denetle "$p" -o "$RUNNER_TEMP/minyatur"
+          done
+      - name: Gölge oyunu senaryolarını denetle
+        run: |
+          for p in ornekler/*/golge-oyunu.json; do
+            python platform/sablonlar/golge_oyunu/golge_oyunu.py denetle "$p" -o "$RUNNER_TEMP/golge-oyunu"
           done
       - name: Tek çizgi şablonu (testler ve senaryo denetimi)
         run: |

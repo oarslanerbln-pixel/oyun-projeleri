@@ -25,6 +25,7 @@ sıkıştırma, satır başına -16 LUFS ve soxr ile 48 kHz'e çevirme.
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import io
 import json
@@ -54,7 +55,8 @@ PIPER_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/
 PIPER_ONBELLEK = Path(os.environ.get("PIPER_SES_DIZINI", Path.home() / ".cache" / "studyo" / "piper"))
 
 # Ücretsiz ve Starter planda pcm_44100 yok (403 "only available on the Pro tier"); mp3 indirilip ffmpeg ile açılır.
-ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}?output_format=mp3_44100_128"
+# with-timestamps: aynı kredi, ses + harf zamanları (karakter şablonlarında ağız senkronu için, bkz. hizalama_yaz).
+ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}/with-timestamps?output_format=mp3_44100_128"
 ELEVEN_ABONELIK_URL = "https://api.elevenlabs.io/v1/user/subscription"
 ELEVEN_MODEL = "eleven_multilingual_v2"
 # Dil zorlaması (language_code) yalnız bu modellerde var; multilingual_v2 dili metinden anlar, alanı görürse reddeder.
@@ -168,7 +170,7 @@ def eleven_ayar(ayar: dict) -> dict:
     return {"ses": ses, "model": model, "dil": dil, "voice_settings": dict(ELEVEN_AYAR, **(ayar.get("voice_settings") or {}))}
 
 
-def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int]:
+def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int, dict | None]:
     anahtar = os.environ.get("ELEVENLABS_API_KEY", "")
     if not anahtar:
         raise SeslendirmeHatasi("ELEVENLABS_API_KEY ortam değişkeni yok; anahtar eklenene kadar --saglayici piper kullanın")
@@ -177,14 +179,22 @@ def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int]:
     if e["model"] in ELEVEN_DIL_ZORLAYAN:
         govde["language_code"] = e["dil"]
     istek = urllib.request.Request(ELEVEN_URL.format(ses=e["ses"]), data=json.dumps(govde).encode("utf-8"), method="POST",
-                                   headers={"xi-api-key": anahtar, "Content-Type": "application/json", "Accept": "audio/mpeg"})
+                                   headers={"xi-api-key": anahtar, "Content-Type": "application/json"})
     try:
-        mp3 = (ag or _ac)(istek)
+        cevap = (ag or _ac)(istek)
     except urllib.error.HTTPError as h:
         raise SeslendirmeHatasi(f"ElevenLabs {h.code}: {h.read()[:300].decode('utf-8', 'replace')}") from h
     except (urllib.error.URLError, OSError) as h:
         raise SeslendirmeHatasi(f"ElevenLabs'e ulaşılamadı ({h}); ağ izni: api.elevenlabs.io") from h
-    return mp3_coz(mp3), 44100
+    mp3, hizalama = cevap, None
+    if cevap[:1] == b"{":  # with-timestamps: {"audio_base64", "alignment": {characters, character_*_times_seconds}}
+        d = json.loads(cevap)
+        mp3 = base64.b64decode(d["audio_base64"])
+        h = d.get("alignment") or d.get("normalized_alignment")
+        if h and h.get("characters"):
+            hizalama = {"karakterler": h["characters"], "bas": h["character_start_times_seconds"],
+                        "son": h["character_end_times_seconds"]}
+    return mp3_coz(mp3), 44100, hizalama
 
 
 def mp3_coz(mp3: bytes, sr: int = 44100) -> bytes:
@@ -273,22 +283,49 @@ def kredi_kontrol(saglayici: str, satirlar: list[dict], ayar: dict) -> dict | No
     return {"gerekli": gerekli, "kalan": k["kalan"], "plan": k["plan"]}
 
 
-def _ucretli_uret(saglayici: str, metin: str, ayar: dict, sayac: dict) -> tuple[bytes, int]:
-    """Önbellekte varsa oradan okur (kredi harcamaz); yoksa API'den alıp önbelleğe yazar."""
+def _ucretli_uret(saglayici: str, metin: str, ayar: dict, sayac: dict) -> tuple[bytes, int, dict | None]:
+    """Önbellekte varsa oradan okur (kredi harcamaz); yoksa API'den alıp önbelleğe yazar.
+
+    Harf zamanları (varsa) wav'ın yanına `<anahtar>.hizalama.json` olarak yazılır. Zamanlar eklenmeden önce
+    önbelleğe girmiş satırlarda yoktur; karakter şablonu o zaman ağzı ses genliğinden oynatır.
+    """
     yol = _onbellek_yolu(saglayici, metin, ayar)
     kok = yol.parent
+    hiz_yol = yol.with_suffix(".hizalama.json")
     if yol.exists():
         with wave.open(str(yol), "rb") as w:
             sayac["onbellek"] += 1
-            return w.readframes(w.getnframes()), w.getframerate()
-    pcm, sr = SAGLAYICILAR[saglayici](metin, ayar)
+            hizalama = json.loads(hiz_yol.read_text(encoding="utf-8")) if hiz_yol.exists() else None
+            return w.readframes(w.getnframes()), w.getframerate(), hizalama
+    pcm, sr, *ek = SAGLAYICILAR[saglayici](metin, ayar)
+    hizalama = ek[0] if ek else None
     kok.mkdir(parents=True, exist_ok=True)
+    if hizalama:
+        hiz_yol.write_text(json.dumps(hizalama, ensure_ascii=False), encoding="utf-8")
     gecici = yol.with_suffix(".yaziliyor")
     wav_yaz(gecici, pcm, sr)
     gecici.replace(yol)
     sayac["karakter"] += len(metin)
     sayac["api"] += 1
-    return pcm, sr
+    return pcm, sr, hizalama
+
+
+def bastaki_sessizlik(pcm: bytes, sr: int, esik_db: float = -50.0) -> float:
+    """Cila zincirinin baştan kestiği sessizlik (sn): ilk örnek -50 dBFS'i geçene kadar (silenceremove ile aynı eşik)."""
+    import array
+    a = array.array("h", pcm[: len(pcm) - len(pcm) % 2])
+    esik = 32768 * 10 ** (esik_db / 20)
+    for i, x in enumerate(a):
+        if abs(x) > esik:
+            return i / sr
+    return 0.0
+
+
+def hizalama_yaz(yol: Path, hizalama: dict, kayma: float) -> None:
+    """Harf zamanlarını cilalı dosyanın zamanına kaydırıp yazar: {"karakterler", "bas", "son"} (sn)."""
+    kay = lambda xs: [round(max(0.0, x - kayma), 4) for x in xs]
+    yol.write_text(json.dumps({"karakterler": hizalama["karakterler"], "bas": kay(hizalama["bas"]),
+                               "son": kay(hizalama["son"])}, ensure_ascii=False), encoding="utf-8")
 
 
 def kullanim_yaz(kayit: dict) -> None:
@@ -370,13 +407,21 @@ def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict
             ara = Path(tmp) / f"{s['id']}.ara.wav"
             son = cikti / f"{s['id']}.wav"
             if saglayici in UCRETLI:
-                pcm, sr = _ucretli_uret(saglayici, s["metin"], ayar, sayac)
+                pcm, sr, hizalama = _ucretli_uret(saglayici, s["metin"], ayar, sayac)
             else:
-                pcm, sr = SAGLAYICILAR[saglayici](s["metin"], ayar)
+                pcm, sr, *ek = SAGLAYICILAR[saglayici](s["metin"], ayar)
+                hizalama = ek[0] if ek else None
             wav_yaz(ham, pcm, sr)
             subprocess.run(cila_komutu(ham, ara), check=True)
             subprocess.run(seviye_komutu(ara, son, HEDEF_LUFS - olc_lufs(ara)), check=True)
-            kayit["satirlar"].append({"id": s["id"], "metin": s["metin"], "sure": round(sure(son), 3)})
+            satir = {"id": s["id"], "metin": s["metin"], "sure": round(sure(son), 3)}
+            hiz_yol = cikti / f"{s['id']}.hizalama.json"
+            if hizalama:
+                hizalama_yaz(hiz_yol, hizalama, bastaki_sessizlik(pcm, sr))
+                satir["hizalama"] = hiz_yol.name
+            elif hiz_yol.exists():
+                hiz_yol.unlink()  # eski bir üretimden kalan zamanlar bu sese ait değil
+            kayit["satirlar"].append(satir)
     if saglayici in UCRETLI:
         kayit["kullanim"] = dict(sayac)
         kullanim_yaz({"zaman": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "saglayici": saglayici, "ses": ses,

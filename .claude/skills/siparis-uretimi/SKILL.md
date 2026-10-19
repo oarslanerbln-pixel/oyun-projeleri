@@ -19,9 +19,11 @@ Kurallar `platform/docs/uretim-standardi.md`'de; bu dosya yalnız komut sırası
    ```
    Atilla "direkt üret" dediyse `"direkt": true`.
 3. **Senaryo:** örnek senaryonun metnini brife göre değiştir. Birden çok stil istendiyse her stil için bir senaryo.
+   **İki dil** (ör. TR + DE): siparişe `"diller": ["tr", "de"]` (isteğe bağlı `"dil_sesleri": {"de": "liam"}`) yaz. İlk `uret.py` çalışması `<senaryo>.ceviri-de.json` tablosunu boş yazıp durur; her `"ceviri": null` alanını doldur (`azami` ekran sınırıdır, aşan alan kısaltılır; değişmeyecek adlara kaynağı yaz), komutu yeniden çalıştır. Aynı kurgu her dil için ayrı video olur (`cikti-tr/`, `cikti-de/`); `--stil de` yalnız birini render eder.
+   **Yayın metni** (isteğe bağlı): senaryoya `"yayin": {"baslik": "...", "aciklama": "...", "etiketler": [...]}` ekle; dil varyantında o da çevrilir. Yazmazsan öneri senaryodan çıkar.
 4. **Önizleme:** `python3 platform/ortak/uret.py <klasör>/siparis.json` → `onizleme.png` + `animatik.mp4` (küçük, sessiz, ~3x hızlı hareket taslağı). Yalnız önizleme görüntüsüne bak; ikisini senaryo metniyle birlikte `attached_outputs` ile Atilla'ya gönder ve onay bekle. Komut burada durur.
 5. **Onaydan sonra:** `python3 platform/ortak/uret.py <klasör>/siparis.json --onay [--stil <seçilen>]`. Ses (ElevenLabs; Piper yedeğine düşerse durur), yalnız siparişteki format, kalite kapısı, `DEVIR.md`, teslim kataloğu. Çıktı kısa: her video için GEÇTİ/KALDI, render süresi ve bulgular. `KALDI` teslim edilmez: senaryoyu düzelt, `--onay` yeniden.
-6. **Teslim:** videoları ve kontakt sayfasını `attached_outputs` ile gönder; `uyarili` ise nedenini bir cümleyle yaz, harcanan ElevenLabs karakterini söyle.
+6. **Teslim:** videoları, kontakt sayfasını ve her videonun `yayin/<video>/YUKLE.md` dosyasını (yüklemeye hazır başlık, açıklama, etiket; kapak ve .srt aynı klasörde) `attached_outputs` ile gönder; YUKLE.md'de HATA varsa senaryonun `yayin` bloğunu düzeltip `uret.py <siparis.json> --yayin`; `uyarili` ise nedenini bir cümleyle yaz, harcanan ElevenLabs karakterini söyle.
 7. **Kapanış:** `get_session` (oturum kimliği boş) → `external_metadata.usage` alanlarını jq/python ile çek, sonra
    `python3 platform/ortak/uret.py <klasör>/siparis.json --kapat --usd <usd> --cevap <n> --cikti-token <n> --okuma-token <n> [--revizyon <n>]`. Thread'i kapat.
 

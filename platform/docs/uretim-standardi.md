@@ -65,6 +65,10 @@ python3 platform/ortak/devir.py /mnt/project-files/<müşteri> --not "Atilla tab
 6. **Devir dosyası hafıza yerine.** Bir işe dönülürken thread geçmişi değil `DEVIR.md` okunur.
 7. **Aynı anda en fazla 3 iş thread'i.** Fazlası sıraya girer; haftalık kullanım limiti bir günde dolmasın.
 8. **Ses:** ElevenLabs varsayılan; satırlar önbellekten tekrar kullanılır, kredi boşa harcanmaz (bkz. §8).
+9. **Thread sınırı.** Bir thread ~250k bağlama ya da ~12 cevaba ulaşınca yeni tur o thread'de başlamaz: `devir.py` ile `DEVIR.md` yazılır, iş yeni thread'de sürer. Aynı siparişin revizyonları da buna dahildir (19 Ekim'de Markalaşma 18, Al-Andalus 16, e-kitap 28 cevaba çıktı).
+10. **Az adım, kısa çıktı.** Maliyet ≈ adım sayısı × bağlam boyu. Komutlar tek Bash çağrısında birleştirilir; uzun komutlar `platform/ortak/sessiz.py` ile çalışır; büyük JSON ve loglar olduğu gibi okunmaz. Kısa kurallar repo kökündeki `CLAUDE.md`'de, her oturum otomatik okur.
+11. **Alt ajan yalnız gerektiğinde.** Her alt ajan ~60–70k token ile sıfırdan başlar.
+12. **Kullanılmayan eklenti ve bağlantılar kapalı.** Hesaptaki her eklentinin beceri listesi ve her bağlantının araç listesi, her thread'in her adımında okunan ~130k'lık başlangıç bağlamına girer (19 Ekim: 60 eklenti, ~440 beceri, ~65 MCP sunucusu; çoğu bu projede hiç kullanılmadı).
 
 ## 6. Ölçüm
 

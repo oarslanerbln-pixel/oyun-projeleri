@@ -6,11 +6,12 @@
     python3 platform/sablonlar/stil/stil.py render    senaryo.json --stil izometrik [--format 9:16 | 16:9 | ikisi]
     python3 platform/sablonlar/stil/stil.py uret      senaryo.json --stil izometrik --format 16:9   # seslendirme yoksa üretir, sonra render
 `--stil kinetik` aynı komutu kinetik şablona, `--stil cizgisel` karakter şablonuna (platform/sablonlar/karakter), `--stil urun-vitrini` 3D ürün vitrini şablonuna (platform/sablonlar/vitrin) iletir;
-`--stil vitray | linol | cini | teknik-cizim` desen şablonuna (platform/sablonlar/desen) iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
+`--stil vitray | linol | cini | teknik-cizim` desen şablonuna (platform/sablonlar/desen) iletir.
+Ortak sahne dilindeki senaryolar (`"dil": "sahne"`) stilden bağımsız olarak platform/sablonlar/sahne/sahne.py'ye gider. Stil verilmezse senaryodaki "stil" alanı kullanılır.
 Format sırası: --format, yoksa senaryodaki "format" alanı ("9:16", "16:9", "ikisi" ya da liste), yoksa yalnız 9:16.
 Çıktı varsayılanı senaryonun yanındaki `cikti/` klasörü; seslendirme `cikti/seslendirme/` (üç stilde ortak).
 """
-import argparse, importlib, json, os, sys
+import argparse, importlib, importlib.util, json, os, sys
 
 BURADA = os.path.dirname(os.path.abspath(__file__))
 SABLONLAR = os.path.dirname(BURADA)
@@ -78,6 +79,23 @@ def _vitrin(argv):
     return vitrin.main(ileri)
 
 
+def _sahne_dili(argv):
+    if len(argv) < 2 or not argv[1].endswith('.json') or not os.path.exists(argv[1]):
+        return False
+    try:
+        with open(argv[1], encoding='utf-8') as f:
+            s = json.load(f)
+    except (OSError, ValueError):
+        return False
+    return s.get('dil') == 'sahne'
+
+
+def _sahne(argv):
+    spec = importlib.util.spec_from_file_location('sahne_dili', os.path.join(SABLONLAR, 'sahne', 'sahne.py'))
+    m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    return m.main(argv)
+
+
 def _desen(argv):
     sys.path.insert(0, os.path.join(SABLONLAR, 'desen'))
     import desen
@@ -128,6 +146,8 @@ def _karakter(a):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if _sahne_dili(argv):  # ortak sahne dili ("dil": "sahne"): bütün stiller platform/sablonlar/sahne üzerinden
+        return _sahne(argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     alt = ap.add_subparsers(dest='komut', required=True)
     for ad in ('denetle', 'seslendir', 'kare', 'render', 'uret'):

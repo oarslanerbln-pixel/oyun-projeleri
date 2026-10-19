@@ -19,10 +19,11 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `platform/uretim/` | AI üretim: `uretim.py` (fal.ai Kling), `gorsel.py` (Flux/Recraft), bütçe + önbellek; `FAL_KEY` gerekir |
 | `platform/marka`, `metin`, `medya` | marka paleti, metin/çeviri tablosu, teslim formatları (`teslim.json`, `turev.py`) |
 | `platform/sablonlar/stil/stil.py` | Ortak giriş: `stil.py uret <dosya> --stil <ad> --format 9:16\|16:9\|1:1\|4:5\|ikisi` |
+| `platform/sablonlar/sahne/` | **Ortak sahne dili**: tek senaryo (`"dil": "sahne"`, 8 sahne tipi) 13 stilde; `sahne.py kontakt` her stilden kareler tek sayfada; `sahne.py yeni-stil <ad>` yeni stil kiti. README orada |
 | `platform/sablonlar/kurgu/` | Uzun video kurgusu (`kurgu.json`: sahneler, tek müzik, bölüm listesi) |
 | `platform/sablonlar/<stil>/` | Her şablonun README'si kullanımı anlatır (aşağıdaki tablo) |
 | `platform/ci/`, `.github/workflows/` | CI (`platform.yml`, kirk-oda iş akışları) |
-| `ornekler/` | Örnek senaryolar `ornekler/*/<stil>.json` (senaryo.json adı kullanılmaz) |
+| `ornekler/` | Örnek senaryolar `ornekler/*/<stil>.json` (senaryo.json adı kullanılmaz); ortak sahne dili örnekleri `ornekler/*/sahne.json` |
 | `denemeler/` | ebru ve gerçekçi 3D test kodu (şablon değil) |
 | `kirk-oda/` | Unity oyunu; K1 (2027-01-10) öncesi dosyaları taşınmaz |
 
@@ -51,6 +52,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `uzun-video/kucuk-aliskanliklar/` | Uzun video örneği (kurgu); DEVIR |
 | `yeni-stiller-2/` | 24 aday (`aday-sayfasi.png`, `karakter/`), `ARASTIRMA.md`, `GELISTIRME-PLANI.md`; çıktılar `cizgisel/`, `paket-b/`, `paket-c/`, `maskot/`, `siluet/` |
 | `yeni-tarzlar/`, `ucuncu-tarz/`, `dorduncu-tarz/`, `besinci-tarz/`, `karakalem/` | İlk stil örnekleri ve havuz videoları (marka reklamı havuzu) |
+| `ortak-sahne-dili/` | Ortak sahne dili örnekleri: 13 stilin kontakt sayfası, hamur + piksel örnek videoları (`cikti/`); DEVIR |
 | `elevenlabs-ses/` | Ses örnekleri ve seçili sesler (README) |
 | `arastirma/` | AI video araçları, orkestrasyon notları |
 | `.onbellek/ses/` | Seslendirme önbelleği + `kullanim.jsonl` (karakter sayımı); elle dokunma |
@@ -58,4 +60,4 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `alternatif/`, `analiz-haber/`, `bumper/`, `render/`, `urun-vitrini/`, `atolye/` | Eski demo çıktıları |
 
 ## DEVIR.md listesi
-`gelistirme/`, `the-leaf/4-ebru-3d/`, `le-mariage/`, `markalasma-nedir/` (+ `30sn-v2`, `tek-cizgi-30sn`, `tek-cizgi-20sn`, `-de`, `-logo`, `-de-logo`), `atilla-ebook/`, `al-andalus/`, `uzun-video/kucuk-aliskanliklar/`, `yeni-stiller-2/cizgisel/`, `yeni-stiller-2/paket-c/`
+`gelistirme/`, `the-leaf/4-ebru-3d/`, `le-mariage/`, `markalasma-nedir/` (+ `30sn-v2`, `tek-cizgi-30sn`, `tek-cizgi-20sn`, `-de`, `-logo`, `-de-logo`), `atilla-ebook/`, `al-andalus/`, `uzun-video/kucuk-aliskanliklar/`, `yeni-stiller-2/cizgisel/`, `yeni-stiller-2/paket-c/`, `ortak-sahne-dili/`

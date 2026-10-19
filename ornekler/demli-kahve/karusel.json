@@ -1,0 +1,12 @@
+{
+  "kimlik": "demli-kahve-karusel",
+  "stil": "karusel",
+  "dil": "tr",
+  "format": "4:5",
+  "marka": "marka/marka.json",
+  "slaytlar": [
+    {"tur": "kapak", "ust": "Yeni sezon", "baslik": "Sabahın on dakikası senin", "alt": "Kaydır, menüyü gör"},
+    {"tur": "liste", "ust": "Bu hafta", "baslik": "Demlikten taze", "maddeler": ["Filtre kahve", "Türk kahvesi", "Soğuk demleme", "Ev yapımı kurabiye"]},
+    {"tur": "kapanis", "ust": "Demli Kahve", "baslik": "Bir fincan ayırdık", "satirlar": ["Her gün 08:00 – 20:00"], "cagri": "Yol tarifi al"}
+  ]
+}

@@ -36,6 +36,7 @@ KOMUTLAR = {
     "analiz": "analiz/analiz.py",
     "karakalem": "karakalem/karakalem.py",
     "kurgu": "kurgu/kurgu.py",
+    "karusel": "karusel/karusel.py",
 }
 IKI_NOKTALI = {"minyatur", "analiz"}  # format seçeneklerini "9:16" yazımıyla bekleyenler
 VARSAYILAN_ANLAR = (0.15, 0.5, 0.85)  # süreye oranla
@@ -67,6 +68,8 @@ def sablon_bul(senaryo: dict, yol: Path, ad: str | None) -> str:
 def komut(ad: str, yol: Path, anlar: list[float], fmt: str, cikti: Path) -> list[str]:
     f = fmt.replace("x", ":") if ad in IKI_NOKTALI else fmt
     ortak = ["kare", str(yol), "--an", *[f"{t:g}" for t in anlar], "--format", f, "-o", str(cikti)]
+    if ad == "karusel" and fmt not in ("4x5", "1x1"):  # carousel yalnız akış biçimlerinde; senaryodaki format geçerli
+        ortak = ortak[:-4] + ortak[-2:]
     if ad in KOMUTLAR:
         return [sys.executable, str(SABLONLAR / KOMUTLAR[ad]), *ortak]
     return [sys.executable, str(SABLONLAR / "stil" / "stil.py"), *ortak, "--stil", ad]
@@ -75,6 +78,8 @@ def komut(ad: str, yol: Path, anlar: list[float], fmt: str, cikti: Path) -> list
 def anlar_bul(senaryo: dict, istek: list[float] | None) -> list[float]:
     if istek:
         return istek
+    if isinstance(senaryo.get("slaytlar"), list):  # carousel: an yerine slayt numarası, hepsi
+        return [float(i) for i in range(1, len(senaryo["slaytlar"]) + 1)]
     sure = senaryo.get("sure")
     if isinstance(sure, (int, float)) and sure > 0:
         return [round(sure * o, 1) for o in VARSAYILAN_ANLAR]

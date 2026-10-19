@@ -32,7 +32,7 @@ out_cubic, in_out = motor.out_cubic, motor.in_out_cubic
 VARYANTLAR = ('tv', 'reel')
 TURLER = {  # sahne türü -> izinli alanlar
     'marka': {'tur', 'sure', 'foto', 'odak', 'logo', 'ust', 'baslik', 'alt'},
-    'urun': {'tur', 'sure', 'foto', 'odak', 'ust', 'baslik', 'alt'},
+    'urun': {'tur', 'sure', 'foto', 'odak', 'duzen', 'ust', 'baslik', 'alt'},
     'uclu': {'tur', 'sure', 'fotolar', 'baslik'},
     'bilgi': {'tur', 'sure', 'foto', 'odak', 'ust', 'baslik', 'satirlar', 'alt'},
 }
@@ -42,7 +42,10 @@ VARSAYILAN = {
     'tv': {'gecis': 1.6, 'bpm': 64, 'lufs': -16.0},   # sakin: uzun geçiş, 4/4'te bir ölçü 3,75 sn
     'reel': {'gecis': 0.45, 'bpm': 96, 'lufs': -14.0},
 }
-GUVENLI = {'9x16': (0.13, 0.20, 0.07), '4x5': (0.08, 0.10, 0.07)}  # üst, alt, yan (teslim.json "dikey")
+# üst, alt, yan. 9:16'da kalite kapısının Reels arayüzüyle aynı: alt %22 ve sağdaki düğmeler (%13); ortalı yazı
+# iki yanda da bu payı bırakır
+GUVENLI = {'9x16': (0.13, 0.22, 0.13), '4x5': (0.08, 0.10, 0.07)}
+DUZENLER = ('ust', 'cerceve')  # Reel ürün sahnesi: fotoğraf üstte tam genişlik | çerçeveli kart, arkada bulanık kopyası
 
 
 class SenaryoHatasi(ValueError):
@@ -101,6 +104,8 @@ def denetle(yol, render=False, cikti=None):
         fotolar = sh.get('fotolar', []) + ([sh['foto']] if sh.get('foto') else [])
         if tur == 'urun' and not sh.get('foto'):
             hata.append(f'{yer}.foto: ürün sahnesinde gerekli')
+        if sh.get('duzen', 'ust') not in DUZENLER:
+            hata.append(f'{yer}.duzen: "{sh.get("duzen")}" bilinmiyor (geçerli: {", ".join(DUZENLER)})')
         if tur == 'uclu' and len(sh.get('fotolar', [])) != 3:
             hata.append(f'{yer}.fotolar: üç fotoğraf gerekli')
         for f in fotolar:
@@ -532,6 +537,9 @@ def _reel_sahne(cv, t, lt, W, H, g, i):
     f = sh['foto']
     kb = clamp(lt / d)
     img = g.resimler[f]
+    if duzen(sh, img, W, H) == 'cerceve':
+        _reel_cerceve(cv, lt, W, H, g, sh, kb, u, ust, alt, sol, sag)
+        return
     fh = min(H * 0.78, W * img.height() / img.width())
     cv.clear(_argb(g.zemin))
     cv.saveLayer(None)
@@ -550,16 +558,66 @@ def _reel_sahne(cv, t, lt, W, H, g, i):
     boy = _sigdir(g.tf_baslik, baslik, 112 * u, sag - sol)
     _kelimeler(cv, g.tf_baslik, baslik, boy, W / 2, y - 76 * u, g.yazi, 0.18, lt, u, 'orta', golge=0.6)
     if sh.get('ust'):
-        q = g.egri(prog(lt, 0.05, 0.45))
-        s = g.buyuk(sh['ust'])
-        f_ = _font(g.tf_govde_kalin, 28 * u)
-        w = _genislik(f_, s, 0.2)
-        yy = y - 76 * u - boy - 30 * u
-        rect = skia.Rect(W / 2 - w / 2 - 26 * u, yy - 30 * u, W / 2 + w / 2 + 26 * u, yy + 18 * u)
-        cv.save(); cv.translate(0, (1 - q) * 24 * u)
-        cv.drawRRect(skia.RRect.MakeRectXY(rect, 24 * u, 24 * u), skia.Paint(AntiAlias=True, Color=_argb(g.vurgu, q)))
-        _yaz(cv, g.tf_govde_kalin, s, 28 * u, W / 2, yy, g.zemin, q, 'orta', 0.2)
-        cv.restore()
+        _hap(cv, lt, W, g, sh['ust'], y - 76 * u - boy - 30 * u, u)
+
+
+def _hap(cv, lt, W, g, metin, yy, u):
+    """Ortalı vurgu renginde hap etiket; yy yazının taban çizgisi."""
+    import skia
+    q = g.egri(prog(lt, 0.05, 0.45))
+    s = g.buyuk(metin)
+    w = _genislik(_font(g.tf_govde_kalin, 28 * u), s, 0.2)
+    rect = skia.Rect(W / 2 - w / 2 - 26 * u, yy - 30 * u, W / 2 + w / 2 + 26 * u, yy + 18 * u)
+    cv.save(); cv.translate(0, (1 - q) * 24 * u)
+    cv.drawRRect(skia.RRect.MakeRectXY(rect, 24 * u, 24 * u), skia.Paint(AntiAlias=True, Color=_argb(g.vurgu, q)))
+    _yaz(cv, g.tf_govde_kalin, s, 28 * u, W / 2, yy, g.zemin, q, 'orta', 0.2)
+    cv.restore()
+
+
+def duzen(sh, img, W, H):
+    """Reel ürün sahnesinin düzeni. Verilmezse: dikey videoda yatay fotoğraf çerçeveye girer, çünkü genişliğe
+    oturunca ekranın yarısı boş kalır; tam ekrana büyütmek ise fotoğrafı yumuşatır."""
+    if sh.get('duzen'):
+        return sh['duzen']
+    return 'cerceve' if H > W and img.width() > img.height() * 1.15 else 'ust'
+
+
+def _reel_cerceve(cv, lt, W, H, g, sh, kb, u, ust, alt, sol, sag):
+    """Yatay fotoğraf dikey videoda: arkada fotoğrafın bulanık, koyulaştırılmış kopyası ekranı doldurur; fotoğrafın
+    kendisi ince vurgu çerçeveli kartta kendi çözünürlüğüne yakın durur, yazılar kartın altında ortalanır."""
+    import skia
+    f = sh['foto']
+    img = g.resimler[f]
+    cv.clear(_argb(g.zemin))
+    p = skia.Paint(Dither=True); p.setAlphaf(0.4)
+    cv.drawImage(g.bulanik(f, W, H), 0, 0, skia.SamplingOptions(), p)
+    # kart: yanlarda 56 birim pay; yazı bloğuyla birlikte güvenli alanın ortasına oturur
+    kw = W - 112 * u
+    kh = min(kw * img.height() / img.width(), (alt - ust) * 0.58)
+    baslik = sh.get('baslik', '')
+    boy = _sigdir(g.tf_baslik, baslik, 104 * u, sag - sol)
+    blok = kh + (92 * u if sh.get('ust') else 0) + 40 * u + boy + (70 * u if sh.get('alt') else 0)
+    ky = ust + max(0.0, (alt - ust - blok) / 2)
+    q = g.egri(prog(lt, 0.0, 0.5))
+    x0, y0 = (W - kw) / 2, ky + (1 - q) * 30 * u
+    rect = skia.Rect(x0, y0, x0 + kw, y0 + kh)
+    cv.drawRect(rect, skia.Paint(Color=_argb('#000000', 0.0), ImageFilter=skia.ImageFilters.DropShadow(
+        0, 18 * u, 36 * u, 36 * u, _argb('#000000', 0.55))))
+    foto_ciz(cv, g, f, (rect.left(), rect.top(), rect.right(), rect.bottom()), sh.get('odak', (0.5, 0.5)),
+             lerp(1.0, 1.05, kb), (lerp(0.01, -0.01, kb), 0))
+    cv.drawRect(rect.makeOutset(9 * u, 9 * u), skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style,
+                                                          StrokeWidth=2 * u, Color=_argb(g.vurgu, 0.9 * q)))
+    y = y0 + kh + 9 * u
+    if sh.get('ust'):
+        y += 92 * u
+        _hap(cv, lt, W, g, sh['ust'], y, u)
+    y += 40 * u + boy * 0.8
+    _kelimeler(cv, g.tf_baslik, baslik, boy, W / 2, y, g.yazi, 0.18, lt, u, 'orta', golge=0.6)
+    if sh.get('alt'):
+        qa = out_cubic(prog(lt, 0.55, 0.5))
+        y += 70 * u
+        _yaz(cv, g.tf_govde, sh['alt'], _sigdir(g.tf_govde, sh['alt'], 40 * u, sag - sol), W / 2, y + (1 - qa) * 20 * u,
+             g.yazi, qa * 0.9, 'orta', golge=0.5)
 
 
 def _reel_marka(cv, t, lt, W, H, g, sh, d, u, ust, alt, sol, sag):
@@ -572,7 +630,10 @@ def _reel_marka(cv, t, lt, W, H, g, sh, d, u, ust, alt, sol, sag):
                  logo=sh.get('logo'))
     else:
         cv.clear(_argb(g.acik))
-        logo_ciz(cv, g, W / 2, H * 0.40, 420 * u, g.logo_renk, out_cubic(prog(lt, 0.1, 0.8)))
+        lh = 420 * u
+        if g.logo is not None:  # geniş yazı logosu yanlara taşmasın
+            lh = min(lh, (sag - sol) * g.logo.height() / g.logo.width())
+        logo_ciz(cv, g, W / 2, H * 0.40, lh, g.logo_renk, out_cubic(prog(lt, 0.1, 0.8)))
     # bilgi kartı
     satirlar = [x for x in (sh.get('ust'), sh.get('baslik'), sh.get('alt')) if x]
     if not satirlar:

@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import shutil
@@ -75,11 +76,11 @@ class ElevenLabs(unittest.TestCase):
         cozulen = []
         with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "gizli"}, clear=True), \
                 mock.patch.object(seslendirme, "mp3_coz", lambda b: cozulen.append(b) or b"\x00\x00" * 10):
-            pcm, sr = seslendirme.elevenlabs("Bugün başla.", {"ses": "abc"}, ag=ag)
+            pcm, sr, hizalama = seslendirme.elevenlabs("Bugün başla.", {"ses": "abc"}, ag=ag)
             self.assertEqual(sr, 44100)
-            self.assertEqual((len(pcm), cozulen), (20, [b"mp3"]))
-            # ücretsiz ve Starter planda pcm_44100 yok (403); mp3 istenir
-            self.assertIn("/text-to-speech/abc?output_format=mp3_44100_128", yakalanan["url"])
+            self.assertEqual((len(pcm), cozulen, hizalama), (20, [b"mp3"], None))
+            # ücretsiz ve Starter planda pcm_44100 yok (403); mp3 istenir, harf zamanlarıyla
+            self.assertIn("/text-to-speech/abc/with-timestamps?output_format=mp3_44100_128", yakalanan["url"])
         self.assertEqual(yakalanan["basliklar"]["Xi-api-key"], "gizli")
         self.assertEqual(yakalanan["govde"]["text"], "Bugün başla.")
         self.assertNotIn("language_code", yakalanan["govde"])  # multilingual_v2 dil alanını reddeder
@@ -87,6 +88,20 @@ class ElevenLabs(unittest.TestCase):
                 mock.patch.object(seslendirme, "mp3_coz", lambda b: b"\x00\x00"):
             seslendirme.elevenlabs("Heute.", {"ses": "abc", "model": "eleven_flash_v2_5", "dil": "de"}, ag=ag)
         self.assertEqual(yakalanan["govde"]["language_code"], "de")
+
+    def test_harf_zamanlari(self):
+        cevap = json.dumps({"audio_base64": base64.b64encode(b"mp3").decode(),
+                            "alignment": {"characters": ["B", "u"], "character_start_times_seconds": [0.1, 0.2],
+                                          "character_end_times_seconds": [0.2, 0.3]}}).encode()
+        with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "gizli"}, clear=True), \
+                mock.patch.object(seslendirme, "mp3_coz", lambda b: b if b == b"mp3" else b""):
+            pcm, _, h = seslendirme.elevenlabs("Bu", {"ses": "abc"}, ag=lambda istek: cevap)
+        self.assertEqual((pcm, h["karakterler"], h["bas"]), (b"mp3", ["B", "u"], [0.1, 0.2]))
+        with tempfile.TemporaryDirectory() as tmp:
+            yol = Path(tmp) / "a.hizalama.json"
+            sessiz = b"\x00\x00" * 4800 + b"\xff\x7f" * 10  # 0.1 sn sessizlik, sonra ses
+            seslendirme.hizalama_yaz(yol, h, seslendirme.bastaki_sessizlik(sessiz, 48000))
+            self.assertEqual(json.loads(yol.read_text())["bas"], [0.0, 0.1])
 
 
 class Piper(unittest.TestCase):

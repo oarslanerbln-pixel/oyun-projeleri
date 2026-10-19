@@ -11,6 +11,8 @@
 | `sfx.py` | Ortak efekt ve vurmalılar: hi-hat (metalik osilatör), shaker, zil, clap, kick, whoosh (kayan rezonanslı süzgeç), riser, kâğıt hışırtısı (kısa taneler), parıltı (tiz çınlamalar), çıtırtı; pembe/kahverengi gürültü, bant ve kayan süzgeç. Ham beyaz gürültü kullanılmaz: tekdüze cızırtı olarak duyuluyordu (Atilla, 2026-10-19). Her vuruş küçük rastgele farkla çalar. `gurultu_analizi` kalite kapısının hışırtı ölçüsüdür. Bütün şablonların efektleri buradan gelir. |
 | `devir.py` | İşin teslim klasörüne kısa `DEVIR.md` yazar: teslim edilen videolar ve kalite sonuçları, senaryolar ve yeniden üretme komutları, seslendirme, kararlar. Revizyon thread'i eski konuşma yerine bunu okur. Kullanım: `devir.py <klasör> --not "karar"`. |
 | `onizleme.py` | Render'dan önce önizleme: her stil için birkaç kare tek sayfada, banding ve netlik ölçüsüyle. 4 stil yaklaşık 15 sn. Kullanım: `onizleme.py kolaj=a.json origami=b.json -o onizleme.png`. |
+| `uret.py` | Tek komutla sipariş: `siparis.json` → denetim + önizleme (onayda durur) → `--onay` ile ses, yalnız siparişteki format, kalite kapısı, `DEVIR.md` → `--kapat` ile maliyet satırı. Aşama `siparis-durum.json`'da. Piper yedeğine düşen ses ve `kaldi` video teslim edilmez. Adımlar `.claude/skills/siparis-uretimi/SKILL.md`'de. |
+| `render_suresi.py` | Render süresi: `uret.py` şablonu başlatırken ortama başlangıcı yazar, kalite kapısı rapora `render: {stil, render_sn, kare, sn_kare}` ekler; `uret.py` satırı `/mnt/project-files/gelistirme/render-sureleri.csv`'ye yazar. Elle render'da alan boş kalır. |
 | `sayfa.py` | Sayfa kapısı: panel, açılış sayfası ya da HTML teslimini gerçek tarayıcıda telefon ve masaüstü ekranında açıp kontrol eder (aşağıda). |
 
 Şablon tarafında kullanım (platform bir Python paketi olamadığı için yol eklenir):
@@ -40,10 +42,16 @@ Her render sonunda kendiliğinden çalışır (`akis.birlestir`), videonun yanı
 | Siyah, donma, sessizlik | | videonun ortasında siyah kare ya da 1 sn'den uzun sessizlik; 4 sn'den uzun donma (sondaki logo tutuşu sayılmaz) |
 | Banding | degrade zeminde basamaklanan karolar ≥ %12 | ≥ %3 |
 | Netlik | | kenarlar yumuşak: görüntü küçük çizilip büyütülmüş olabilir |
+| Kanca (ilk 2 sn) | | görüntü hiç kıpırdamıyor, boş ekran, ya da ilk kare boş ve görüntü 0.5 sn'den geç geliyor |
+| Okuma süresi | yazı gereken sürenin %60'ından kısa görünüyor | gereken süreden kısa |
+| Yazı kontrastı | normal yazı < 3:1, büyük yazı < 2:1 | normal yazı < 4.5:1, büyük yazı < 3:1 (WCAG AA) |
+| Yazı sığması | yazı kadrajdan taşıyor; dikeyde kutusunun ≥ %25'i üst %10 / alt %22 arayüz bandında | arayüz bandına değiyor |
 
 Banding ölçüsü: görüntü 64 px karolara bölünür; tonu yumuşak değişen (2–16 kod değeri), en az iki tonu geniş düz şeritler hâlinde taşıyan ve komşu pikselleri %90'dan fazla aynı olan karo basamaklı sayılır. Titreşimli (dither) degrade, düz dolgu ve dokulu yüzey sayılmaz; çok açık karolar da (kâğıt dokusu, yumuşak gölge) sayılmaz. Ayar gerçek işlerle yapıldı: The Leaf TV döngüsünün ilk sürümü (koyu bulanık zemin) %43 ile kalır, açık sürümü geçer; şablon örnekleri geçer; yarım çözünürlükten büyütülmüş kinetik "netlik" uyarısı alır.
 
 Hışırtı ölçüsü (`sfx.gurultu_analizi`): ~0.1 sn'lik pencerelerde 2.5–8 kHz bandı gürültü gibi düz (spektral düzlük > 0.5) ve toplamın −15 dB'inden yüksekse an cızırtılı sayılır; ölçü en uzun kesintisiz cızırtıdır (konuşmadaki s/ş 0.2 sn'yi geçmez). LÉVA serumunun ilk sürümü (3.4 sn bant gürültüsü "parıltı") 2.7 sn ile kalır, yeni sesi geçer. `testler/test_sfx.py` şablonların müzik + efekt izini de ölçer: tiz cızırtı payı sınırın üstüne çıkan değişiklik CI'da düşer.
+
+Okunabilirlik (`okunabilirlik.py`). Kanca her videoda ölçülür: ilk 2 saniye 10 kare/sn küçük gri karelerde ardışık fark ve parlaklık sapmasıyla. Yazı ölçüleri şablonun metin kaydından gelir, çünkü yazıyı çizimden makine güvenilir ayıramıyor: şablon render sırasında `okunabilirlik.MetinKaydi` ile her karede çizdiği yazıyı (metin, piksel kutusu, renk, saydamlık) kaydeder, sessiz videonun yanına `<ad>.metin.json` yazar, `akis.birlestir` bunu teslim videosunun yanına taşır. Kapı kayıttan her yazının ekranda kalma süresini, kadraja ve arayüze sığmasını hesaplar; kontrastı videonun o anki karesinden ölçer (kutu içinde yazı rengine yakın pikseller ile zemin, renk yoksa parlaklık iki kümeye ayrılır). Gereken okuma süresi: en az 0.5 sn, kelime başına 0.3 sn + 0.25 sn ya da harf başına 1/15 sn, hangisi büyükse. Sayaç gibi değişen yazı (1,00× → 37,78×) tek yazı sayılır; saydam çizimler (hayalet iz, giriş/çıkış) sayılmaz. Büyük yazı: kutu yüksekliği kısa kenarın %4.2'si ve üstü (telefonda ~24 px harf). Kayıt yazan şablonlar: kinetik. Kayıt yoksa rapora "ölçülmedi" bilgisi düşer ve kontakt sayfasına bakılır. Yeni şablon bağlamak için yazı çizen tek fonksiyona `kayit.ciz(...)` ve kare döngüsüne `kayit.kare(t)` eklemek yeter (örnek: `sablonlar/kinetik/cizim.py`).
 
 Kontakt sayfası 8 örnek kare gösterir. Dikey videoda Reels / TikTok / Shorts arayüzünün kapattığı yaklaşık bölgeler (üst %10, alt %22, sağ %13, sol %4) kırmızı taralıdır: yazının oraya düşüp düşmediğine insan bakar, çünkü yazıyı çizimden makine güvenilir ayıramıyor.
 

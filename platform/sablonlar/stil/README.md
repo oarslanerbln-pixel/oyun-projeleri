@@ -22,6 +22,8 @@ python3 $S uret      ornekler/demli-kahve/bumper.json --stil bumper             
 python3 $S uret      tv.json --stil mekan                                        # ürün fotoğraflı mekân TV döngüsü ya da Reel (../mekan)
 ```
 
+`--stil vitray | linol | cini | teknik-cizim` kendi senaryo biçimiyle (sahneler + motif, 6–20 sn) [desen şablonuna](../desen/README.md) iletilir.
+
 Stil, `--stil` ya da senaryodaki `"stil"` alanıyla seçilir. Çıktı H.264 + AAC, -14 LUFS. Biçim video başına seçilir: `--format 9:16 | 16:9 | 1:1 | 4:5 | ikisi`; verilmezse senaryodaki `"format"` alanı (aynı değerler ya da liste), o da yoksa yalnız 9:16. Kinetik de bu çözülen biçimle çağrılır. Hızlı prova için `render --olcek 0.25`. Bir biçimin render'ı stil başına yaklaşık yarım dakika sürer.
 
 ## Biçim: dört vuruş, 10 sn

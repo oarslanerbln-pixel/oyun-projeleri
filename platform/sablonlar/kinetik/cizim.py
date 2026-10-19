@@ -75,6 +75,7 @@ class Cizici:
         renkler = [self.P[r] for r in ("vurgu", "ikinci", "ucuncu", "acik")]
         self.parcalar = [(rnd.uniform(0, 2 * math.pi), rnd.uniform(300, 900), rnd.choice(renkler), rnd.uniform(8, 20)) for _ in range(40)]
         self.odak = (self.cx, self.cy)
+        self.kayit = None  # okunabilirlik.MetinKaydi: video() render boyunca çizilen yazıları toplar
 
     # ---------- araçlar ----------
     def paint(self, c, a=1.0, stroke=0, cap=True):
@@ -102,6 +103,10 @@ class Cizici:
         hh = -f.getMetrics().fAscent * 0.72
         ox = {"c": -w / 2, "l": 0, "r": -w}[anchor]
         cv.save(); cv.translate(x, y); cv.rotate(rot); cv.scale(sc, sc)
+        if self.kayit is not None:
+            r = cv.getTotalMatrix().mapRect(self.sk.Rect.MakeLTRB(ox, -hh / 2, ox + w, hh / 2))
+            self.kayit.ciz(s, (r.left(), r.top(), r.width(), r.height()),
+                           ((color >> 16) & 255, (color >> 8) & 255, color & 255), a)
         p = self.paint(color, a)
         if track:
             xx = ox
@@ -273,7 +278,7 @@ class Cizici:
             gx0, gx1, gy0, gy1 = 150 * u, 1120 * u, 880 * u, 210 * u
             sx, sy = 1520 * u, self.cy - 40 * u
         else:
-            gx0, gx1, gy0, gy1 = 120 * u, W - 120 * u, H * 0.78, H * 0.40
+            gx0, gx1, gy0, gy1 = 120 * u, W - 120 * u, H * 0.72, H * 0.40  # eksen yazısı alttaki %22 arayüz bandının üstünde
             sx, sy = cx, H * 0.20
         oran, gun = sh.get("oran", 0.01), sh.get("gun", 365)
         tepe = (1 + oran) ** gun
@@ -347,7 +352,7 @@ class Cizici:
             if self.GENIS:
                 r = sk.Rect(lerp(W, cx, pp), 0, W, H); bx, by = lerp(W * 1.25, W * 0.75, pp), cy
             else:
-                r = sk.Rect(0, lerp(H, cy, pp), W, H); bx, by = cx, lerp(H * 1.25, H * 0.75, pp)
+                r = sk.Rect(0, lerp(H, cy, pp), W, H); bx, by = cx, lerp(H * 1.25, H * 0.65, pp)  # yazı arayüz bandının üstünde
             cv.drawRect(r, self.paint(P["ikinci"]))
             cv.save(); cv.clipRect(r)
             b_t = sh["buyuk_t"]
@@ -398,7 +403,7 @@ class Cizici:
         if sh.get("alt"):
             pa = out_cubic(prog(t, sh.get("alt_t", satir[-1]["t"] + 0.4), 0.4))
             if pa > 0:
-                yy = H - (150 if not self.GENIS else 110) * u
+                yy = H * (1 - 0.22) - 50 * u if not self.GENIS else H - 110 * u  # dikeyde Reels arayüzünün üstü
                 self.yazi(cv, sh["alt"], cx, yy + 30 * u * (1 - pa), self.sigdir(sh["alt"], 46 * u, self.W - 160 * u, self.TF7),
                           P["zemin"], a=pa * 0.85, tf=self.TF7, track=0.02)
         self.odak = (cx, cy)
@@ -449,18 +454,22 @@ def yuzey(W, H):
 
 
 def video(s: dict, W: int, H: int, hedef: Path) -> Path:
+    import okunabilirlik
     c = Cizici(s, W, H)
+    c.kayit = okunabilirlik.MetinKaydi(W, H)
     surf = yuzey(W, H)
     hedef.parent.mkdir(parents=True, exist_ok=True)
     ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgba", "-s", f"{W}x{H}",
                            "-r", str(s["fps"]), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "16",
                            "-pix_fmt", "yuv420p", str(hedef)], stdin=subprocess.PIPE)
     for i in range(int(round(s["sure"] * s["fps"]))):
+        c.kayit.kare(i / s["fps"])
         c.kare(surf.getCanvas(), i / s["fps"])
         ff.stdin.write(surf.makeImageSnapshot().tobytes())
     ff.stdin.close()
     if ff.wait():
         raise RuntimeError("ffmpeg görüntüyü kodlayamadı")
+    c.kayit.yaz(hedef)
     return hedef
 
 

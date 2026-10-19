@@ -25,6 +25,8 @@ Stüdyoda her videonun aynı yoldan geçmesi için çalışma kuralları. Amaç 
 | 6 | **Kalite kapısı** | `<ad>.kalite.json`, `<ad>.kontakt.png` | Sonuç `kaldi` ise teslim edilmez, düzeltilir. `uyarili` ise uyarının nedeni teslim mesajında bir cümleyle yazar. Claude yalnız kontakt sayfasına bakar, kareleri tek tek açmaz |
 | 7 | **Teslim ve kapanış** | Teslim klasörü, `DEVIR.md`, maliyet satırı | Teslim mesajı: dosyalar, kalite sonucu, harcanan ses kredisi. `devir.py` ile devir özeti yazılır (kararlar ve Atilla'nın geri bildirimi `--not` ile), maliyet satırı eklenir, thread kapanır |
 
+**Tek komut (önerilen):** adımlar 2–7 `platform/ortak/uret.py siparis.json` ile yürür; önizlemede durur, `--onay` ile ses + render + kalite kapısı + `DEVIR.md`, `--kapat` ile maliyet satırı. Komut sırası `.claude/skills/siparis-uretimi/SKILL.md`'de. Aşağıdaki tek tek komutlar elle iş içindir.
+
 ```sh
 # 2. adım: önizleme (birkaç saniye; ses ve video yok)
 python3 platform/ortak/onizleme.py kolaj=is/kolaj.json origami=is/origami.json -o is/onizleme.png

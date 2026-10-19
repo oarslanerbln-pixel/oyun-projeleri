@@ -5,7 +5,8 @@
     python3 platform/sablonlar/stil/stil.py kare      senaryo.json --stil izometrik --an 1.5 4.7 [--format 16x9]
     python3 platform/sablonlar/stil/stil.py render    senaryo.json --stil izometrik [--format 9:16 | 16:9 | ikisi]
     python3 platform/sablonlar/stil/stil.py uret      senaryo.json --stil izometrik --format 16:9   # seslendirme yoksa üretir, sonra render
-`--stil kinetik` aynı komutu kinetik şablona, `--stil cizgisel` karakter şablonuna (platform/sablonlar/karakter), `--stil urun-vitrini` 3D ürün vitrini şablonuna (platform/sablonlar/vitrin) iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
+`--stil kinetik` aynı komutu kinetik şablona, `--stil cizgisel` karakter şablonuna (platform/sablonlar/karakter), `--stil urun-vitrini` 3D ürün vitrini şablonuna (platform/sablonlar/vitrin) iletir;
+`--stil vitray | linol | cini | teknik-cizim` desen şablonuna (platform/sablonlar/desen) iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
 Format sırası: --format, yoksa senaryodaki "format" alanı ("9:16", "16:9", "ikisi" ya da liste), yoksa yalnız 9:16.
 Çıktı varsayılanı senaryonun yanındaki `cikti/` klasörü; seslendirme `cikti/seslendirme/` (üç stilde ortak).
 """
@@ -16,9 +17,10 @@ SABLONLAR = os.path.dirname(BURADA)
 sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
+DESEN_STILLERI = ['vitray', 'linol', 'cini', 'teknik-cizim']  # platform/sablonlar/desen (kendi senaryo biçimi, serbest süre)
 KARAKTER_STILLERI = ['cizgisel', 'maskot', 'siluet']  # platform/sablonlar/karakter: ortak iskelet + görünüm katmanı
 EKRAN_STILLERI = ['kalkis-tabelasi', 'vhs', 'akis-alani']  # platform/sablonlar/ekran
-TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini'] + KARAKTER_STILLERI + EKRAN_STILLERI
+TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini'] + KARAKTER_STILLERI + EKRAN_STILLERI + DESEN_STILLERI
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 
 
@@ -74,6 +76,12 @@ def _vitrin(argv):
         if x == '--stil': atla = True; continue
         ileri.append(x)
     return vitrin.main(ileri)
+
+
+def _desen(argv):
+    sys.path.insert(0, os.path.join(SABLONLAR, 'desen'))
+    import desen
+    return desen.main(argv)
 
 
 def _bumper(a):
@@ -136,6 +144,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     with open(a.senaryo, encoding='utf-8') as f:
         s = json.load(f)
+    if (a.stil or s.get('stil')) in DESEN_STILLERI:  # bayraklar desen.py'de aynı
+        return _desen(argv)
     if (a.stil or s.get('stil')) == 'urun-vitrini':  # kendi senaryo biçimi (vitrin.json) ve süresi var
         return _vitrin(argv)
     if (a.stil or s.get('stil')) == 'mekan':  # biçim varsayılanı varyanta göre (tv → 16:9), mekan.py çözer

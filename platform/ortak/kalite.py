@@ -2,7 +2,8 @@
 
 Kontroller: çözünürlük, kare hızı, kodek ve piksel biçimi; ses var mı, ses yüksekliği -14 LUFS
 ve gerçek tepe; tekdüze tiz cızırtı (hışırtı); videonun ortasında siyah, donmuş kare ya da sessizlik; degrade zeminlerde
-banding (dairesel/düz basamak); büyütülmüş, yumuşak görüntü. Sonunda bir kontakt sayfası çıkar:
+banding (dairesel/düz basamak); büyütülmüş, yumuşak görüntü; okunabilirlik (`okunabilirlik.py`: ilk 2 saniyede
+kanca, şablon metin kaydı yazdıysa her yazının okuma süresi, kontrastı ve kadraja/arayüze sığması). Sonunda bir kontakt sayfası çıkar:
 8 örnek kare, dikey videoda Reels/TikTok/Shorts arayüzünün kapattığı bölgeler kırmızı taralı
 (yazının o bölgeye düşüp düşmediğine insan bakar; yazıyı makine güvenilir ayırt edemiyor).
 
@@ -26,6 +27,7 @@ BURADA = Path(__file__).resolve().parent
 if str(BURADA) not in sys.path:
     sys.path.insert(0, str(BURADA))
 import mastering  # noqa: E402
+import okunabilirlik  # noqa: E402
 from formatlar import FORMATLAR  # noqa: E402
 
 HEDEF_LUFS = mastering.HEDEF_LUFS
@@ -415,6 +417,11 @@ def denetle(yol: str | Path, sessiz_olabilir: bool = False, kontakt: str | Path 
         k, ko = kare_kontrol(yol, b, Path(kontakt) if kontakt else None)
         bulgular += k
         olcum["kareler"] = ko
+        v = b["video"]
+        kb, kanca = okunabilirlik.kanca_kontrol(yol, b["sure"])
+        mb, metin = okunabilirlik.metin_kontrol(yol, lambda t: kare_al(yol, t, v["w"], v["h"]))
+        bulgular += kb + mb
+        olcum["okunabilirlik"] = {"kanca": kanca, "metin": metin}
     sk, so = seslendirme_kontrol(yol)
     bulgular += sk
     if so:
@@ -455,6 +462,8 @@ def render_sonrasi(hedef: Path) -> dict | None:
     except Exception as e:  # kapı render'ı asla düşürmez
         print(f"UYARI: kalite kapısı çalışmadı ({e})", file=sys.stderr)
         return None
+    import render_suresi  # sn/kare ölçümü (uret.py başlatır; elle render'da boş kalır)
+    render_suresi.ekle(r)
     hedef.with_suffix(".kalite.json").write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
     print(ozet(r), file=sys.stderr if r["sonuc"] != "gecti" else sys.stdout)
     return r

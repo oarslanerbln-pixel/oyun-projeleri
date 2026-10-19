@@ -29,7 +29,7 @@ Format sırası: `--format` (`16:9`, `9:16`, `1:1`, `4:5`, `ikisi`), yoksa kurgu
 
 | Alan | Anlamı |
 | --- | --- |
-| `sahneler[].stil` | Sahnenin şablonu: `kinetik`, `analiz`, `karakalem`, `tek_cizgi`, `kolaj`, `golge_oyunu`, `origami` |
+| `sahneler[].stil` | Sahnenin şablonu: `kinetik`, `analiz`, `karakalem`, `tek_cizgi`, `kolaj`, `golge_oyunu`, `origami`, `ekran` (kalkış tabelası, VHS, akış alanı; görünüm sahne senaryosunun `stil` alanından) |
 | `sahneler[].senaryo` | O şablonun kendi senaryo dosyası (kurguya göre yol). Süre, görüntü ve seslendirme satırları oradan gelir; anlar sahnenin başından sayılır |
 | `sahneler[].enerji` | `sakin`, `orta` (varsayılan), `enerjik`: müziğin o bölümdeki yoğunluğu |
 | `sahneler[].baslik` | YouTube bölüm listesindeki adı |

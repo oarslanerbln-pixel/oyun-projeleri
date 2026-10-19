@@ -321,29 +321,39 @@ def _lufs(yol):
     return float(satir.split()[1])
 
 
-def ses_bitir(cikti, hedef=-14.0):
+def ses_bitir(cikti, hedef=-14.0, limit=0.84):
     """-14 LUFS; limitlemeden önce 16 kHz alçak geçiren (yoksa AAC sonrası gerçek tepe taşar)."""
     gir = os.path.join(cikti, 'ses.wav'); ara = os.path.join(cikti, 'ses_14.wav')
     kazanc = hedef - _lufs(gir)
     subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', gir, '-af',
-                    f'lowpass=f=16000:poles=2,volume={kazanc:.2f}dB,alimiter=limit=0.84:level=false', '-ar', str(SR), ara], check=True)
+                    f'lowpass=f=16000:poles=2,volume={kazanc:.2f}dB,alimiter=limit={limit}:level=false', '-ar', str(SR), ara], check=True)
     return ara
 
 
 # ---------- görüntü ----------
-def video(kare, yol, W, H, n_kare=None):
+def video(kare, yol, W, H, n_kare=None, tane=0.0):
+    """tane > 0: her kareye ±tane kod değeri üçgen dağılımlı, yuvarlanmış tane eklenir ve x264 '-tune grain' ile kodlanır;
+    bulanık fotoğraf ve degrade zeminlerde basamaklanmayı (banding) kodlamadan sonra da kırar."""
     import skia
     surf = skia.Surface(W, H)
+    rng = np.random.default_rng(7)
     # skia'nın yerel düzeni çoğu makinede BGRA; ffmpeg'e doğru bildir (yoksa kırmızı/mavi yer değiştirir)
     pf = 'bgra' if surf.imageInfo().colorType() == skia.kBGRA_8888_ColorType else 'rgba'
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', pf, '-s', f'{W}x{H}', '-r', str(FPS),
-                           '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', yol],
+                           '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '17' if tane else '18',
+                           *(['-tune', 'grain'] if tane else []), '-pix_fmt', 'yuv420p', yol],
                           stdin=subprocess.PIPE)
     for i in range(n_kare or int(FPS * gercek_sure())):
         with surf as cv:
             cv.clear(0xFF000000)
             kare(cv, sablon_an(i / FPS), W, H)
-        ff.stdin.write(surf.makeImageSnapshot().tobytes())
+        if tane:
+            a = surf.makeImageSnapshot().toarray()
+            n = np.rint((rng.random((H, W, 1), np.float32) - rng.random((H, W, 1), np.float32)) * tane)
+            a[..., :3] = np.clip(a[..., :3] + n, 0, 255).astype(np.uint8)
+            ff.stdin.write(a.tobytes())
+        else:
+            ff.stdin.write(surf.makeImageSnapshot().tobytes())
     ff.stdin.close()
     if ff.wait():
         raise RuntimeError(f'ffmpeg kodlaması başarısız: {yol}')

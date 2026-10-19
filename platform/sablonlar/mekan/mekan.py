@@ -509,7 +509,7 @@ def _reel_sahne(cv, t, lt, W, H, g, i):
     if tur == 'uclu':
         # üç fotoğraf uzun kenar boyunca bantlar halinde vuruşlarla kayarak gelir (dikeyde yatay bant:
         # fotoğraf kendi çözünürlüğüne yakın kalır, büyütülüp yumuşamaz)
-        cv.clear(_argb(g.zemin))
+        _reel_zemin(cv, g.zemin, W, H)
         n = 3
         for k, f in enumerate(sh['fotolar']):
             p = g.egri(prog(lt, 0.05 + k * vurus * 0.5, 0.55))
@@ -541,7 +541,7 @@ def _reel_sahne(cv, t, lt, W, H, g, i):
         _reel_cerceve(cv, lt, W, H, g, sh, kb, u, ust, alt, sol, sag)
         return
     fh = min(H * 0.78, W * img.height() / img.width())
-    cv.clear(_argb(g.zemin))
+    _reel_zemin(cv, g.zemin, W, H)
     cv.saveLayer(None)
     foto_ciz(cv, g, f, (0, 0, W, fh), sh.get('odak', (0.5, 0.5)), lerp(1.0, 1.05, kb), (0, lerp(0.01, -0.01, kb)))
     tuy = 260 * u
@@ -582,13 +582,20 @@ def duzen(sh, img, W, H):
     return 'cerceve' if H > W and img.width() > img.height() * 1.15 else 'ust'
 
 
+def _reel_zemin(cv, renk, W, H):
+    """Sahne zemini dikdörtgen olarak çizilir: cv.clear dönüşümü yok sayıp tüm tuvali siler, itme geçişinde
+    giden sahne görünmez olur (ekran bir an simsiyah kalır)."""
+    import skia
+    cv.drawRect(skia.Rect(0, 0, W, H), skia.Paint(Color=_argb(renk)))
+
+
 def _reel_cerceve(cv, lt, W, H, g, sh, kb, u, ust, alt, sol, sag):
     """Yatay fotoğraf dikey videoda: arkada fotoğrafın bulanık, koyulaştırılmış kopyası ekranı doldurur; fotoğrafın
     kendisi ince vurgu çerçeveli kartta kendi çözünürlüğüne yakın durur, yazılar kartın altında ortalanır."""
     import skia
     f = sh['foto']
     img = g.resimler[f]
-    cv.clear(_argb(g.zemin))
+    _reel_zemin(cv, g.zemin, W, H)
     p = skia.Paint(Dither=True); p.setAlphaf(0.4)
     cv.drawImage(g.bulanik(f, W, H), 0, 0, skia.SamplingOptions(), p)
     # kart: yanlarda 56 birim pay; yazı bloğuyla birlikte güvenli alanın ortasına oturur
@@ -629,11 +636,11 @@ def _reel_marka(cv, t, lt, W, H, g, sh, d, u, ust, alt, sol, sag):
         foto_ciz(cv, g, f, (0, 0, W, H), sh.get('odak', (0.5, 0.5)), lerp(1.06, 1.0, out_cubic(clamp(lt / d))),
                  logo=sh.get('logo'))
     else:
-        cv.clear(_argb(g.acik))
+        _reel_zemin(cv, g.acik, W, H)
         lh = 420 * u
         if g.logo is not None:  # geniş yazı logosu yanlara taşmasın
             lh = min(lh, (sag - sol) * g.logo.height() / g.logo.width())
-        logo_ciz(cv, g, W / 2, H * 0.40, lh, g.logo_renk, out_cubic(prog(lt, 0.1, 0.8)))
+        logo_ciz(cv, g, W / 2, H * 0.40, lh, g.logo_renk, out_cubic(prog(lt, 0.0, 0.45)))
     # bilgi kartı
     satirlar = [x for x in (sh.get('ust'), sh.get('baslik'), sh.get('alt')) if x]
     if not satirlar:
@@ -841,7 +848,7 @@ def ses_uret(g, yol, is_, ses_dizini):
         y, _ = sf.read(ara, always_2d=True)
         sf.write(ara, y[n:2 * n].astype(np.float32), SR)
         return ara
-    return motor.ses_bitir(is_, hedef)
+    return motor.ses_bitir(is_, hedef, limit=0.74)  # AAC sonrası gerçek tepe ≤ -1 dBTP kalsın
 
 
 # ---------- üretim ----------
@@ -869,7 +876,7 @@ def calistir(yol, cikti, boyutlar, olcek=1.0):
     for b in boyutlar:
         W, H = motor.boyut(b, olcek)
         sessiz = os.path.join(is_, f'sessiz-{b}.mp4')
-        motor.video(ciz, sessiz, W, H, n_kare)
+        motor.video(ciz, sessiz, W, H, n_kare, tane=3.5)  # bulanık fotoğraf zeminleri kodlamada basamaklanmasın
         hedef = os.path.join(cikti, f'{ad}-{b}.mp4')
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', sessiz, '-i', ses, '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-t', f'{g.sure:.3f}', '-movflags', '+faststart', hedef], check=True)

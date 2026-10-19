@@ -2,6 +2,8 @@
 
 Ayrıntılı kurallar: `platform/docs/uretim-standardi.md`. Bu dosya her oturumun her adımında okunur, o yüzden kısa tutulur.
 
+**Nerede ne var:** `HARITA.md` (repo ve `/mnt/project-files`). Klasör taramadan önce oraya bak; yeni teslim, final ya da şablon ekleyen thread oradaki satırı da günceller.
+
 ## Token disiplini (2026-10-19 ölçümü: harcamanın %69'u geçmişin yeniden okunması)
 
 Her araç çağrısı thread'in bütün bağlamını yeniden okur. Bir thread ~130k token ile başlar ve 300k'yı geçince her adım iki kat pahalıdır. Maliyet ≈ adım sayısı × bağlam boyu; ikisini de küçük tut.

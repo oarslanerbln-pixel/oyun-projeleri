@@ -1,0 +1,51 @@
+{
+  "kimlik": "kucuk-adimlar-vhs",
+  "stil": "vhs",
+  "sure": 10,
+  "format": "9x16",
+  "seslendirme": {
+    "satirlar": [
+      {
+        "id": "v0",
+        "t": 0.3,
+        "metin": "Her gün, sadece yüzde bir daha iyi ol."
+      },
+      {
+        "id": "v1",
+        "t": 3.15,
+        "metin": "Bir yıl sonra, otuz yedi kat güçlüsün."
+      },
+      {
+        "id": "v2",
+        "t": 6.15,
+        "metin": "Küçük adım. Büyük fark."
+      },
+      {
+        "id": "v3",
+        "t": 8.35,
+        "metin": "Bugün başla."
+      }
+    ]
+  },
+  "sahneler": [
+    {
+      "bas": 0,
+      "metin": "Her gün *%1*",
+      "alt": "daha iyi ol"
+    },
+    {
+      "bas": 3.0,
+      "metin": "1 yıl sonra *37x*",
+      "alt": "bileşik büyüme"
+    },
+    {
+      "bas": 6.0,
+      "metin": "Küçük adım\n*büyük fark*"
+    },
+    {
+      "bas": 8.2,
+      "metin": "*Bugün* başla",
+      "alt": "rewind yok"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "kimlik": "kucuk-adimlar-tabela",
+  "stil": "kalkis-tabelasi",
+  "sure": 10,
+  "format": "9x16",
+  "baslik": "Kalkış · Hedef",
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Her gün, sadece yüzde bir daha iyi ol."},
+    {"id": "v1", "t": 3.15, "metin": "Bir yıl sonra, otuz yedi kat güçlüsün."},
+    {"id": "v2", "t": 6.15, "metin": "Küçük adım. Büyük fark."},
+    {"id": "v3", "t": 8.35, "metin": "Bugün başla."}
+  ]},
+  "sahneler": [
+    {"bas": 0, "metin": "Her gün *%1* daha iyi", "alt": "Hedef: yeni sen"},
+    {"bas": 3.0, "metin": "1 yıl sonra *37x*", "alt": "Bileşik büyüme"},
+    {"bas": 6.0, "metin": "Küçük adım\n*büyük fark*", "alt": "Peron 1 · şimdi"},
+    {"bas": 8.2, "metin": "*Bugün* başla", "alt": "Kalkış: şimdi"}
+  ]
+}

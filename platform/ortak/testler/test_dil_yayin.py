@@ -19,6 +19,7 @@ DE_SAHNE = {
     "marka/ad": "Demli Kahve", "sahneler/0/ust": "Demli Kahve", "sahneler/0/metin": "Der erste Schluck",
     "sahneler/0/alt": "jeden Tag frisch geröstet", "sahneler/0/seslendirme": "Der erste Schluck, jeden Tag frisch geröstet.",
     "sahneler/5/sol_deger": "3 Mon.", "sahneler/5/sag_deger": "3 Tage",
+    "sahneler/7/birim": " Tassen",  # grafik sahnesi (#54): birim ≤ 8 karakter
 }
 
 
@@ -69,10 +70,11 @@ class DilVaryanti(unittest.TestCase):
 
     def test_ekran_siniri_ve_degisen_kaynak(self):
         tp = dv.tablo(self.sahne, "de")
-        doldur(tp, {"sahneler/7/metin": "Komm vorbei und trink einen Kaffee mit uns"})  # 22 karakter sınırı
+        cta = next(i for i, sh in enumerate(json.loads(self.sahne.read_text(encoding="utf-8"))["sahneler"]) if sh["tip"] == "cta")
+        doldur(tp, {**DE_SAHNE, f"sahneler/{cta}/metin": "Komm vorbei und trink einen Kaffee mit uns"})  # 22 karakter sınırı
         r = dv.uygula(self.sahne, "de")
         self.assertIsNone(r["dosya"])
-        self.assertTrue(any("sahneler/7/metin" in h and "kısaltın" in h for h in r["hatalar"]))
+        self.assertTrue(any(f"sahneler/{cta}/metin" in h and "kısaltın" in h for h in r["hatalar"]))
         s = json.loads(self.sahne.read_text(encoding="utf-8"))
         s["sahneler"][0]["metin"] = "Yeni başlık"
         self.sahne.write_text(json.dumps(s, ensure_ascii=False), encoding="utf-8")

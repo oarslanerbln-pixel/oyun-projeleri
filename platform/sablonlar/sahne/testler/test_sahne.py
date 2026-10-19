@@ -113,6 +113,44 @@ class Kaplamalar(unittest.TestCase):
                             a = surf.makeImageSnapshot().toarray()
                             self.assertGreater(a[..., :3].std(), 2.0, f"{ad} {fmt} {sh['tip']} {t:.2f}")
 
+    def test_kelimeye_senkron_ve_altyazi(self):
+        import skia
+        import senkron
+        sys.path.insert(0, str(DEPO / "platform" / "ortak" / "testler"))
+        from test_altyazi import hizalama
+        with tempfile.TemporaryDirectory() as g:
+            sd = Path(g)
+            z = dil.zamanla(ornek(0))  # küçük alışkanlıklar
+            kayit = []
+            for x in z["seslendirme"]["satirlar"]:
+                (sd / f"{x['id']}.hizalama.json").write_text(json.dumps(hizalama(x["metin"])), encoding="utf-8")
+                kayit.append({"id": x["id"], "metin": x["metin"], "sure": 0.07 * len(x["metin"]), "hizalama": f"{x['id']}.hizalama.json"})
+            (sd / "seslendirme.json").write_text(json.dumps({"satirlar": kayit}), encoding="utf-8")
+            z = dil.zamanla(ornek(0), {x["id"]: x["sure"] for x in kayit})
+            b = senkron.bagla(z, sd)
+            liste = next(sh for sh in b["sahneler"] if sh["tip"] == "liste")
+            an = [liste["_an"][f"madde{j}"] for j in range(3)]
+            self.assertEqual(an, sorted(an)); self.assertGreater(an[2] - an[0], 0.5)  # maddeler söylendikçe
+            sayi = next(sh for sh in b["sahneler"] if sh["tip"] == "sayi")
+            self.assertGreater(sayi["_an"]["deger"], 0.6)  # "otuz yedi", "Bir yıl" değil
+            self.assertTrue(b["_altyazi"])
+            self.assertTrue(senkron.acik({"altyazi": True})); self.assertFalse(senkron.acik({}))
+            self.assertNotIn("_an", senkron.bagla({**z, "senkron": False}, sd)["sahneler"][0])
+            b["altyazi"] = True
+            g0 = b["_altyazi"][1]
+            t = (g0["kelimeler"][0]["bas"] + g0["kelimeler"][0]["son"]) / 2
+            for ad in sahne.kaplama_adlari():
+                kaplar = [sahne.kaplama_yap(dict(b, altyazi=False), ad), sahne.kaplama_yap(b, ad)]
+                A = [k.alan(1080, 1920, "9x16") for k in kaplar]
+                self.assertLess(A[1].bottom(), A[0].bottom() - 150, ad)  # bant ayrıldı
+                fark = []
+                for k in kaplar:
+                    surf = skia.Surface(216, 384)
+                    with surf as cv:
+                        k.kare(cv, t, 216, 384, "9x16")
+                    fark.append(surf.makeImageSnapshot().toarray()[260:300, :, :3].astype(int))
+                self.assertGreater(np.abs(fark[0] - fark[1]).mean(), 3.0, ad)  # altyazı bandı çizildi
+
     def test_sayac(self):
         from kaplama import say
         self.assertEqual(say("37x", 0), "0x")
@@ -144,6 +182,7 @@ class Kaplamalar(unittest.TestCase):
             self.assertEqual(sahne.main(["uret", str(kok / "s.json"), "--stil", "piksel", "--olcek", "0.2"]), 0)
             mp4 = kok / "cikti" / "kucuk-aliskanliklar-sahne-piksel-9x16.mp4"
             self.assertTrue(mp4.exists() and mp4.stat().st_size > 10000)
+            self.assertTrue((kok / "cikti" / "kucuk-aliskanliklar-sahne-piksel.srt").exists())
 
 
 if __name__ == "__main__":

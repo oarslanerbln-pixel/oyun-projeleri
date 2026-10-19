@@ -11,6 +11,9 @@ Yeni stil yalnız değiştirmek istediğini ezer. Sahne tipleri (`baslik`, `list
     nesne(cv, r, sh, p, t)                 görseli olmayan ürün için stile özgü nesne
     gecis_ciz(cv, VW, VH, p, eski, yeni)   sahne geçişi (eski/yeni: çizen işlevler)
     ust_katman(cv, W, H, t)                piksel düzeyinde son katman (doku, tanecik)
+    altyazi_ciz(cv, VW, VH, t, fmt)        kelime kelime altyazı (senaryoda "altyazi": true; bant güvenli alanın altında)
+
+Öğeler anlatıcı kendi kelimesini söylediği an girer (`senkron.py` → sahnede `_an`); eşleşme yoksa sabit zaman.
 
 Bütün çizim tasarım biriminde yapılır: kısa kenar 1080. Her öğe güvenli alanın (`alan`) içinde kalır; yazılar
 sığmazsa küçülür ya da satıra bölünür, hiçbir zaman kesilmez.
@@ -29,6 +32,8 @@ import skia
 
 BURADA = Path(__file__).resolve().parent
 sys.path.insert(0, str(BURADA.parent / "stil"))
+sys.path.append(str(BURADA.parents[1] / "ortak"))
+import altyazi  # noqa: E402
 import motor  # noqa: E402  (Inter yazı tipi, Türkçe büyük/küçük harf)
 
 # (sol, sağ, üst, alt) sınırı, ekran oranı. 9:16: Reels arayüzü üst %10, alt %22, sağ %13 (beğen/yorum sütunu).
@@ -70,6 +75,7 @@ def _resim(yol: str):
     return skia.Image.MakeFromEncoded(skia.Data.MakeFromFileName(yol))
 
 
+EN_GEC = 0.6  # senkron öğe sahne bitmeden en az bu kadar önce girer
 SAYI = re.compile(r"\d[\d.,]*")
 
 
@@ -107,6 +113,12 @@ class Kaplama:
         self.p = {k: renk(v) for k, v in {**self.PALET, **(s.get("palet") or {})}.items()}
         self.klasor = Path(s.get("_klasor", "."))
         self.marka = s.get("marka") or {}
+        a = s.get("altyazi")
+        self.altyazi = s.get("_altyazi") if (a is True or (isinstance(a, dict) and a.get("acik", True))) else None
+
+    def an(self, sh, anahtar, varsayilan):
+        """öğenin giriş anı (sahne başından sn): söylendiği kelimeye senkron, yoksa tipin sabit zamanı"""
+        return (sh.get("_an") or {}).get(anahtar, varsayilan)
 
     # ---------- yazı ----------
     def yazi_tipi(self, agirlik: int):
@@ -228,8 +240,63 @@ class Kaplama:
 
     # ---------- yerleşim ----------
     def alan(self, VW, VH, fmt):
+        """sahnenin güvenli alanı; altyazı açıksa alttaki bant ayrılır (sahne yazısı altyazının altında kalmaz)"""
         sol, sag, ust, alt = GUVENLI.get(fmt, GUVENLI["1x1"])
-        return skia.Rect.MakeLTRB(VW * sol, VH * ust, VW * (1 - sag), VH * alt)
+        bant = self.altyazi_bandi(fmt)[0] if self.altyazi else 0
+        return skia.Rect.MakeLTRB(VW * sol, VH * ust, VW * (1 - sag), VH * alt - bant)
+
+    # ---------- altyazı ----------
+    def altyazi_bandi(self, fmt):
+        """(bant yüksekliği, yazı boyu) tasarım biriminde: en çok iki satır"""
+        boy = altyazi.BANT.get(fmt, altyazi.BANT["9x16"])[1]
+        return boy * 1.3 * 2 + 2 * 20 + 28, boy
+
+    def altyazi_ciz(self, cv, VW, VH, t, fmt):
+        """Ekranda bir grup (2–4 kelime); söylenen kelime vurgu renkli bir pul içinde hafifçe büyür. Zemin stilin kendi
+        zemin/mürekkep çifti (her stilde okunur), bant güvenli alanın en altında."""
+        g, i, kp = altyazi.etkin(self.altyazi or [], t)
+        if not g:
+            return
+        sol, sag, _, alt = GUVENLI.get(fmt, GUVENLI["1x1"])
+        bant, boy = self.altyazi_bandi(fmt)
+        x0, x1, y1 = VW * sol, VW * (1 - sag), VH * alt
+        gen = (x1 - x0) - 2 * 30
+        sozler = [w["k"] for w in g["kelimeler"]]
+        bosluk = boy * 0.3
+        # iki satıra sar, sığmazsa küçült
+        while True:
+            satir, sat = [], []
+            for j, k in enumerate(sozler):
+                if sat and sum(self.olc(sozler[x], boy, 700) for x in sat + [j]) + bosluk * len(sat) > gen:
+                    satir.append(sat); sat = []
+                sat.append(j)
+            satir.append(sat)
+            if len(satir) <= 2 or boy < 30:
+                break
+            boy *= 0.92
+        lh = boy * 1.3
+        gp = clamp((t - g["bas"]) / 0.12)
+        kh = len(satir) * lh + 2 * 20
+        kw = max(sum(self.olc(sozler[x], boy, 700) for x in s_) + bosluk * (len(s_) - 1) for s_ in satir) + 2 * 30
+        kart = skia.Rect.MakeXYWH((x0 + x1) / 2 - kw / 2, y1 - kh - 8, kw, kh)
+        cv.drawRoundRect(kart, 18, 18, skia.Paint(AntiAlias=True, Color=alfa(self.p["zemin"], gp)))
+        f = self._font(round(boy, 1), 700)
+        for si, s_ in enumerate(satir):
+            w = sum(self.olc(sozler[x], boy, 700) for x in s_) + bosluk * (len(s_) - 1)
+            x = kart.centerX() - w / 2
+            y = kart.top() + 20 + lh * (si + 0.5)
+            for j in s_:
+                ww = self.olc(sozler[j], boy, 700)
+                renk_ = self.p["murekkep"]
+                if j == i:
+                    s = 0.92 + 0.08 * out_back(clamp(kp * 2.5))
+                    pul = skia.Rect.MakeXYWH(x - boy * 0.2, y - lh * 0.44, ww + boy * 0.4, lh * 0.88)
+                    cv.save(); cv.translate(pul.centerX(), pul.centerY()); cv.scale(s, s); cv.translate(-pul.centerX(), -pul.centerY())
+                    cv.drawRoundRect(pul, 12, 12, skia.Paint(AntiAlias=True, Color=alfa(self.p["vurgu"], gp)))
+                    cv.restore()
+                    renk_ = self.p["vurgu_yazi"]
+                cv.drawString(sozler[j], x, y + boy * 0.36, f, skia.Paint(AntiAlias=True, Color=alfa(renk_, gp)))
+                x += ww + bosluk
 
     # ---------- sahne tipleri ----------
     def ciz_baslik(self, cv, sh, u, d, A, t):
@@ -243,7 +310,7 @@ class Kaplama:
             self.yazi(cv, self.harf(sh["ust"], True), A.centerX(), cy - h / 2 - b * 1.4, b, self.p["vurgu"], p=prog(u, 0.02, 0.4), agirlik=700)
         if sh.get("alt"):
             alt, b = self.sar(sh["alt"], 66, gen, 2, 700)
-            self.satirlar(cv, alt, A.centerX(), cy + h / 2 + b * 0.9 * len(alt), b, self.p["soluk"], u=u, p0=0.45)
+            self.satirlar(cv, alt, A.centerX(), cy + h / 2 + b * 0.9 * len(alt), b, self.p["soluk"], u=u, p0=self.an(sh, "alt", 0.45))
 
     def ciz_liste(self, cv, sh, u, d, A, t):
         m = sh["maddeler"]
@@ -263,7 +330,7 @@ class Kaplama:
         boy = min(boy, *(self.sigdir(x, boy, gen, 700) for x in m))
         for j, x in enumerate(m):
             yy = ust + satir_h * (j + 0.5)
-            pp = prog(u, 0.35 + j * aralik, 0.4)
+            pp = prog(u, self.an(sh, f"madde{j}", 0.35 + j * aralik), 0.4)
             if pp <= 0:
                 continue
             kr = skia.Rect.MakeLTRB(A.left(), yy - satir_h * 0.42, A.right(), yy + satir_h * 0.42)
@@ -273,20 +340,22 @@ class Kaplama:
 
     def ciz_sayi(self, cv, sh, u, d, A, t):
         gen = A.width() * 0.9
-        cp = prog(u, 0.2, min(1.2, d * 0.45))
+        td = self.an(sh, "deger", 0.12)
+        cp = prog(u, td + 0.08, min(1.2, d * 0.45))
         deger = self.harf(sh["deger"], False)
         boy = self.sigdir(sh["deger"], 330, gen)
         cy = A.centerY() - (50 if sh.get("etiket") else 0)
         if sh.get("ust"):
             b = self.sigdir(self.harf(sh["ust"], True), 48, gen, 700)
             self.yazi(cv, self.harf(sh["ust"], True), A.centerX(), cy - boy * 0.72, b, self.p["soluk"], p=prog(u, 0.0, 0.4), agirlik=700)
-        pb = prog(u, 0.12, 0.35)
+        pb = prog(u, td, 0.35)
         cv.save(); s = 0.7 + 0.3 * out_back(pb); cv.translate(A.centerX(), cy); cv.scale(s, s)
         self.buyuk_yazi(cv, say(deger, cp), 0, 0, boy, self.p["vurgu"], p=pb, kimlik=3, t=t)
         cv.restore()
         if sh.get("etiket"):
             sat, b = self.sar(sh["etiket"], 74, gen, 2, 700)
-            self.satirlar(cv, sat, A.centerX(), cy + boy * 0.62 + b * 0.6 * len(sat), b, self.p["murekkep"], u=u, p0=0.55)
+            self.satirlar(cv, sat, A.centerX(), cy + boy * 0.62 + b * 0.6 * len(sat), b, self.p["murekkep"], u=u,
+                          p0=self.an(sh, "etiket", max(0.55, td + 0.3)))
 
     def ciz_alinti(self, cv, sh, u, d, A, t):
         gen = A.width() * 0.86
@@ -296,13 +365,19 @@ class Kaplama:
         cy = A.centerY() - (30 if sh.get("kaynak") else 0)
         q = prog(u, 0.0, 0.4)
         self.buyuk_yazi(cv, "“", A.centerX(), cy - h / 2 - 110, 260, self.p["vurgu"], p=q, kimlik=1, t=t)
+        # satır, ilk kelimesi söylendiği an gelir (okunan metin ekrandakiyle aynıysa)
+        kel = sh.get("_kelimeler") or []
+        say_ = [len(x.split()) for x in sat]
+        es = len(kel) == sum(say_) and sh.get("senkron", True)
         for j, s in enumerate(sat):
+            t0 = max(0.05, kel[sum(say_[:j])]["bas"] - 0.08) if es else 0.2 + 0.18 * j
             self.yazi(cv, s, A.centerX(), cy - h / 2 + boy * 1.22 * (j + 0.5), boy, self.p["murekkep"],
-                      agirlik=700, p=prog(u, 0.2 + 0.18 * j, 0.5), kimlik=10 + j, t=t)
+                      agirlik=700, p=prog(u, t0, 0.45 if es else 0.5), kimlik=10 + j, t=t)
         if sh.get("kaynak"):
             b = self.sigdir("— " + sh["kaynak"], 56, gen, 700)
+            t0 = (kel[-1]["son"] if es else 0.4 + 0.18 * len(sat))
             self.yazi(cv, "— " + sh["kaynak"], A.centerX(), cy + h / 2 + 70, b, self.p["soluk"], agirlik=700,
-                      p=prog(u, 0.4 + 0.18 * len(sat), 0.5))
+                      p=prog(u, min(t0, d - EN_GEC), 0.5))
 
     def ciz_karsilastirma(self, cv, sh, u, d, A, t):
         dik = A.height() > A.width() * 1.15
@@ -321,8 +396,8 @@ class Kaplama:
             r1 = skia.Rect.MakeLTRB(A.left(), ust, A.left() + pw, A.bottom())
             r2 = skia.Rect.MakeLTRB(A.right() - pw, ust, A.right(), A.bottom())
         for k, (r, ad, deger, zemin, yazi_r, t0) in enumerate((
-                (r1, sh["sol"], sh.get("sol_deger"), self.p["yuzey"], self.p["soluk"], 0.1),
-                (r2, sh["sag"], sh.get("sag_deger"), self.p["vurgu"], self.p["vurgu_yazi"], 0.55))):
+                (r1, sh["sol"], sh.get("sol_deger"), self.p["yuzey"], self.p["soluk"], self.an(sh, "sol", 0.1)),
+                (r2, sh["sag"], sh.get("sag_deger"), self.p["vurgu"], self.p["vurgu_yazi"], self.an(sh, "sag", 0.55)))):
             pp = prog(u, t0, 0.45)
             self.panel(cv, r, zemin, pp, kimlik=40 + k, t=t)
             gen = r.width() * 0.84
@@ -335,7 +410,7 @@ class Kaplama:
             else:
                 sat, b = self.sar(self.harf(ad), min(120, r.height() * 0.3), gen, 2)
                 self.satirlar(cv, sat, r.centerX(), r.centerY(), b, yazi_r, u=u, p0=t0 + 0.05, buyuk=True, kimlik=60 + k, t=t)
-        pa = prog(u, 0.45, 0.3)
+        pa = prog(u, self.an(sh, "sag", 0.55) - 0.1, 0.3)
         if pa > 0:
             x, y = (A.centerX(), (r1.bottom() + r2.top()) / 2) if dik else ((r1.right() + r2.left()) / 2, (r1.centerY()))
             self.ok(cv, x, y, 30 * out_back(pa), dik)
@@ -374,7 +449,7 @@ class Kaplama:
         y = yr.centerY() - top / 2
         for k, (tur, s, b) in enumerate(parca):
             h = len(s) * b * 1.15
-            p0 = 0.3 + 0.2 * k
+            p0 = 0.3 + 0.2 * k if tur == "ad" else self.an(sh, "ozellik" if tur == "oz" else "fiyat", 0.3 + 0.2 * k)
             if tur == "fiyat":
                 w = self.olc(s[0], b) + b * 1.1
                 pr = skia.Rect.MakeXYWH(yr.centerX() - w / 2, y, w, b * 1.5)
@@ -407,7 +482,7 @@ class Kaplama:
         alt = sh.get("alt") or self.marka.get("ad")
         if alt:
             b2 = self.sigdir(alt, 58, gen, 700)
-            self.yazi(cv, alt, A.centerX(), r.bottom() + b2 * 1.6, b2, self.p["soluk"], agirlik=700, p=prog(u, 0.55, 0.45))
+            self.yazi(cv, alt, A.centerX(), r.bottom() + b2 * 1.6, b2, self.p["soluk"], agirlik=700, p=prog(u, self.an(sh, "alt", 0.55), 0.45))
 
     def ciz_gecis(self, cv, sh, u, d, A, t):
         if sh.get("metin"):
@@ -446,6 +521,10 @@ class Kaplama:
             self.sahne_ciz(cv, i, t, VW, VH, fmt)
         cv.restore()
         self.ust_katman(cv, W, H, t)
+        if self.altyazi:  # dokunun üstünde: her stilde okunur kalsın
+            cv.save(); cv.scale(u, u)
+            self.altyazi_ciz(cv, VW, VH, t, fmt)
+            cv.restore()
 
 
 def kaplamalar() -> dict[str, type]:

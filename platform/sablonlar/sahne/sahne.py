@@ -14,6 +14,8 @@ Kendi çizimiyle (kaplama) çalışan stiller: kinetik, kagit-kesik, izometrik, 
 klasörüne eklenen her stil). Çeviriciyle: vitray, linol, cini, teknik-cizim (desen), kalkis-tabelasi, vhs,
 akis-alani (ekran). `stil.py` bu biçimdeki senaryoları buraya iletir.
 Çıktı varsayılanı senaryonun yanındaki `cikti/`; seslendirme `cikti/seslendirme/` (bütün stillerde ortak).
+Öğeler anlatıcı kendi kelimesini söylediği an girer (senkron.py). Her renderın yanına `.srt`/`.vtt` altyazı yazılır;
+senaryoda `"altyazi": true` kelime kelime altyazıyı videoya da yakar (kaplamalar kendi çizer, çeviriciler libass ile).
 """
 
 from __future__ import annotations
@@ -28,8 +30,10 @@ BURADA = Path(__file__).resolve().parent
 sys.path.insert(0, str(BURADA))
 sys.path.insert(0, str(BURADA.parents[1] / "ses"))
 sys.path.append(str(BURADA.parents[1] / "ortak"))
+import altyazi  # noqa: E402
 import cevir  # noqa: E402
 import dil  # noqa: E402
+import senkron  # noqa: E402
 
 
 def kaplama_adlari() -> list[str]:
@@ -118,7 +122,16 @@ def render(z: dict, stil: str, cikti: Path, formatlar: list[str], olcek: float =
     out.append(tek_kare(kap, formatlar[0], *_boyut(formatlar[0], olcek), z.get("kapak_t", son["son"] - 0.2), cikti / f"{ad}-kapak.png"))
     for x in ("ses.wav", "ses-master.wav"):
         (is_ / x).unlink(missing_ok=True)
-    return out
+    return out + altyazi_yaz(z, cikti / ad)
+
+
+def altyazi_yaz(z: dict, kok: Path) -> list[Path]:
+    """platformlara yüklenecek altyazı (.srt, .vtt) + yeniden yakmak için gruplar (.altyazi.json)"""
+    if not z.get("_altyazi"):
+        return []
+    if "tahmin" in z.get("_altyazi_kaynak", []):
+        print("UYARI: bazı satırlarda kelime zamanı yok (Piper ya da eski önbellek); altyazı zamanları tahmini.", file=sys.stderr)
+    return altyazi.yaz(z["_altyazi"], kok)
 
 
 def _yonlendir(komut: str, z: dict, stil: str, cikti: Path, a, yakala: list | None = None) -> int:
@@ -131,6 +144,22 @@ def _yonlendir(komut: str, z: dict, stil: str, cikti: Path, a, yakala: list | No
         arg += ["--an", *map(str, a.an), "--format", a.format]
     elif komut in ("render", "uret"):
         arg += ["--format", *a.format] + (["--olcek", str(a.olcek)] if stil in cevir.DESEN else [])
+    if komut in ("render", "uret") and yakala is None:  # çıktı yollarını yakalayıp altyazıyı ekler
+        r = subprocess.run(arg, stdout=subprocess.PIPE, text=True)
+        videolar = [Path(x.strip()) for x in r.stdout.splitlines() if x.strip().endswith(".mp4") and Path(x.strip()).exists()]
+        print(r.stdout, end="")
+        if r.returncode:
+            return r.returncode
+        for p in altyazi_yaz(z, cikti / f"{z.get('kimlik', 'sahne')}-{stil}"):
+            print(p)
+        if senkron.acik(z) and z.get("_altyazi"):
+            import kalite
+            sys.path.insert(0, str(BURADA.parent / "stil"))
+            import motor
+            for v in videolar:
+                altyazi.yak(v, z["_altyazi"], v, yazi_dizini=motor.FONT_ONBELLEK)
+                kalite.render_sonrasi(v)
+        return 0
     if yakala is None:
         return subprocess.run(arg).returncode
     r = subprocess.run(arg, capture_output=True, text=True)
@@ -271,6 +300,10 @@ def main(argv: list[str] | None = None) -> int:
     ses_dizini = cikti / "seslendirme"
     if not hatalar and stil in cevir.STILLER:
         hatalar += cevir.denetle(dil.zamanla(s, dil.sureler_oku(ses_dizini)), stil)
+    if "altyazi" in s and not (isinstance(s["altyazi"], bool) or isinstance(s["altyazi"], dict)):
+        hatalar.append("altyazi: true/false olmalı")
+    if "senkron" in s and not isinstance(s["senkron"], bool):
+        hatalar.append("senkron: true/false olmalı")
     for h in hatalar:
         print(f"HATA: {h}", file=sys.stderr)
     if hatalar:
@@ -290,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{x['id']}\t{x['sure']:.2f} sn\t{x['metin']}")
         if a.komut == "seslendir":
             return 0
-    z = dil.zamanla(s, dil.sureler_oku(ses_dizini))
+    z = senkron.bagla(dil.zamanla(s, dil.sureler_oku(ses_dizini)), ses_dizini)
     if a.komut == "kontakt":
         try:
             fmt = formatlar.anahtar(a.format)

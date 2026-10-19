@@ -1,0 +1,30 @@
+{
+  "kimlik": "kucuk-aliskanliklar-cizgisel",
+  "stil": "cizgisel",
+  "sure": 15.0,
+  "fps": 30,
+  "format": ["9x16"],
+  "dil": "tr",
+  "palet": {"zemin": "#F7F5EF", "cizgi": "#161616", "vurgu": "#FFD25A", "dolgu": "#FFFFFF", "yazi": "#161616"},
+  "karakter": {"sac": "kase", "gozluk": false},
+  "muzik": {"bpm": 104},
+  "sahneler": [
+    {"bas": 0, "poz": "selam", "ifade": "gulumse", "yazi": "büyük hedefler", "enerji": "sakin",
+     "anahtarlar": [{"t": 1.6, "poz": "dusun", "ifade": "dusunceli"}]},
+    {"bas": 3.4, "poz": "omuz", "ifade": "uzgun", "nesne": {"tur": "soru"}, "yazi": "nereden başlamalı?", "enerji": "sakin"},
+    {"bas": 6.2, "poz": "el_kaldir", "ifade": "sasir", "nesne": {"tur": "tabela", "metin": "%1"}, "yazi": "fikir geldi",
+     "anahtarlar": [{"t": 6.9, "ifade": "gulumse"}]},
+    {"bas": 9.0, "poz": "isaret", "ifade": "kararli", "nesne": {"tur": "grafik"}, "yazi": "her gün biraz", "enerji": "enerjik"},
+    {"bas": 11.8, "poz": "sevin", "ifade": "sevincli", "nesne": {"tur": "ampul"}, "yazi": "küçük adım, büyük fark", "enerji": "enerjik"}
+  ],
+  "seslendirme": {
+    "ses": "george",
+    "satirlar": [
+      {"id": "v1", "t": 0.35, "metin": "Büyük hedefler insanı korkutur."},
+      {"id": "v2", "t": 3.6, "metin": "Peki nereden başlamalı?"},
+      {"id": "v3", "t": 6.4, "metin": "Her gün yüzde bir daha iyi ol."},
+      {"id": "v4", "t": 9.2, "metin": "Küçük adımlar birikir."},
+      {"id": "v5", "t": 12.0, "metin": "Ve bir gün fark büyür."}
+    ]
+  }
+}

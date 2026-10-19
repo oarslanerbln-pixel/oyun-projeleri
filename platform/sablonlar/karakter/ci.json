@@ -2,7 +2,9 @@
   "denetle": [
     {
       "dosyalar": [
-        "ornekler/*/cizgisel.json"
+        "ornekler/*/cizgisel.json",
+        "ornekler/*/maskot.json",
+        "ornekler/*/siluet.json"
       ],
       "komut": [
         "{python}",

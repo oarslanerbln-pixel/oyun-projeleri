@@ -16,7 +16,7 @@ SABLONLAR = os.path.dirname(BURADA)
 sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
-KARAKTER_STILLERI = ['cizgisel']  # platform/sablonlar/karakter: ortak iskelet + görünüm katmanı
+KARAKTER_STILLERI = ['cizgisel', 'maskot', 'siluet']  # platform/sablonlar/karakter: ortak iskelet + görünüm katmanı
 TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini'] + KARAKTER_STILLERI
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 

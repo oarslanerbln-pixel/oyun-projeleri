@@ -1,0 +1,8 @@
+{
+  "denetle": [
+    {
+      "dosyalar": ["ornekler/*/karusel.json"],
+      "komut": ["{python}", "{modul}/karusel.py", "denetle", "{dosya}"]
+    }
+  ]
+}

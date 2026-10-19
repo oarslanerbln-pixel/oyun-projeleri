@@ -1,0 +1,9 @@
+{
+  "kimlik": "demli-kahve-neon",
+  "stil": "neon",
+  "dil": "tr",
+  "format": "9:16",
+  "sure": 8,
+  "marka": "marka/marka.json",
+  "neon": {"logo": "Demli Kahve", "monogram": "DK", "ust": "Kahve · Kurabiye · Sohbet", "cagri": "Her gün 08:00 – 20:00"}
+}

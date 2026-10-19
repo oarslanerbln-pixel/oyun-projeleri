@@ -19,11 +19,11 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `platform/uretim/` | AI üretim: `uretim.py` (fal.ai Kling), `gorsel.py` (Flux/Recraft), bütçe + önbellek; `FAL_KEY` gerekir |
 | `platform/marka`, `metin`, `medya` | marka paleti, metin/çeviri tablosu, teslim formatları (`teslim.json`, `turev.py`) |
 | `platform/sablonlar/stil/stil.py` | Ortak giriş: `stil.py uret <dosya> --stil <ad> --format 9:16\|16:9\|1:1\|4:5\|ikisi` |
-| `platform/sablonlar/sahne/` | **Ortak sahne dili**: tek senaryo (`"dil": "sahne"`, 8 sahne tipi) 13 stilde; `sahne.py kontakt` her stilden kareler tek sayfada; `sahne.py yeni-stil <ad>` yeni stil kiti; öğeler kelimeye senkron girer, `"altyazi": true` kelime kelime altyazı (`senkron.py`). README orada |
+| `platform/sablonlar/sahne/` | **Ortak sahne dili**: tek senaryo (`"dil": "sahne"`, 8 sahne tipi) 13 stilde; `sahne.py kontakt` her stilden kareler tek sayfada; `sahne.py yeni-stil <ad>` yeni stil kiti; öğeler kelimeye senkron girer, `"altyazi": true` kelime kelime altyazı (`senkron.py`); `grafik` tipi CSV'den çubuk/çizgi/pasta; `bol.py` düz metinden sahne.json taslağı; `kanca.py` üç açılış varyantı (soru, rakam, şok). README orada |
 | `platform/sablonlar/kurgu/` | Uzun video kurgusu (`kurgu.json`: sahneler, tek müzik, bölüm listesi) |
 | `platform/sablonlar/<stil>/` | Her şablonun README'si kullanımı anlatır (aşağıdaki tablo) |
 | `platform/ci/`, `.github/workflows/` | CI (`platform.yml`, kirk-oda iş akışları) |
-| `ornekler/` | Örnek senaryolar `ornekler/*/<stil>.json` (senaryo.json adı kullanılmaz); ortak sahne dili örnekleri `ornekler/*/sahne.json` |
+| `ornekler/` | Örnek senaryolar `ornekler/*/<stil>.json` (senaryo.json adı kullanılmaz); ortak sahne dili örnekleri `ornekler/*/sahne.json` (demli-kahve her tipi, grafik dahil, içerir) |
 | `denemeler/` | ebru ve gerçekçi 3D test kodu (şablon değil) |
 | `kirk-oda/` | Unity oyunu; K1 (2027-01-10) öncesi dosyaları taşınmaz |
 

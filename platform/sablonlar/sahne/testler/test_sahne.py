@@ -12,8 +12,10 @@ import numpy as np
 
 BURADA = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BURADA))
+import bol  # noqa: E402
 import cevir  # noqa: E402
 import dil  # noqa: E402
+import kanca  # noqa: E402
 import sahne  # noqa: E402
 
 DEPO = BURADA.parents[2]
@@ -72,6 +74,108 @@ class Cevirici(unittest.TestCase):
         self.assertTrue(cevir.denetle(z, "vitray"))  # alıntı 16 karakterlik başlığa sığmaz
 
 
+class Grafik(unittest.TestCase):
+    def test_csv_okunur(self):
+        with tempfile.TemporaryDirectory() as g:
+            (Path(g) / "v.csv").write_text("Ay;Satış\nOcak;1.200\nŞubat;1.850,5\n", encoding="utf-8")
+            self.assertEqual(dil.veri_oku({"veri": "v.csv"}, g), [("Ocak", 1200.0), ("Şubat", 1850.5)])
+            (Path(g) / "w.csv").write_text("a,3\nb,4.5\n", encoding="utf-8")
+            self.assertEqual(dil.veri_oku({"veri": "w.csv"}, g), [("a", 3.0), ("b", 4.5)])
+
+    def test_grafik_hatalari(self):
+        s = ornek()
+        g = next(sh for sh in s["sahneler"] if sh["tip"] == "grafik")
+        for degis, parca in (({"tur": "halka"}, "tur"), ({"veri": [["a", 1]]}, "2–8"), ({"veri": [["a", "x"], ["b", 2]]}, "sayı değil"),
+                             ({"tur": "pasta", "veri": [["a", -1], ["b", 2]]}, "negatif"), ({"veri": "yok.csv"}, "bulunamadı"),
+                             ({"kanca": "yok"}, "kanca")):
+            s2 = copy.deepcopy(s)
+            next(sh for sh in s2["sahneler"] if sh["tip"] == "grafik").update(degis)
+            self.assertIn(parca, "\n".join(dil.denetle(s2)), degis)
+        self.assertEqual(dil.bicim(1200, "{} ₺"), "1.200 ₺")
+        self.assertEqual(dil.bicim(12.5, "%{}"), "%12,5")
+
+    def test_ceviricide_en_buyuk_deger(self):
+        z = dil.zamanla(ornek())
+        x = cevir.cevir(z, "kalkis-tabelasi")
+        self.assertIn("*260 fincan* Cum", [sh["metin"] for sh in x["sahneler"]])
+
+
+METIN = """# Küçük alışkanlıklar büyük fark yaratır
+
+Her gün yüzde 1 daha iyi olursan, bir yılın sonunda 37 kat daha iyi olursun. Bu bir sihir değil, matematik.
+
+Başlamak için üç adım:
+- Küçük başla
+- Her gün aynı saatte yap
+- İlerlemeni yaz
+
+Bir yılda tekrar sayısı:
+tur: cizgi
+Ocak: 20
+Nisan: 45
+Ağustos: 80
+
+"Başarı, küçük çabaların toplamıdır." — Robert Collier
+
+---
+
+Bu videoyu kaydet ve yarın ilk adımı at.
+"""
+
+
+class Bolme(unittest.TestCase):
+    def test_metinden_sahneler(self):
+        shs = bol.bol(METIN)
+        self.assertEqual([sh["tip"] for sh in shs],
+                         ["baslik", "sayi", "karsilastirma", "liste", "grafik", "alinti", "gecis", "cta"])
+        self.assertEqual(shs[1]["deger"], "37x")
+        self.assertEqual(shs[4]["tur"], "cizgi")
+        self.assertEqual(shs[5]["kaynak"], "Robert Collier")
+        self.assertEqual(shs[0]["seslendirme"], "Küçük alışkanlıklar büyük fark yaratır")
+        s = bol.senaryo(shs, "deneme", "9:16", None)
+        self.assertEqual(dil.denetle(s), [])
+
+    def test_almanca_ve_uzun_metin(self):
+        shs = bol.bol("Unser Umsatz stieg um 40 %.\n\nJetzt folgen und nichts verpassen!")
+        self.assertEqual(shs[0]["tip"], "baslik")
+        self.assertEqual(bol._sayi("Unser Umsatz stieg um 40 %.")["deger"], "40%")
+        self.assertEqual(shs[-1]["tip"], "cta")
+        uzun = "\n\n".join(f"Cümle numarası {k} burada duruyor." for k in range(30))
+        with tempfile.TemporaryDirectory() as g:
+            (Path(g) / "u.txt").write_text(uzun, encoding="utf-8")
+            bol.main([str(Path(g) / "u.txt")])
+            self.assertEqual(sorted(p.name for p in Path(g).glob("*.json")), ["u.sahne-1.json", "u.sahne-2.json"])
+
+    def test_kisaltma_kesmez(self):
+        self.assertLessEqual(len(bol.kisalt("Bu cümle ekran için fazlasıyla uzun ve kalabalık bir cümle", 28)), 28)
+        self.assertEqual(bol.ikiye("Küçük alışkanlıklar büyük fark yaratır", 28, 40), ("Küçük alışkanlıklar", "büyük fark yaratır"))
+
+
+class Kanca(unittest.TestCase):
+    def test_uc_varyant(self):
+        s = ornek()
+        soru, rakam, sok = (kanca.varyant(s, t) for t in kanca.TURLER)
+        self.assertEqual(soru["sahneler"][0]["kanca"], "soru")
+        self.assertEqual(len(soru["sahneler"]), len(s["sahneler"]) + 1)
+        self.assertEqual(rakam["sahneler"][0]["tip"], "sayi")
+        self.assertEqual(len(rakam["sahneler"]), len(s["sahneler"]))  # sayı başa taşındı
+        self.assertEqual(sok["sahneler"][0]["kanca"], "sok")
+        for v in (soru, rakam, sok):
+            self.assertEqual(dil.denetle(v), [], v["kimlik"])
+
+    def test_grafikten_rakam_ve_ozel_metin(self):
+        s = ornek()
+        s["sahneler"] = [sh for sh in s["sahneler"] if sh["tip"] != "sayi"]
+        self.assertEqual(kanca.varyant(s, "rakam")["sahneler"][0]["deger"], "260")
+        s["kancalar"] = {"soru": "Hâlâ hazır kahve mi?"}
+        v = kanca.varyant(s, "soru")
+        self.assertEqual(v["sahneler"][0]["metin"], "Hâlâ hazır kahve mi?")
+        self.assertNotIn("kancalar", v)
+        s["sahneler"] = [sh for sh in s["sahneler"] if sh["tip"] != "grafik"]
+        self.assertIsNone(kanca.varyant(s, "rakam"))
+        self.assertEqual(kanca.dil_kodu({"sahneler": [{"seslendirme": "Das ist nicht mit dir und der Welt"}]}), "de")
+
+
 class Kaplamalar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -112,6 +216,23 @@ class Kaplamalar(unittest.TestCase):
                                 kap.kare(cv, t, W, H, fmt)
                             a = surf.makeImageSnapshot().toarray()
                             self.assertGreater(a[..., :3].std(), 2.0, f"{ad} {fmt} {sh['tip']} {t:.2f}")
+
+    def test_grafik_turleri_ve_sok(self):
+        import skia
+        s = ornek()
+        s["sahneler"] = [{"tip": "grafik", "tur": tur, "veri": [["A", 3], ["B", 5], ["C", 2], ["D", 4]], "baslik": "Deneme",
+                          "kaynak": "kaynak", "seslendirme": "bir iki üç dört"} for tur in ("cizgi", "pasta", "cubuk")]
+        s["sahneler"][1]["kanca"] = "sok"
+        self.assertEqual(dil.denetle(s), [])
+        z = dil.zamanla(s)
+        for ad in sahne.kaplama_adlari():
+            kap = sahne.kaplama_yap(z, ad)
+            for fmt, (W, H) in (("9x16", (216, 384)), ("16x9", (384, 216))):
+                for sh in z["sahneler"]:
+                    surf = skia.Surface(W, H)
+                    with surf as cv:
+                        kap.kare(cv, sh["son"] - 0.05, W, H, fmt)
+                    self.assertGreater(surf.makeImageSnapshot().toarray()[..., :3].std(), 2.0, f"{ad} {fmt} {sh.get('tur')}")
 
     def test_kelimeye_senkron_ve_altyazi(self):
         import skia

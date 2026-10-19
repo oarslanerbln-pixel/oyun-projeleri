@@ -8,6 +8,7 @@ Yeni stil yalnız değiştirmek istediğini ezer. Sahne tipleri (`baslik`, `list
     yazi(cv, s, x, y, boy, renk, ...)      tek satır yazı (y = satırın dikey ortası)
     buyuk_yazi(...)                        büyük başlık/sayı yazısı (varsayılan: yazi)
     isaret(cv, x, y, r, renk, p, kimlik, t, n)   liste imi
+    cubuk(cv, r, renk, p, kimlik, t)       grafik çubuğu (varsayılan: panel)
     nesne(cv, r, sh, p, t)                 görseli olmayan ürün için stile özgü nesne
     gecis_ciz(cv, VW, VH, p, eski, yeni)   sahne geçişi (eski/yeni: çizen işlevler)
     ust_katman(cv, W, H, t)                piksel düzeyinde son katman (doku, tanecik)
@@ -34,6 +35,7 @@ BURADA = Path(__file__).resolve().parent
 sys.path.insert(0, str(BURADA.parent / "stil"))
 sys.path.append(str(BURADA.parents[1] / "ortak"))
 import altyazi  # noqa: E402
+import dil  # noqa: E402
 import motor  # noqa: E402  (Inter yazı tipi, Türkçe büyük/küçük harf)
 
 # (sol, sağ, üst, alt) sınırı, ekran oranı. 9:16: Reels arayüzü üst %10, alt %22, sağ %13 (beğen/yorum sütunu).
@@ -484,6 +486,171 @@ class Kaplama:
             b2 = self.sigdir(alt, 58, gen, 700)
             self.yazi(cv, alt, A.centerX(), r.bottom() + b2 * 1.6, b2, self.p["soluk"], agirlik=700, p=prog(u, self.an(sh, "alt", 0.55), 0.45))
 
+    # ---------- veri sahnesi ----------
+    def cubuk(self, cv, r, renk_, p=1.0, kimlik=0, t=0.0):
+        """grafik çubuğu; varsayılan stilin paneli (kâğıt, hamur, blok...), çok ince çubukta düz dikdörtgen"""
+        if min(r.width(), r.height()) < 18:
+            cv.drawRect(r, skia.Paint(AntiAlias=True, Color=alfa(renk_, clamp(p * 1.5))))
+        else:
+            self.panel(cv, r, renk_, p, kimlik, t)
+
+    def renkler(self, n):
+        c = [self.p["vurgu"], self.p["ikinci"], self.p["ucuncu"], self.p["soluk"], self.p["murekkep"],
+             karis(self.p["vurgu"], self.p["zemin"], 0.5)]
+        return [c[j % len(c)] for j in range(n)]
+
+    def ciz_grafik(self, cv, sh, u, d, A, t):
+        veri = dil.veri_oku(sh, self.klasor)
+        n, tur, birim = len(veri), sh.get("tur", "cubuk"), sh.get("birim", "")
+        gen = A.width() * 0.92
+        ust = A.top()
+        if sh.get("baslik"):
+            sat, b = self.sar(self.harf(sh["baslik"]), 100, gen, 2)
+            h = len(sat) * b * 1.1
+            self.satirlar(cv, sat, A.centerX(), ust + h / 2, b, self.p["vurgu"], u=u, aralik=1.1, buyuk=True, t=t)
+            ust += h + 40
+        alt = A.bottom()
+        if sh.get("kaynak"):
+            b = self.sigdir(sh["kaynak"], 36, gen, 600)
+            self.yazi(cv, sh["kaynak"], A.centerX(), alt - b * 0.6, b, self.p["soluk"], agirlik=600, p=prog(u, 0.5, 0.5))
+            alt -= b * 1.2 + 24
+        P = skia.Rect.MakeLTRB(A.left(), ust, A.right(), alt)
+        self.panel(cv, P, self.p["yuzey"], prog(u, 0.0, 0.45), kimlik=60, t=t)
+        P = P.makeInset(min(48, P.width() * 0.05), min(44, P.height() * 0.06))
+        aralik = min(0.45, max(0.15, (d - 1.4) / (n + 1)))
+        anlar = [self.an(sh, f"veri{j}", 0.35 + j * aralik) for j in range(n)]
+        getattr(self, "_grafik_" + tur)(cv, veri, anlar, birim, P, u, d, t)
+
+    def _grafik_cubuk(self, cv, veri, anlar, birim, P, u, d, t):
+        n = len(veri)
+        enb = max(v for _, v in veri) or 1.0
+        degerler = [dil.bicim(v, birim) for _, v in veri]
+        if P.height() > P.width():  # dikey video: yatay çubuklar, etiket solda, değer sağda
+            sat_h = P.height() / n
+            boy = min(56, sat_h * 0.34)
+            ew = min(P.width() * 0.34, max(self.olc(e, boy, 700) for e, _ in veri))
+            boy = min(boy, *(self.sigdir(e, boy, ew, 700) for e, _ in veri))
+            dw = max(self.olc(x, boy) for x in degerler) + 20
+            x0, x1 = P.left() + ew + 24, P.right() - dw
+            for j, ((e, v), x) in enumerate(zip(veri, degerler)):
+                yy = P.top() + sat_h * (j + 0.5)
+                g = out_cubic(prog(u, anlar[j], 0.6))
+                if g <= 0:
+                    continue
+                self.yazi(cv, e, x0 - 24, yy, boy, self.p["murekkep"], "sag", 700, prog(u, anlar[j], 0.35), kimlik=70 + j, t=t)
+                w = (x1 - x0) * v / enb * g
+                if w > 1:
+                    self.cubuk(cv, skia.Rect.MakeLTRB(x0, yy - sat_h * 0.3, x0 + w, yy + sat_h * 0.3),
+                               self.p["vurgu"] if v == enb else self.p["soluk"], min(1.0, g * 2), kimlik=40 + j, t=t)
+                self.yazi(cv, say(x, g), x0 + w + 16, yy, boy, self.p["murekkep"], "sol", p=min(1.0, g * 2), kimlik=80 + j, t=t)
+        else:  # yatay/kare: dikey sütunlar, etiket altta, değer üstte
+            sut = P.width() / n
+            boy = min(46, sut * 0.24)
+            boy = min(boy, *(self.sigdir(e, boy, sut * 0.92, 700) for e, _ in veri), *(self.sigdir(x, boy * 1.1, sut * 0.92) for x in degerler))
+            y1, y0 = P.bottom() - boy * 1.6, P.top() + boy * 1.8
+            cv.drawLine(P.left(), y1, P.right(), y1, skia.Paint(AntiAlias=True, Color=alfa(self.p["soluk"], 0.6), StrokeWidth=4))
+            for j, ((e, v), x) in enumerate(zip(veri, degerler)):
+                cx = P.left() + sut * (j + 0.5)
+                g = out_cubic(prog(u, anlar[j], 0.6))
+                if g <= 0:
+                    continue
+                self.yazi(cv, e, cx, P.bottom() - boy * 0.7, boy, self.p["murekkep"], agirlik=700, p=prog(u, anlar[j], 0.35), kimlik=70 + j, t=t)
+                h = (y1 - y0) * v / enb * g
+                if h > 1:
+                    self.cubuk(cv, skia.Rect.MakeLTRB(cx - sut * 0.3, y1 - h, cx + sut * 0.3, y1),
+                               self.p["vurgu"] if v == enb else self.p["soluk"], min(1.0, g * 2), kimlik=40 + j, t=t)
+                self.yazi(cv, say(x, g), cx, y1 - h - boy * 0.9, boy * 1.1, self.p["murekkep"], p=min(1.0, g * 2), kimlik=80 + j, t=t)
+
+    def _grafik_cizgi(self, cv, veri, anlar, birim, P, u, d, t):
+        n = len(veri)
+        vs = [v for _, v in veri]
+        lo, hi = min(0.0, min(vs)), max(vs)
+        hi = hi if hi > lo else lo + 1
+        boy = min(44, P.width() / min(n, 6) * 0.22)
+        her = max(1, math.ceil(n / 6))  # en çok ~6 etiket
+        goster = [j for j in range(n) if j % her == 0 or j == n - 1]
+        boy = min(boy, *(self.sigdir(veri[j][0], boy, P.width() / len(goster) * 0.9, 700) for j in goster))
+        y1, y0 = P.bottom() - boy * 1.6, P.top() + boy * 2.0
+        pay = max(self.olc(veri[0][0], boy, 700), self.olc(veri[-1][0], boy, 700)) / 2 + 8
+        x0, x1 = P.left() + pay, P.right() - pay
+        pts = [(x0 + (x1 - x0) * j / (n - 1), y1 - (y1 - y0) * (v - lo) / (hi - lo)) for j, v in enumerate(vs)]
+        cv.drawLine(P.left(), y1, P.right(), y1, skia.Paint(AntiAlias=True, Color=alfa(self.p["soluk"], 0.6), StrokeWidth=4))
+        t0 = anlar[0]
+        g = in_out(prog(u, t0, max(1.0, min(d * 0.5, 0.35 * n))))
+        k = g * (n - 1)  # çizginin vardığı nokta (kesirli)
+        son = int(k)
+        yol = skia.Path(); alan = skia.Path()
+        yol.moveTo(*pts[0]); alan.moveTo(pts[0][0], y1); alan.lineTo(*pts[0])
+        for j in range(1, son + 1):
+            yol.lineTo(*pts[j]); alan.lineTo(*pts[j])
+        if son < n - 1 and g > 0:
+            f = k - son
+            q = (lerp(pts[son][0], pts[son + 1][0], f), lerp(pts[son][1], pts[son + 1][1], f))
+            yol.lineTo(*q); alan.lineTo(*q)
+        uc = q if son < n - 1 and g > 0 else pts[son]
+        alan.lineTo(uc[0], y1); alan.close()
+        if g > 0:
+            cv.drawPath(alan, skia.Paint(AntiAlias=True, Color=alfa(self.p["vurgu"], 0.16)))
+            cv.drawPath(yol, skia.Paint(AntiAlias=True, Color=self.p["vurgu"], Style=skia.Paint.kStroke_Style, StrokeWidth=12,
+                                        StrokeCap=skia.Paint.kRound_Cap, StrokeJoin=skia.Paint.kRound_Join))
+        enb = vs.index(max(vs))
+        for j, (x, y) in enumerate(pts):
+            if j > k + 1e-6:
+                break
+            pj = prog(u, t0 + (j / max(1, n - 1)) * max(1.0, min(d * 0.5, 0.35 * n)), 0.3)
+            cv.drawCircle(x, y, 13 * out_back(pj), skia.Paint(AntiAlias=True, Color=self.p["murekkep"]))
+            cv.drawCircle(x, y, 7 * out_back(pj), skia.Paint(AntiAlias=True, Color=self.p["vurgu"]))
+            if j in goster:
+                self.yazi(cv, veri[j][0], x, P.bottom() - boy * 0.7, boy, self.p["murekkep"], agirlik=700, p=pj, kimlik=70 + j, t=t)
+            if j in (enb, n - 1):
+                v = dil.bicim(vs[j], birim)
+                b = self.sigdir(v, boy * 1.25, (x1 - x0) / 2)
+                self.yazi(cv, v, x, y - b * 1.1, b, self.p["vurgu"] if j == enb else self.p["murekkep"], p=pj, kimlik=80 + j, t=t)
+
+    def _grafik_pasta(self, cv, veri, anlar, birim, P, u, d, t):
+        n = len(veri)
+        top = sum(v for _, v in veri)
+        renk_ = self.renkler(n)
+        dik = P.height() > P.width() * 1.05
+        if dik:
+            R = min(P.width() * 0.38, P.height() * 0.26)
+            cx, cy = P.centerX(), P.top() + R + 20
+            L = skia.Rect.MakeLTRB(P.left(), cy + R + 50, P.right(), P.bottom())
+        else:
+            R = min(P.height() * 0.42, P.width() * 0.24)
+            cx, cy = P.left() + R + 30, P.centerY()
+            L = skia.Rect.MakeLTRB(cx + R + 70, P.top(), P.right(), P.bottom())
+        kal = R * 0.44
+        r = skia.Rect.MakeLTRB(cx - R + kal / 2, cy - R + kal / 2, cx + R - kal / 2, cy + R - kal / 2)
+        a = -90.0
+        for j, (e, v) in enumerate(veri):
+            sw = 360.0 * v / top
+            g = out_cubic(prog(u, anlar[j], 0.55))
+            if g > 0 and sw > 0:
+                cv.drawArc(r, a, max(0.5, sw * g - 1.2), False, skia.Paint(AntiAlias=True, Color=renk_[j], Style=skia.Paint.kStroke_Style,
+                                                                          StrokeWidth=kal))
+            a += sw
+        enb = max(range(n), key=lambda j: veri[j][1])
+        pk = birim if "%" in birim else "%{}"
+        pb = prog(u, anlar[enb], 0.8)
+        yuzde = dil.bicim(round(100 * veri[enb][1] / top), pk)
+        b = self.sigdir(yuzde, R * 0.5, R * 1.0)
+        self.buyuk_yazi(cv, say(yuzde, pb), cx, cy, b, renk_[enb], p=prog(u, anlar[enb], 0.3), kimlik=90, t=t)
+        sat_h = min(110, L.height() / n)
+        boy = min(52, sat_h * 0.48)
+        yuzdeler = [dil.bicim(round(100 * v / top), pk) for _, v in veri]
+        dw = max(self.olc(x, boy) for x in yuzdeler) + 16
+        boy = min(boy, *(self.sigdir(e, boy, L.width() - dw - boy * 1.6, 700) for e, _ in veri))
+        y = L.top() + (L.height() - sat_h * n) / 2 if not dik else L.top()
+        for j, (e, v) in enumerate(veri):
+            yy = y + sat_h * (j + 0.5)
+            pp = prog(u, anlar[j], 0.35)
+            if pp <= 0:
+                continue
+            cv.drawCircle(L.left() + boy * 0.4, yy, boy * 0.36 * out_back(pp), skia.Paint(AntiAlias=True, Color=renk_[j]))
+            self.yazi(cv, e, L.left() + boy * 1.1, yy, boy, self.p["murekkep"], "sol", 700, pp, kimlik=70 + j, t=t)
+            self.yazi(cv, yuzdeler[j], L.right(), yy, boy, self.p["soluk"], "sag", p=pp, kimlik=80 + j, t=t)
+
     def ciz_gecis(self, cv, sh, u, d, A, t):
         if sh.get("metin"):
             b = self.sigdir(self.harf(sh["metin"]), 110, A.width() * 0.86)
@@ -493,7 +660,24 @@ class Kaplama:
     def sahne_ciz(self, cv, i, t, VW, VH, fmt):
         sh = self.s["sahneler"][i]
         A = self.alan(VW, VH, fmt)
+        if sh.get("kanca") == "sok":
+            return self._sok(cv, sh, t, VW, VH, A)
         getattr(self, "ciz_" + sh["tip"])(cv, sh, t - sh["bas"], sh["son"] - sh["bas"], A, t)
+
+    def _sok(self, cv, sh, t, VW, VH, A):
+        """görsel şok kancası: ekran vurgu rengiyle dolar, yazı zemin rengine döner ve büyükten oturur"""
+        u = t - sh["bas"]
+        eski = dict(self.p)
+        cv.drawRect(skia.Rect.MakeWH(VW, VH), skia.Paint(Color=self.p["vurgu"]))
+        self.p.update(murekkep=eski["vurgu_yazi"], vurgu=eski["zemin"], soluk=eski["vurgu_yazi"],
+                      yuzey=karis(eski["vurgu"], eski["vurgu_yazi"], 0.12))
+        s = 1 + 0.22 * (1 - out_back(prog(u, 0.0, 0.4), 2.2))
+        cv.save(); cv.translate(VW / 2, VH / 2); cv.scale(s, s); cv.translate(-VW / 2, -VH / 2)
+        try:
+            getattr(self, "ciz_" + sh["tip"])(cv, sh, u, sh["son"] - sh["bas"], A, t)
+        finally:
+            cv.restore()
+            self.p = eski
 
     def sahne_sirasi(self, t):
         shs = self.s["sahneler"]

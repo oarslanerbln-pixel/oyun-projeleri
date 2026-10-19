@@ -1,24 +1,96 @@
 {
  "dil": "sahne",
  "kimlik": "demli-kahve-sahne",
- "not": "Ortak sahne dili, bütün sahne tipleri: başlık, liste, sayı, alıntı, geçiş, karşılaştırma, ürün, çağrı. Gerçek ürün fotoğrafı varsa urun.gorsel ile verilir (yeniden çizilmez).",
+ "not": "Ortak sahne dili, bütün sahne tipleri: başlık, liste, sayı, alıntı, geçiş, karşılaştırma, ürün, grafik, çağrı. Gerçek ürün fotoğrafı varsa urun.gorsel ile verilir (yeniden çizilmez).",
  "format": "9:16",
- "marka": {"ad": "Demli Kahve"},
+ "marka": {
+  "ad": "Demli Kahve"
+ },
  "palet": {},
  "sahneler": [
-  {"tip": "baslik", "ust": "Demli Kahve", "metin": "Sabahın ilk yudumu", "alt": "her gün taze kavrum",
-   "seslendirme": "Sabahın ilk yudumu, her gün taze kavrulur."},
-  {"tip": "liste", "baslik": "Neden biz?", "maddeler": ["Tek kökenli çekirdek", "Haftada iki kavrum", "Elde demleme"],
-   "seslendirme": "Tek kökenli çekirdek. Haftada iki kavrum. Elde demleme."},
-  {"tip": "sayi", "ust": "her ay", "deger": "1.200", "etiket": "fincan sevgiyle demlendi",
-   "seslendirme": "Her ay bin iki yüz fincan, sevgiyle demlendi."},
-  {"tip": "alinti", "metin": "Kahvenin kokusu, günün en güzel sözü.", "kaynak": "bir müdavim",
-   "seslendirme": "Kahvenin kokusu, günün en güzel sözü."},
-  {"tip": "gecis", "metin": "Peki fark?"},
-  {"tip": "karsilastirma", "sol": "hazır kahve", "sag": "taze demleme", "sol_deger": "3 ay", "sag_deger": "3 gün",
-   "seslendirme": "Hazır kahve üç aylık. Bizimki üç günlük."},
-  {"tip": "urun", "ad": "Sabah Harmanı", "ozellik": "fındık · karamel · kakao", "fiyat": "95 ₺",
-   "seslendirme": "Sabah Harmanı. Fındık, karamel ve kakao notaları."},
-  {"tip": "cta", "metin": "Gel, bir fincan iç.", "alt": "Moda · her gün 08–20", "seslendirme": "Gel, bir fincan iç."}
+  {
+   "tip": "baslik",
+   "ust": "Demli Kahve",
+   "metin": "Sabahın ilk yudumu",
+   "alt": "her gün taze kavrum",
+   "seslendirme": "Sabahın ilk yudumu, her gün taze kavrulur."
+  },
+  {
+   "tip": "liste",
+   "baslik": "Neden biz?",
+   "maddeler": [
+    "Tek kökenli çekirdek",
+    "Haftada iki kavrum",
+    "Elde demleme"
+   ],
+   "seslendirme": "Tek kökenli çekirdek. Haftada iki kavrum. Elde demleme."
+  },
+  {
+   "tip": "sayi",
+   "ust": "her ay",
+   "deger": "1.200",
+   "etiket": "fincan sevgiyle demlendi",
+   "seslendirme": "Her ay bin iki yüz fincan, sevgiyle demlendi."
+  },
+  {
+   "tip": "alinti",
+   "metin": "Kahvenin kokusu, günün en güzel sözü.",
+   "kaynak": "bir müdavim",
+   "seslendirme": "Kahvenin kokusu, günün en güzel sözü."
+  },
+  {
+   "tip": "gecis",
+   "metin": "Peki fark?"
+  },
+  {
+   "tip": "karsilastirma",
+   "sol": "hazır kahve",
+   "sag": "taze demleme",
+   "sol_deger": "3 ay",
+   "sag_deger": "3 gün",
+   "seslendirme": "Hazır kahve üç aylık. Bizimki üç günlük."
+  },
+  {
+   "tip": "urun",
+   "ad": "Sabah Harmanı",
+   "ozellik": "fındık · karamel · kakao",
+   "fiyat": "95 ₺",
+   "seslendirme": "Sabah Harmanı. Fındık, karamel ve kakao notaları."
+  },
+  {
+   "tip": "grafik",
+   "tur": "cubuk",
+   "baslik": "Haftanın fincanları",
+   "veri": [
+    [
+     "Pzt",
+     140
+    ],
+    [
+     "Sal",
+     165
+    ],
+    [
+     "Çar",
+     150
+    ],
+    [
+     "Per",
+     190
+    ],
+    [
+     "Cum",
+     260
+    ]
+   ],
+   "seslendirme": "Cuma, haftanın en yoğun günü: iki yüz altmış fincan.",
+   "birim": " fincan"
+  },
+  {
+   "tip": "cta",
+   "metin": "Gel, bir fincan iç.",
+   "alt": "Moda · her gün 08–20",
+   "seslendirme": "Gel, bir fincan iç."
+  }
  ]
 }

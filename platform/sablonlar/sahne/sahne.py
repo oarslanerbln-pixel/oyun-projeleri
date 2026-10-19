@@ -1,5 +1,5 @@
 """Ortak sahne dili: tek senaryo (`"dil": "sahne"`), her stilde aynı sahne tipleri (baslik, liste, sayi, alinti,
-karsilastirma, urun, cta, gecis). Zaman çizelgesi seslendirmeden çıkar; senaryoda saniye yazılmaz.
+karsilastirma, urun, cta, gecis, grafik). Zaman çizelgesi seslendirmeden çıkar; senaryoda saniye yazılmaz.
 
     S=platform/sablonlar/sahne/sahne.py
     python3 $S denetle   ornek.json [--stil izometrik]          # biçim + (verilirse) stilin kendi sınırları

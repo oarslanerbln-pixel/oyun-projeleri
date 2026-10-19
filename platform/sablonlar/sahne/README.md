@@ -1,6 +1,6 @@
 # platform/sablonlar/sahne — ortak sahne dili
 
-Tek senaryo, bütün stiller. Senaryo sahne tiplerinden oluşur (`baslik`, `liste`, `sayi`, `alinti`, `karsilastirma`, `urun`, `cta`, `gecis`); her stil bu tipleri kendi görünümüyle çizer. Aynı metin bir komutla kinetikten hamura, piksele ya da vitraya döner. Zaman çizelgesi seslendirmeden çıkar: senaryoda saniye yazılmaz, sahne konuşması kadar sürer.
+Tek senaryo, bütün stiller. Senaryo sahne tiplerinden oluşur (`baslik`, `liste`, `sayi`, `alinti`, `karsilastirma`, `urun`, `cta`, `gecis`, `grafik`); her stil bu tipleri kendi görünümüyle çizer. Aynı metin bir komutla kinetikten hamura, piksele ya da vitraya döner. Zaman çizelgesi seslendirmeden çıkar: senaryoda saniye yazılmaz, sahne konuşması kadar sürer.
 
 | Stil grubu | Stiller | Nasıl |
 | --- | --- | --- |
@@ -41,10 +41,25 @@ python3 $S kare      ornekler/demli-kahve/sahne.json --stil origami --an 2.0 8.5
 | `urun` | `ad`* 24, `gorsel` (dosya), `fiyat` 12, `ozellik` 32 | gerçek görsel yeniden çizilmeden, tam çözünürlükte; yoksa stile özgü nesne |
 | `cta` | `metin`* 22, `alt` 32 | düğme kartı; `marka.logo` varsa üstte logo, `alt` yoksa marka adı |
 | `gecis` | `metin` 20 | kısa ara kart (0,8 sn), seslendirme almaz |
+| `grafik` | `veri`* (CSV dosyası ya da `[["Ocak", 120], ...]`, etiket ≤ 12), `tur` `cubuk`/`cizgi`/`pasta`, `baslik` 28, `birim` 8 (`"%{}"`, `"{} ₺"`, `" adet"`), `kaynak` 30 | veri sahnesi: çubuklar büyür ve sayar, çizgi soldan sağa çizilir, pasta dilim dilim dolar; en büyük değer vurgulu. Dikey videoda yatay çubuk. Çubuk 2–8, çizgi 3–12, pasta 2–6 satır. Çeviricili stillerde en büyük değer başlık olur |
 
-Senaryo düzeyinde: `"altyazi": true` (kelime kelime yakılı altyazı), `"senkron": false` (öğeler sabit zamanda). Her sahnede ortak: `seslendirme` (okunan satır), `okunus` (farklı telaffuz), `sure` (en az), `stiller` (çeviriciye özel ayar, ör. `{"vitray": {"motif": "kalp"}}`). Sahne süresi = 0,35 sn + satır süresi + 0,45 sn (seslendirme yoksa sözcük sayısından tahmin); tipin en kısa süresinden az olmaz. Kısa video 9:16'da yazılar güvenli alanın içinde kalır (üst %10, alt %22 boş); yazı sığmazsa küçülür ya da satıra bölünür.
+CSV: ilk iki sütun (etiket, değer), `;` ya da `,` ayraç, başlık satırı kendiliğinden atlanır, `1.200,5` gibi Türkçe/Almanca sayılar okunur. Çubuk/dilim etiketi söylendiği an girer (senkron).
+
+Senaryo düzeyinde: `"altyazi": true` (kelime kelime yakılı altyazı), `"senkron": false` (öğeler sabit zamanda). Her sahnede ortak: `seslendirme` (okunan satır), `kanca` (`sok`: ekran vurgu rengiyle dolar, yazı büyükten oturur), `okunus` (farklı telaffuz), `sure` (en az), `stiller` (çeviriciye özel ayar, ör. `{"vitray": {"motif": "kalp"}}`). Sahne süresi = 0,35 sn + satır süresi + 0,45 sn (seslendirme yoksa sözcük sayısından tahmin); tipin en kısa süresinden az olmaz. Kısa video 9:16'da yazılar güvenli alanın içinde kalır (üst %10, alt %22 boş); yazı sığmazsa küçülür ya da satıra bölünür.
 
 Müzik sahnelere kilitli: alıntı/geçiş sakin, başlık/liste/ürün orta, sayı/karşılaştırma/çağrı enerjik; son sahnede final akoru. Enstrüman stilden (kalimba, çan, marimba, kare dalga, mızrap, sinüs). Konuşurken müzik kısılır, çıktı -14 LUFS.
+
+## Metinden sahneye (`bol.py`) ve kanca varyantları (`kanca.py`)
+
+```sh
+python3 platform/sablonlar/sahne/bol.py metin.txt --format 9:16      # → metin.sahne.json taslağı + sahne listesi
+python3 platform/sablonlar/sahne/kanca.py kontakt metin.sahne.json --stil kinetik   # 3 açılış tek sayfada
+python3 platform/sablonlar/sahne/kanca.py uret metin.sahne.json --stil kinetik --format 9:16
+```
+
+`bol.py` düz metni sahnelere böler; okunan satır metnin kendisi, ekran yazısı ondan kısaltılır (uzun başlık ana yazı + alt satıra dengeli bölünür, bağlaçta bölünmez). Biçim tipi seçer: ilk satır/`#` → `baslik`; `- madde` satırları (öncesinde `Başlık:`) → `liste`; en az iki `Ocak: 120` satırı (isteğe bağlı `tur: pasta`) → `grafik`; tırnaklı söz, `> söz — kaynak` ya da `*vurgu*` → `alinti`; sayı içeren cümle (`%40`, `37 kat`, `1.200 kişi`, `yüzde 40`; cümledeki son sayı) → `sayi`; `X yerine Y` / `X değil Y` / `statt X, Y` → `karsilastirma`; `---` → `gecis`; son paragrafta çağrı sözcüğü (takip, kaydet, link, folgen, jetzt...) → `cta`. 24 sahneyi aşan metin `-1`, `-2` senaryolarına bölünür. Taslak her zaman `denetle`den geçer; ekran yazılarını önizlemede (`onizleme.py`) gözden geçir.
+
+`kanca.py` aynı videonun üç açılışını yazar (`<ad>-kanca-soru|rakam|sok.json`): **soru** başa "Bunu biliyor muydun?" (Almanca metinde "Wusstest du das?"), **rakam** videodaki ilk sayı sahnesini (yoksa grafiğin en büyük değerini) başa alır, **sok** ilk sahneyi görsel şokla açar. Kendi kanca metnin: senaryoda `"kancalar": {"soru": "Hâlâ hazır kahve mi?"}` (ya da sahne alanlarıyla sözlük). Her varyant `cikti/kanca-<tür>/` klasörüne çıkar; seslendirme satırları önbellekten gelir, yalnız yeni kanca satırı kredi harcar.
 
 ## Kelimeye senkron ve altyazı
 

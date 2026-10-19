@@ -15,6 +15,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import cizim
 
@@ -112,8 +116,8 @@ def def_(tur, seed=0):
         x[: len(zil)] += zil
         return x
     e, tt = zarf(0.12 if tur == "tek" else 0.08, a=0.0006, dec=0.02 if tur == "tek" else 0.013)
-    g = rng.standard_normal(len(tt))
-    x = (g - kutu_suzgec(g, 5)) * 0.9 + np.sin(2 * np.pi * 1150 * tt) * 0.35
+    g = fx.renkli(len(tt), rng)  # pembe: beyaz gürültünün tiz cızırtısı yok
+    x = (g - kutu_suzgec(g, 5)) * 1.0 + np.sin(2 * np.pi * 1150 * tt) * 0.35
     zil = _halka(0.22, seed + 7) * (0.5 if tur == "tek" else 0.3)
     x = x * e
     x[: len(zil)] += zil[: len(x)]
@@ -124,8 +128,8 @@ def _halka(d, seed):
     """defin çenesindeki halkaların şıngırtısı"""
     e, tt = zarf(d, a=0.001, dec=0.05)
     rng = np.random.default_rng(seed)
-    g = rng.standard_normal(len(tt))
-    return ((g - kutu_suzgec(g, 3)) * 0.5 + sum(np.sin(2 * np.pi * f * tt) * 0.15 for f in (5300, 6900, 8100))) * e
+    g = fx.renkli(len(tt), rng)
+    return ((g - kutu_suzgec(g, 3)) * 0.15 + sum(np.sin(2 * np.pi * f * tt) * 0.15 for f in (5300, 6900, 8100))) * e
 
 
 def zil(d=1.4):
@@ -147,7 +151,7 @@ def ugultu(n, egri, seed=3):
     out = np.zeros(n)
     tt = np.arange(n) / SR
     for k in range(7):
-        g = rng.standard_normal(n)
+        g = fx.renkli(n, rng)
         bant = kutu_suzgec(g, rng.integers(8, 14)) - kutu_suzgec(g, rng.integers(30, 60))
         hiz = rng.uniform(3.5, 5.5)
         hece = np.clip(np.sin(2 * np.pi * hiz * tt + rng.uniform(0, 6)) + np.sin(2 * np.pi * hiz * 0.37 * tt + rng.uniform(0, 6)), 0, None)
@@ -218,8 +222,8 @@ def efekt_uret(s: dict, n: int, c: "cizim.Cizici | None" = None) -> np.ndarray:
     sfx = np.zeros((n, 2))
     egri = np.array([cizim.doluluk(s, i / 100) for i in range(int(n / SR * 100) + 2)])
     egri = np.interp(np.arange(n) / SR * 100, np.arange(len(egri)), egri)
-    sfx[:, 0] += ugultu(n, egri, 3) * 0.15
-    sfx[:, 1] += ugultu(n, egri, 4) * 0.15
+    sfx[:, 0] += ugultu(n, egri, 3) * 0.09  # kalabalık sürekli bir zemin: kısık kalmalı
+    sfx[:, 1] += ugultu(n, egri, 4) * 0.09
     b = bolumler(s)
     if c is not None:
         for i, k in enumerate(c.koltuk):

@@ -40,6 +40,10 @@ STILLER = {
     "kinetik": {"klasor": "kinetik", "yukle": "zaman", "komut": "kinetik.py"},
     "analiz": {"klasor": "analiz", "yukle": "analiz", "komut": "analiz.py", "iki_nokta": True},
     "karakalem": {"klasor": "karakalem", "yukle": "zaman", "komut": "karakalem.py"},
+    "tek_cizgi": {"klasor": "tek_cizgi", "yukle": "zaman", "komut": "tek_cizgi.py"},
+    "kolaj": {"klasor": "kolaj", "yukle": "zaman", "komut": "kolaj.py"},
+    "golge_oyunu": {"klasor": "golge_oyunu", "yukle": "zaman", "komut": "golge_oyunu.py"},
+    "origami": {"klasor": "origami", "yukle": "zaman", "komut": "origami.py"},
 }
 GECISLER = {"kesme": None, "erime": "fade", "kaydir": "slideleft", "silme": "wipeleft"}
 ENERJI = {"sakin": 0, "orta": 1, "enerjik": 2}

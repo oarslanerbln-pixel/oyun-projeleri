@@ -13,6 +13,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import cizim
 
@@ -119,14 +123,11 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
         f = 46 + 95 * np.exp(-tt / 0.03)
         return np.sin(2 * np.pi * np.cumsum(f) / SR) * e
 
-    def hat(d=0.05):
-        e, tt = zarf(d, a=0.0005, dec=d / 4)
-        x = np.diff(rng.standard_normal(len(tt) + 2), 2)
-        return x * e * 0.10
+    def hat(d=0.05): return fx.hat(rng, d) * 0.25
 
     def trampet():
         e, tt = zarf(0.22, a=0.001, dec=0.06)
-        gur = np.diff(rng.standard_normal(len(tt) + 1)) * 0.5
+        gur = fx.bant(fx.renkli(len(tt), rng), 1200, 7000) * 0.5
         ton = np.sin(2 * np.pi * 190 * tt) * np.exp(-tt / 0.03)
         return (gur + ton) * e * 0.6
 
@@ -166,13 +167,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
     ekle(muzik, son_an, bas_(min(kok) - 12, 1.8), 0.3)
 
     # --- efektler ---
-    def whoosh(d=0.5):
-        tt = np.arange(int(d * SR)) / SR
-        p = tt / d
-        gur = rng.standard_normal(len(tt))
-        koyu, acik = kutu_suzgec(gur, 24), kutu_suzgec(gur, 4)
-        x = koyu * (1 - p) + acik * p
-        return x * np.sin(np.pi * p) ** 2 * 1.6
+    def whoosh(d=0.5): return fx.whoosh(rng, d) * 0.6
 
     def vurus_():
         e, tt = zarf(1.2, a=0.002, dec=0.35)

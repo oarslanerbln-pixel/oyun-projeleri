@@ -809,7 +809,7 @@ def muzik(n):
         ekle(buf, t0, np.sin(2 * np.pi * np.cumsum(f) / SR) * e * g)
     def ciz(t0, g, seed):
         e, _ = zarf(0.07, a=0.002, dec=0.02)
-        ekle(buf, t0, fft_filtre(gurultu(0.07, seed) * e, lo=6000) * g, pan=0.3)
+        ekle(buf, t0, fx.hat(seed, 0.07) * 0.5 * g, pan=0.3)
     def alkis(t0, g, seed):
         e, _ = zarf(0.18, a=0.001, dec=0.05)
         ekle(buf, t0, fft_filtre(gurultu(0.18, seed) * e, lo=900, hi=4000) * g, pan=-0.1)
@@ -829,14 +829,13 @@ def muzik(n):
     # yükselen gürültü (riser) 37x ve finale
     for t0, t1, g in ((3.55, 4.45, 0.10), (7.75, 8.35, 0.09)):
         d = t1 - t0
-        x = gurultu(d, int(t0 * 10)); tt = np.arange(len(x)) / SR
+        x = fx.renkli(int(d * SR), int(t0 * 10)); tt = np.arange(len(x)) / SR
         a = fft_filtre(x, lo=400, hi=1500); b = fft_filtre(x, lo=2500, hi=9000)
         p = tt / d
         ekle(buf, t0, (a * (1 - p) + b * p) * p ** 2 * g)
     # yumuşak zil/crash (tepe ve final)
     for t0, g in ((4.45, 0.07), (8.35, 0.08)):
-        e, tt = zarf(2.0, a=0.003, dec=0.6)
-        ekle(buf, t0, fft_filtre(gurultu(2.0, int(t0)) * e, lo=5000, hi=12000) * g)
+        ekle(buf, t0, fx.zil(int(t0), 2.0) * 0.5 * g)
     # 6.85 kalkış: ters pad şişmesi
     d = 0.6; tt = np.arange(int(d * SR)) / SR
     sw = sum(np.sin(2 * np.pi * mtof(m + 12) * tt) for m in AKOR[4][2][1:]) * (tt / d) ** 3
@@ -860,7 +859,7 @@ def tok(f, seed=0):
 
 
 def whoosh(d, seed=0, yuk=True):
-    nz = gurultu(d, seed)
+    nz = fx.renkli(int(d * SR), seed)
     tt = np.arange(len(nz)) / SR
     e = np.sin(np.pi * np.clip(tt / d, 0, 1)) ** 2
     # süpürülen bant: iki filtreyi karıştır

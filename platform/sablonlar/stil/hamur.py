@@ -560,10 +560,8 @@ def muzik(n):
         f = 120 * np.exp(-tt / 0.03) + 50
         ekle(m, tb, np.sin(2 * np.pi * np.cumsum(f) / SR) * e, 0.36)
         if k % 2 == 1:  # el çırpma
-            c = rng.standard_normal(int(0.12 * SR)); c = lp_hizli(c, 3500) - lp_hizli(c, 900)
-            ekle(m, tb, c * zarf(0.12, a=0.001, dec=0.03)[0], 0.16, pan=-0.15)
-        sh = rng.standard_normal(int(0.05 * SR)); sh = sh - lp_hizli(sh, 6000)
-        ekle(m, tb + VURUS / 2, sh * zarf(0.05, a=0.004, dec=0.015)[0], 0.05, pan=0.4)
+            ekle(m, tb, fx.clap(rng, 0.12) * 0.9, 0.16, pan=-0.15)
+        ekle(m, tb + VURUS / 2, fx.shaker(rng, 0.05) * 0.5, 0.05, pan=0.4)
     # sayı öncesi yükselen marimba tremolosu + vurgu
     for j in range(8):
         ekle(m, Z['sayi'] - 0.4 + j * 0.05, marimba(72 + j, d=0.3), 0.05 + j * 0.012, pan=0.2)

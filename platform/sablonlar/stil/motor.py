@@ -12,8 +12,11 @@ Her stil modülü `from motor import *` ile bu adları alır ve şunları tanım
 Biçim: 10 sn, dört vuruş (kanca → bileşik büyüme → küçük/büyük karşıtlığı → çağrı). Kamera, müzik ve
 efektler vuruşlara kilitlidir; bu yüzden seslendirme satırları vuruş anlarında başlamalı ve yuvasına sığmalıdır.
 """
-import json, math, os, subprocess
+import json, math, os, subprocess, sys
 import numpy as np
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'ortak'))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler; stiller `fx.` ile kullanır)
 
 FPS, SURE, SR = 30, 10.0, 48000
 BURADA = os.path.dirname(os.path.abspath(__file__))
@@ -359,6 +362,12 @@ def boyut(ad, olcek=1.0):
     return int(W * olcek) // 2 * 2, int(H * olcek) // 2 * 2  # libx264 çift boyut ister
 
 
+def kalite_kapisi(hedef):
+    """platform/ortak/kalite.py: kalite.json + kontakt sayfası yazar; render'ı durdurmaz."""
+    import kalite
+    return kalite.render_sonrasi(__import__('pathlib').Path(hedef))
+
+
 def calistir(ad, stil, cikti, boyutlar=('9x16', '16x9'), olcek=1.0):
     """stil: kare/muzik/sfx/AYAR taşıyan modül. Çıktı: <ad>-<boyut>.mp4 ve <ad>-kapak.png; ara dosyalar cikti/is/"""
     is_ = os.path.join(cikti, 'is')
@@ -378,6 +387,7 @@ def calistir(ad, stil, cikti, boyutlar=('9x16', '16x9'), olcek=1.0):
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', sessiz, '-i', ses, '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', hedef], check=True)
         os.remove(sessiz)
+        kalite_kapisi(hedef)
         ciktilar.append(hedef)
     for f in ('ses.wav', 'ses_14.wav'):
         os.remove(os.path.join(is_, f))

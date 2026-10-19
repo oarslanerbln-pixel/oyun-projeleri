@@ -12,6 +12,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import zaman
 
@@ -92,13 +96,11 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
         f = 52 + 70 * np.exp(-tt / 0.03)
         return np.sin(2 * np.pi * np.cumsum(f) / SR) * e
 
-    def shaker(d=0.07):
-        e, tt = env(d, a=0.012, dec=d / 3)
-        return bant(rng.standard_normal(len(tt)), 4000, 11000) * e * 0.8
+    def shaker(d=0.07): return fx.shaker(rng, d) * 0.18
 
     def snap():  # parmak şıklatma
         e, tt = env(0.12, a=0.0005, dec=0.02)
-        return bant(rng.standard_normal(len(tt)), 1500, 4500) * e * 2.2 + np.sin(2 * np.pi * 1800 * tt) * e * 0.3
+        return bant(fx.renkli(len(tt), rng), 1500, 4500) * e * 2.2 + np.sin(2 * np.pi * 1800 * tt) * e * 0.3
 
     akorlar = s["muzik"]["akorlar"]
     olcu = 4 * vurus
@@ -123,8 +125,8 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
         if tam and i % 4 == 3:  # oktav süsü
             ekle(muzik, tb + adim / 2, marimba(nota + 12, 0.4, 1.4), 0.07, pan=0.5)
         ekle(muzik, tb, shaker(), 0.5 if tam else 0.28, pan=0.25)
-        if tam:
-            ekle(muzik, tb + adim / 2, shaker(0.04), 0.3, pan=-0.25)
+        if tam and i % 4 == 1:
+            ekle(muzik, tb + adim / 2, shaker(0.05), 0.3, pan=-0.25)
         if tam and not bosta(tb):
             if vur: ekle(muzik, tb, kick(), 0.85)
             if i % 4 == 2: ekle(muzik, tb, snap(), 0.55, pan=-0.15)
@@ -147,25 +149,21 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
     # --- kâğıt efektleri ---
     def kat():  # kâğıt katlanma: kısa, parlak hışırtı + alçak tok
         e, tt = env(0.11, a=0.004, dec=0.03)
-        x = bant(rng.standard_normal(len(tt)), 1800, 7000) * e * 2.0
+        x = bant(fx.renkli(len(tt), rng), 1800, 6000) * e * 2.0
         e2, t2 = env(0.06, a=0.002, dec=0.015)
         x[: len(t2)] += np.sin(2 * np.pi * 180 * t2) * e2 * 0.5
         return x
 
-    def hisirti(d):  # kâğıt sürtünmesi: çıtırtılı bant gürültü, merkezi yükselen
-        tt = np.arange(int(d * SR)) / SR; p = tt / d
-        x = rng.standard_normal(len(tt))
-        x = _tek_kutup(x, 700 + 5500 * np.sin(np.pi * p)) - _tek_kutup(x, 500)
-        citir = 0.6 + 0.4 * (rng.random(len(tt)) < 0.004).astype(float).cumsum() % 2
-        return x * np.sin(np.pi * p) ** 1.5 * citir * 2.2
+    def hisirti(d):  # kâğıt sürtünmesi: kısa taneler, ortası kabarık (tek düze bant gürültüsü değil)
+        return fx.hisirti(rng, d, yogunluk=120) * 0.6
 
     def kayma(d):
         tt = np.arange(int(d * SR)) / SR; p = tt / d
-        return bant(rng.standard_normal(len(tt)), 250, 1600) * np.sin(np.pi * p) ** 2 * 1.6
+        return bant(fx.renkli(len(tt), rng, -6.0), 250, 1600) * np.sin(np.pi * p) ** 2 * 1.6
 
     def fiske():  # kart sallanması: tık + küçük ahşap ton
         e, tt = env(0.08, a=0.0004, dec=0.012)
-        return bant(rng.standard_normal(len(tt)), 2500, 9000) * e * 1.4 + np.sin(2 * np.pi * 950 * tt) * e * 0.6
+        return bant(fx.renkli(len(tt), rng), 2500, 7000) * e * 1.2 + np.sin(2 * np.pi * 950 * tt) * e * 0.6
 
     def tik(f):
         e, tt = env(0.04, a=0.0005, dec=0.01)
@@ -174,7 +172,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
     def pat():  # yumuşak darbe: alçak tok + kâğıt şaplağı
         e, tt = env(0.5, a=0.002, dec=0.12)
         sub = np.sin(2 * np.pi * np.cumsum(60 + 60 * np.exp(-tt / 0.05)) / SR) * e
-        return sub + bant(rng.standard_normal(len(tt)), 600, 4000) * np.exp(-tt / 0.03) * 1.2
+        return sub + bant(fx.renkli(len(tt), rng), 600, 3500) * np.exp(-tt / 0.03) * 1.2
 
     def parilti():
         out = np.zeros(int(0.9 * SR))

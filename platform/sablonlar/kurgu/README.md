@@ -1,6 +1,6 @@
 # platform/sablonlar/kurgu
 
-Uzun video için sahne birleştirici: tek bir `kurgu.json`, farklı şablonların (kinetik, analiz, karakalem) sahnelerini sırayla dizer; sahneler geçişlerle tek videoda birleşir, seslendirme bütün sahnelerden tek seferde ve tek sesle üretilir, müzik baştan sona kesintisiz çalar ve sahnenin enerjisine göre sakinleşip coşar. Örnek: `ornekler/kucuk-aliskanliklar-uzun/` (4 sahne, 61 sn, 16:9, 4 dk'da çıkar).
+Uzun video için sahne birleştirici: tek bir `kurgu.json`, farklı şablonların (kinetik, analiz, karakalem, tek çizgi, kolaj, gölge oyunu, origami) sahnelerini sırayla dizer; sahneler geçişlerle tek videoda birleşir, seslendirme bütün sahnelerden tek seferde ve tek sesle üretilir, müzik baştan sona kesintisiz çalar ve sahnenin enerjisine göre sakinleşip coşar. Örnek: `ornekler/kucuk-aliskanliklar-uzun/` (4 sahne, 61 sn, 16:9, 4 dk'da çıkar).
 
 ```sh
 K=platform/sablonlar/kurgu/kurgu.py
@@ -29,7 +29,7 @@ Format sırası: `--format` (`16:9`, `9:16`, `1:1`, `4:5`, `ikisi`), yoksa kurgu
 
 | Alan | Anlamı |
 | --- | --- |
-| `sahneler[].stil` | Sahnenin şablonu: `kinetik`, `analiz`, `karakalem` |
+| `sahneler[].stil` | Sahnenin şablonu: `kinetik`, `analiz`, `karakalem`, `tek_cizgi`, `kolaj`, `golge_oyunu`, `origami` |
 | `sahneler[].senaryo` | O şablonun kendi senaryo dosyası (kurguya göre yol). Süre, görüntü ve seslendirme satırları oradan gelir; anlar sahnenin başından sayılır |
 | `sahneler[].enerji` | `sakin`, `orta` (varsayılan), `enerjik`: müziğin o bölümdeki yoğunluğu |
 | `sahneler[].baslik` | YouTube bölüm listesindeki adı |
@@ -49,7 +49,7 @@ Sahne dosyaları `ornekler/<iş>/sahneler/` altında durur; böylece şablonlar�
 
 ## Sahne olabilen şablonlar
 
-Bugün: **kinetik** (serbest metin ve süre), **analiz** (veri, grafik, kaynaklı sayılar), **karakalem** (sabit yapı: dağ, basamaklar, damga; 8–20 sn). Yeni bir şablon eklemek `kurgu.py` içindeki `STILLER` tablosuna bir satırdır, yeter ki şablonun `cizim.video(s, W, H, hedef)` işlevi ve bir `yukle` işlevi olsun: tek çizgi, kolaj, origami, minyatür ve gölge oyunu bu biçimde. Ancak bazıları içeriğe kilitli olduğu için önce genelleştirilmeli: izometrik, kâğıt kesik, piksel ve hamur "%1 her gün" hikâyesine ve sabit 10 sn yapısına bağlı; origami kahve fincanı vitrinine bağlı. Çizgi roman ve risograf `cizim.video`'ya format da istediği için küçük bir uyarlama ister.
+Bugün: **kinetik** (serbest metin ve süre), **analiz** (veri, grafik, kaynaklı sayılar), **karakalem** (sabit yapı: dağ, basamaklar, damga; 8–20 sn), **tek çizgi**, **kolaj**, **gölge oyunu** ve **origami** (ürün vitrini). Yeni bir şablon eklemek `kurgu.py` içindeki `STILLER` tablosuna bir satırdır, yeter ki şablonun `cizim.video(s, W, H, hedef)` işlevi ve bir `yukle` işlevi olsun: minyatür de bu biçimde (`yukle` `minyatur.py`'de). Ancak bazıları içeriğe kilitli olduğu için önce genelleştirilmeli: izometrik, kâğıt kesik, piksel ve hamur "%1 her gün" hikâyesine ve sabit 10 sn yapısına bağlı; origami kahve fincanı vitrinine bağlı. Çizgi roman ve risograf `cizim.video`'ya format da istediği için küçük bir uyarlama ister.
 
 ## Bilinen sınırlar
 

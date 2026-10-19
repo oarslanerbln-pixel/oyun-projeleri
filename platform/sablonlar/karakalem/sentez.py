@@ -14,6 +14,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import zaman
 
@@ -67,8 +71,8 @@ def kalem_cizgisi(d: float, rng, noktali: bool = False) -> np.ndarray:
     v = np.where(p < 0.5, 4 * p, 4 * (1 - p)) / 2
     v = np.where(tt > d, np.maximum(0, 1 - (tt - d) / 0.05) * 0.2, v)
     n = len(tt)
-    alt, ust = bant(n, 2200, 0.5, rng), bant(n, 4800, 0.5, rng)
-    govde = (alt * (1 - v) + ust * v) * 1.3 + bant(n, 7000, 0.35, rng, 0.15) + bant(n, 300, 0.8, rng, 0.5) * v
+    alt, ust = bant(n, 1900, 0.5, rng), bant(n, 4000, 0.5, rng)
+    govde = (alt * (1 - v) + ust * v) * 1.3 + bant(n, 6500, 0.35, rng, 0.06) + bant(n, 300, 0.8, rng, 0.5) * v
     tane = np.repeat(0.55 + 0.45 * rng.random(n // 240 + 1), 240)[:n]  # kâğıdın dişi, 5 ms'de bir değişir
     kesik = np.where(np.sin(2 * np.pi * 14 * tt) > -0.2, 1.0, 0.15) if noktali else 1.0
     return govde * np.power(v, 0.7) * tane * kesik * np.minimum(1, tt / 0.01)
@@ -146,9 +150,8 @@ def trampet(rng) -> np.ndarray:
     return (bant(len(tt), 1900, 0.9, rng, 0.6) * np.exp(-tt / 0.06) + np.sin(2 * np.pi * 190 * tt) * np.exp(-tt / 0.04) * 0.5)
 
 
-def zil(rng) -> np.ndarray:
-    tt = zamanlar(0.06)
-    return bant(len(tt), 8500, 0.5, rng, 0.35) * np.exp(-tt / 0.018)
+def zil(rng) -> np.ndarray:  # metalik hi-hat (bant gürültüsü her sekizlikte tıslıyordu)
+    return fx.hat(rng, 0.06) * 0.3
 
 
 def bas(nota: float, d: float) -> np.ndarray:
@@ -239,10 +242,8 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         a0, a1 = int((damga_t - zaman.NEFES_SN) * SR), int(damga_t * SR)
         for b_ in (tus, ped, dav, bs):
             b_[a0:a1] *= np.linspace(1, 0, a1 - a0)[:, None] ** 3 if a1 > a0 else 1
-    # plak hışırtısı
-    plak = alcak(rng.standard_normal(n), 3000) * 0.004
-    cit = (rng.random(n) < 6 / SR) * rng.standard_normal(n) * 0.25
-    plak += np.convolve(cit, np.exp(-np.arange(96) / 12), "same")
+    # plak: yalnız seyrek çıtırtı; sürekli hışırtı zemini yok (tek düze cızırtı olarak duyuluyordu)
+    plak = fx.citirti(rng, n / SR, 6)[:n] * 0.25
     tus = alcak_stereo(tus, 4800)
     muzik = tus * 1.3 + ped * 2.0 + dav * 0.6 + bs * 0.7 + ezgi + yanki(yank[:, 0] + yank[:, 1], 2.2, rng) * 0.9
     muzik[:, 0] += plak * 0.3; muzik[:, 1] += np.roll(plak, 811) * 0.3
@@ -266,7 +267,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
     kk = int(0.12 * SR)
     duk = 1 - (1 - 10 ** (-3 / 20)) * np.clip(np.convolve(maske.astype(float), np.ones(kk) / kk, "same"), 0, 1)
     muzik *= duk[:, None]  # konuşurken 3 dB ek kısma
-    sfx *= ref * 10 ** (-10 / 20) / max(rms(sfx[np.abs(sfx).sum(1) > 1e-6]), 1e-9)
+    sfx *= ref * 10 ** (-12 / 20) / max(rms(sfx[np.abs(sfx).sum(1) > 1e-6]), 1e-9)
     oda = yanki(vo, 0.6, rng, 3500) * 0.12  # sese hafif oda
     miks = vo[:, None] + oda + muzik + sfx
     miks -= alcak_stereo(miks, 25)  # 25 Hz altı kesilir

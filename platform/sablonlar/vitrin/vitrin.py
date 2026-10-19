@@ -271,7 +271,7 @@ AKOR = [[50, 57, 61, 64, 66], [47, 54, 57, 62, 66], [43, 50, 54, 59, 62], [45, 5
 
 def muzik(n: int, z: dict):
     import numpy as np
-    from motor import ekle, zarf, mtof, gurultu, lp_hizli
+    from motor import ekle, zarf, mtof, gurultu, lp_hizli, fx
     buf = np.zeros((n, 2)); S, vur = z['sure'], z['vurus']; olcu = vur * 4
     gs, fin = z['giris_son'], z['final']
     def guc(t):  # dinamik: sakin giriş → özelliklerde dolgun → finalde zirve, sonra iner
@@ -311,8 +311,7 @@ def muzik(n: int, z: dict):
             f = 45 + 75 * np.exp(-tt * 30); x = np.sin(2 * math.pi * np.cumsum(f) / SR) * np.exp(-tt * 9)
             ekle(buf, t, x * 0.32)
         if z['ozellikler'] and t >= z['ozellikler'][0]['bas'] - 0.01:
-            h = gurultu(0.06, seed=j); h = h - lp_hizli(h, 6000); h *= np.exp(-np.arange(len(h)) / SR * 60)
-            ekle(buf, t + vur / 2, h * 0.05, 0.4)
+            ekle(buf, t + vur / 2, fx.hat(j, 0.06) * 0.6 * 0.05, 0.4)  # metalik hi-hat (beyaz gürültü cızırtısı değil)
         t += vur
     # final: son akor uzun ve parlak
     d = S - fin + 0.2; e, tt = zarf(d, a=0.02, dec=2.2)
@@ -389,7 +388,7 @@ def render(s, senaryo: Path, m, cikti: Path, boyutlar, olcek=1.0) -> list[Path]:
         hedef = cikti / f'{ad}-{b}.mp4'
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', str(sessiz), '-i', str(ses), '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', str(hedef)], check=True)
-        sessiz.unlink(); ciktilar.append(hedef)
+        sessiz.unlink(); motor.kalite_kapisi(hedef); ciktilar.append(hedef)
     for f in ('ses.wav', 'ses_14.wav'):
         (is_ / f).unlink(missing_ok=True)
     return ciktilar

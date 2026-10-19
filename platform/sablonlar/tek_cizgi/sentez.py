@@ -13,6 +13,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import sekiller
 import zaman
@@ -105,8 +109,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         return np.sin(2 * np.pi * np.cumsum(46 + 70 * np.exp(-tt / 0.03)) / SR) * e
 
     def shaker():
-        e, tt = env(0.07, a=0.012, dec=0.02)
-        return _hp(rng.standard_normal(len(tt)), 5000) * e * 0.5
+        return fx.shaker(rng, 0.07) * 0.22
 
     def bas(nota, d):
         e, tt = env(d, a=0.01, dec=0.5)
@@ -143,8 +146,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         if i % 2 == 0:
             ekle(muzik, tb, kick(), 0.5)
             ekle(muzik, tb, bas(min(a) - 12, vurus * 0.9), 0.22)
-        ekle(muzik, tb + adim / 2, shaker(), 0.25, pan=0.2)
-        ekle(muzik, tb, shaker(), 0.15, pan=-0.2)
+        ekle(muzik, tb + adim / 2, shaker(), 0.25 if i % 4 == 1 else 0.16, pan=0.2)
     # final: parlak akor (add9) + çan arpeji
     kok = akorlar[0]
     final = [min(kok) - 12] + list(kok) + [kok[0] + 14, kok[2] + 12]
@@ -157,9 +159,9 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
     # --- kalem sesi: çizginin hızıyla açılan, kâğıtta keçe uç sürtünmesi (kısık) ---
     hiz = kalem_hizi(s, n)
     hiz = np.convolve(hiz, np.ones(int(0.03 * SR)) / int(0.03 * SR), "same")
-    surt = _lp(_hp(rng.standard_normal(n), 1800), 6500)
-    doku = 0.75 + 0.25 * np.sin(2 * np.pi * 9 * np.arange(n) / SR + rng.uniform(0, 6))
-    kalem = surt * np.sqrt(np.clip(hiz, 0, 1)) * doku * 0.10
+    # sabit bant gürültüsü yerine sık, kısa taneler: keçe uç kâğıtta tek düze cızırdamaz
+    surt = fx.hisirti(rng, n / SR, yogunluk=260, parlak=0.8)[:n] * 0.32
+    kalem = surt * np.sqrt(np.clip(hiz, 0, 1)) * 0.10
     sfx[:, 0] += kalem; sfx[:, 1] += kalem * 0.9
 
     # --- efektler ---
@@ -170,11 +172,11 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
     def vurus_():  # yumuşak, tok iniş: alçak "tum" + keçe vuruşu
         e, tt = env(0.7, a=0.002, dec=0.2)
         alt = np.sin(2 * np.pi * np.cumsum(55 + 90 * np.exp(-tt / 0.04)) / SR) * e
-        return alt + _lp(rng.standard_normal(len(tt)), 1200) * np.exp(-tt / 0.02) * 0.6
+        return alt + _lp(fx.renkli(len(tt), rng), 1200) * np.exp(-tt / 0.02) * 0.2
 
     def kayma(d):
         tt = np.arange(int(d * SR)) / SR; p = tt / d
-        return _lp(rng.standard_normal(len(tt)), 2400) * np.sin(np.pi * p) ** 2 * 0.9
+        return _lp(fx.renkli(len(tt), rng), 2400) * np.sin(np.pi * p) ** 2 * 0.35
 
     def pop():
         e, tt = env(0.12, a=0.001, dec=0.03)

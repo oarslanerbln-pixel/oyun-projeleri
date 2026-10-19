@@ -560,11 +560,10 @@ def muzik(n):
         e, tt = zarf(0.25, a=0.002, dec=0.07)
         f = 110 * np.exp(-tt / 0.03) + 48
         ekle(m, tb, np.sin(2 * np.pi * np.cumsum(f) / SR) * e, 0.35)
-        sh = rng.standard_normal(int(0.05 * SR)); sh = sh - lp_hizli(sh, 5000)
-        ekle(m, tb + VURUS / 2, sh * zarf(0.05, a=0.004, dec=0.015)[0], 0.05, pan=0.4)
+        ekle(m, tb + VURUS / 2, fx.shaker(rng, 0.05) * 0.5, 0.05, pan=0.4)
     # 37x öncesi yükselen hışırtı + vurgu
     d = Z['x37'] - 3.6; e = np.linspace(0, 1, int(d * SR)) ** 2.5
-    ekle(m, 3.6, (lp_hizli(gurultu(d, 5), 3000) - lp_hizli(gurultu(d, 5), 400)) * e, 0.08)
+    ekle(m, 3.6, fx.kayan_suzgec(fx.renkli(int(d * SR), 5), 500 * 6 ** np.linspace(0, 1, int(d * SR)), 1.2) * e, 0.06)
     for j, nn in enumerate((72, 76, 79, 84)):
         ekle(m, Z['x37'] + j * 0.05, kalimba(nn, d=1.0, br=1.2), 0.14, pan=(j - 1.5) * 0.3)
     # final akoru
@@ -573,13 +572,8 @@ def muzik(n):
     return m
 
 
-def hisirti(d, seed, parlak=1.0):  # kâğıt hışırtısı (kullanıcı geri bildirimi: arka planda baskın olmasın)
-    x = gurultu(d, seed) * 0.35
-    x = lp_hizli(x, 6000 * parlak) - lp_hizli(x, 900)
-    rng = np.random.default_rng(seed + 1)
-    tane = (rng.random(len(x)) < 0.004).astype(float) * rng.normal(0, 3, len(x))  # çıtırtılar
-    e = np.sin(np.pi * np.arange(len(x)) / len(x)) ** 0.7
-    return (x + lp_hizli(tane, 4000)) * e
+def hisirti(d, seed, parlak=1.0):  # kâğıt hışırtısı (kullanıcı geri bildirimi: arka planda baskın olmasın, tek düze cızırdamasın)
+    return fx.hisirti(seed, d, yogunluk=110, parlak=parlak) * 0.45
 
 
 def makas(seed):
@@ -593,7 +587,7 @@ def makas(seed):
 
 def tok(f=180, d=0.12):  # kartona konan parça
     e, tt = zarf(d, a=0.001, dec=0.03)
-    return (np.sin(2 * np.pi * f * tt) * 0.8 + lp_hizli(gurultu(d, 9), 1500) * 0.6) * e
+    return (np.sin(2 * np.pi * f * tt) * 0.8 + lp_hizli(fx.renkli(int(d * SR), 9), 1500) * 0.25) * e
 
 
 def sfx(n):

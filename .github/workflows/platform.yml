@@ -49,3 +49,13 @@ jobs:
         run: python platform/ci/calistir.py hazirla
       - name: Testler ve örnek denetimleri
         run: python platform/ci/calistir.py test
+        env:
+          GORSEL_REGRESYON_FARK: ${{ runner.temp }}/gorsel-regresyon
+      # Görsel regresyon testi kırılırsa bozulan stilin referans | yeni | fark sayfası
+      - name: Görsel regresyon fark sayfaları
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gorsel-regresyon-${{ matrix.python }}
+          path: ${{ runner.temp }}/gorsel-regresyon
+          if-no-files-found: ignore

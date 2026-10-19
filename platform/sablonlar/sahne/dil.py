@@ -38,7 +38,7 @@ GRAFIK = {"cubuk": (2, 8), "cizgi": (3, 12), "pasta": (2, 6)}  # tür -> (en az,
 ETIKET = 12  # grafik etiketi en çok karakter
 KANCA = ("soru", "rakam", "sok")
 MADDE = (2, 5, 28)  # liste: en az, en çok madde, madde başına karakter
-ORTAK_ALANLAR = {"tip", "seslendirme", "okunus", "sure", "not", "stiller", "kanca"}
+ORTAK_ALANLAR = {"tip", "seslendirme", "okunus", "sure", "not", "stiller", "kanca", "stil", "donustur"}
 ENERJI = {"baslik": 1, "liste": 1, "sayi": 2, "alinti": 0, "karsilastirma": 2, "urun": 1, "cta": 2, "gecis": 0,
           "grafik": 1}
 

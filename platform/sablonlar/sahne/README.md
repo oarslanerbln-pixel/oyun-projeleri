@@ -67,6 +67,30 @@ ElevenLabs her satırın harf zamanlarını verir (`cikti/seslendirme/<id>.hizal
 
 Her render yanına `<kimlik>-<stil>.srt`, `.vtt` (platforma yüklemek için) ve `.altyazi.json` yazar. Senaryoda `"altyazi": true` kelime kelime altyazıyı videoya yakar: 2–4 kelimelik grup, söylenen kelime vurgu renkli pulda. Kaplamalar altyazıyı kendi yazı tipi ve paletiyle çizer ve bandı güvenli alanın altından ayırır (sahne yazısı altına girmez); çeviricili stillerde altyazı render sonrası libass ile yakılır. Varsayılan kapalı (az yazı kuralı); sessiz izlenecek kısa videolarda açın. Hizalama yoksa (Piper, eski önbellek) zamanlar hecelerden tahmin edilir ve uyarı verilir. Ortak çekirdek `platform/ortak/altyazi.py`; başka bir videoya: `altyazi.py yak video.mp4 x.altyazi.json`.
 
+## Stil karışımı ve stil geçişi
+
+Bir videoda sahneler farklı stillerde olabilir. Sahneye `"stil": "piksel"` yazılırsa o sahne ve stil yazmayan sonrakiler pikselde çizilir; stil değiştiği an eski stil yenisine imza geçişle döner. `"donustur": "origami"` (ya da `{"stil": "origami", "an": 0.5, "sure": 0.9}`, `an` sahnenin oranı 0,15–0,85) aynı sahneyi ortasında yeni stile çevirir, sonraki sahneler yeni stilde sürer. Geçiş biçimi senaryo düzeyinde: `"stil_gecisi": {"tur": "firca" | "murekkep", "sure": 0.8}` (fırça: dalgalı kenarlı çapraz darbe; mürekkep: ortadan yayılan leke; ikisinde de kenarda yeni stilin mürekkep renginde ince çizgi). Müzik ve efektler `--stil` ile verilen ana stilden. Kod: `karisim.py`.
+
+```json
+{"dil": "sahne", "stil_gecisi": {"tur": "firca"},
+ "sahneler": [{"tip": "baslik", "metin": "..."}, {"tip": "liste", "stil": "piksel", "maddeler": ["..."]},
+              {"tip": "karsilastirma", "donustur": "origami", "sol": "...", "sag": "..."}]}
+```
+
+Yalnız kaplama stilleri karışır (kare kare çizilir). Çeviricili stiller (vitray, çini, VHS...) ve ayrı şablonlar (karakalem, tek çizgi) arasında aynı imza geçiş uzun video kurgusunda: `kurgu.json` sahnesinde `"gecis": {"tur": "firca"}`.
+
+## Görsel regresyon testi
+
+Her stilin 3 sabit karesi (liste, karşılaştırma ve çağrı sahnelerinin bitmiş hali; karışımda üç geçişin ortası) CI'da kayıtlı referansla karşılaştırılır. Bir değişiklik başka bir stili bozarsa PR kırmızı olur ve iş akışının eklerinde `gorsel-regresyon` fark sayfası (referans | yeni | fark kırmızı) çıkar. Yazı kenarı yumuşatmasındaki küçük farklar geçer; kayma, renk ya da öğe değişimi geçmez.
+
+```sh
+R=platform/sablonlar/sahne/regresyon.py
+python3 $R karsilastir [--stiller hamur vitray] [-o fark/]
+python3 $R guncelle --stiller hamur      # görünüm bilerek değiştiyse referansı yenile ve PR'a ekle
+```
+
+Senaryo `testler/regresyon/regresyon.json` (seslendirmesiz), referanslar `testler/regresyon/referans/<stil>.npz` (PNG depoda Git LFS'e gittiği için sıkıştırılmış numpy). Yeni stil eklenince `guncelle --stiller <ad>` ile referansı eklenir; eklenmezse test hatırlatır.
+
 ## Yeni stil kiti
 
 ```sh
@@ -74,6 +98,6 @@ python3 platform/sablonlar/sahne/sahne.py yeni-stil sulu-boya   # → kaplamalar
 python3 platform/sablonlar/sahne/sahne.py kontakt ornekler/demli-kahve/sahne.json --stiller sulu-boya kinetik
 ```
 
-Kaplama `Kaplama` sınıfını genişletir ve yalnız değiştirdiğini ezer. Çoğu zaman temel taşlar yeter, sekiz tip onlarla kendiliğinden yeni görünüme geçer: `fon` (arka plan), `panel` (kart zemini), `yazi` / `buyuk_yazi`, `isaret` (liste imi), `nesne` (görselsiz ürün), `gecis_ciz`, `ust_katman` (doku/tanecik). Bir tip özel bir sahne isterse `ciz_<tip>` ezilir. `POZ = 12` stop-motion yapar (aynı pozdaki kareler bir kez çizilir), `MUZIK` ve `SFX` sesi seçer. Dosya `kaplamalar/` klasörüne konunca stil listesine, `kontakt`a, `stil.py`ye ve testlere (her tip, iki format) kendiliğinden girer.
+Kaplama `Kaplama` sınıfını genişletir ve yalnız değiştirdiğini ezer. Çoğu zaman temel taşlar yeter, sekiz tip onlarla kendiliğinden yeni görünüme geçer: `fon` (arka plan), `panel` (kart zemini), `yazi` / `buyuk_yazi`, `isaret` (liste imi), `nesne` (görselsiz ürün), `gecis_ciz`, `ust_katman` (doku/tanecik). Bir tip özel bir sahne isterse `ciz_<tip>` ezilir. `POZ = 12` stop-motion yapar (aynı pozdaki kareler bir kez çizilir), `MUZIK` ve `SFX` sesi seçer. Dosya `kaplamalar/` klasörüne konunca stil listesine, `kontakt`a, `stil.py`ye ve testlere (her tip, iki format) kendiliğinden girer; görsel regresyon referansını `regresyon.py guncelle --stiller <ad>` ekler.
 
 Gerekenler: `pip install skia-python numpy soundfile fonttools`, ffmpeg. Yazı tipleri stil şablonundan (Inter, hamurda Baloo 2).

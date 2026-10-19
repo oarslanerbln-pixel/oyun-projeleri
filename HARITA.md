@@ -19,8 +19,8 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `platform/uretim/` | AI üretim: `uretim.py` (fal.ai Kling), `gorsel.py` (Flux/Recraft), bütçe + önbellek; `FAL_KEY` gerekir |
 | `platform/marka`, `metin`, `medya` | marka paleti, metin/çeviri tablosu, teslim formatları (`teslim.json`, `turev.py`) |
 | `platform/sablonlar/stil/stil.py` | Ortak giriş: `stil.py uret <dosya> --stil <ad> --format 9:16\|16:9\|1:1\|4:5\|ikisi` |
-| `platform/sablonlar/sahne/` | **Ortak sahne dili**: tek senaryo (`"dil": "sahne"`, 8 sahne tipi) 13 stilde; `sahne.py kontakt` her stilden kareler tek sayfada; `sahne.py yeni-stil <ad>` yeni stil kiti; öğeler kelimeye senkron girer, `"altyazi": true` kelime kelime altyazı (`senkron.py`); `grafik` tipi CSV'den çubuk/çizgi/pasta; `bol.py` düz metinden sahne.json taslağı; `kanca.py` üç açılış varyantı (soru, rakam, şok). README orada |
-| `platform/sablonlar/kurgu/` | Uzun video kurgusu (`kurgu.json`: sahneler, tek müzik, bölüm listesi) |
+| `platform/sablonlar/sahne/` | **Ortak sahne dili**: tek senaryo (`"dil": "sahne"`, 8 sahne tipi) 13 stilde; `sahne.py kontakt` her stilden kareler tek sayfada; `sahne.py yeni-stil <ad>` yeni stil kiti; sahnede `"stil"`/`"donustur"` ile stil karışımı ve fırça/mürekkep stil geçişi (`karisim.py`); `regresyon.py` görsel regresyon testi (her stilden 3 kare, referanslar `testler/regresyon/referans/`); öğeler kelimeye senkron girer, `"altyazi": true` kelime kelime altyazı (`senkron.py`); `grafik` tipi CSV'den çubuk/çizgi/pasta; `bol.py` düz metinden sahne.json taslağı; `kanca.py` üç açılış varyantı (soru, rakam, şok). README orada |
+| `platform/sablonlar/kurgu/` | Uzun video kurgusu (`kurgu.json`: sahneler, tek müzik, bölüm listesi; şablonlar arası imza geçiş `"gecis": "firca"`/`"murekkep"`) |
 | `platform/sablonlar/<stil>/` | Her şablonun README'si kullanımı anlatır (aşağıdaki tablo) |
 | `platform/ci/`, `.github/workflows/` | CI (`platform.yml`, kirk-oda iş akışları) |
 | `ornekler/` | Örnek senaryolar `ornekler/*/<stil>.json` (senaryo.json adı kullanılmaz); ortak sahne dili örnekleri `ornekler/*/sahne.json` (demli-kahve her tipi, grafik dahil, içerir) |
@@ -52,7 +52,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `uzun-video/kucuk-aliskanliklar/` | Uzun video örneği (kurgu); DEVIR; `ses-paketi/` sahne efektli + vuruşa oturan sürüm |
 | `yeni-stiller-2/` | 24 aday (`aday-sayfasi.png`, `karakter/`), `ARASTIRMA.md`, `GELISTIRME-PLANI.md`; çıktılar `cizgisel/`, `paket-b/`, `paket-c/`, `maskot/`, `siluet/` |
 | `yeni-tarzlar/`, `ucuncu-tarz/`, `dorduncu-tarz/`, `besinci-tarz/`, `karakalem/` | İlk stil örnekleri ve havuz videoları (marka reklamı havuzu) |
-| `ortak-sahne-dili/` | Ortak sahne dili örnekleri: 13 stilin kontakt sayfası, hamur + piksel örnek videoları (`cikti/`); DEVIR |
+| `ortak-sahne-dili/` | Ortak sahne dili örnekleri: 13 stilin kontakt sayfası, hamur + piksel örnek videoları (`cikti/`), stil geçişi örneği `stil-gecisi/`; DEVIR |
 | `elevenlabs-ses/` | Ses örnekleri ve seçili sesler (README) |
 | `arastirma/` | AI video araçları, orkestrasyon notları |
 | `.onbellek/ses/` | Seslendirme önbelleği + `kullanim.jsonl` (karakter sayımı); elle dokunma |

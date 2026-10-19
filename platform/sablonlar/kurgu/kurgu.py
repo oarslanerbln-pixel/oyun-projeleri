@@ -50,7 +50,27 @@ STILLER = {
 # her şablonun `miksle(s, klasor, seslendirme)` işlevini taşıyan modül (sahne efektleri `efekt.wav` kökü olarak alınır)
 SES_MODULU = "sentez"
 AZAMI_UZATMA = 1.25  # sn; kesmeyi vuruşa oturtmak için sahnenin son karesi en çok bu kadar tutulur
-GECISLER = {"kesme": None, "erime": "fade", "kaydir": "slideleft", "silme": "wipeleft"}
+# İmza stil geçişleri (sahne dilindeki karisim.py ile aynı biçim): xfade özel ifadesi, P 1 → 0 akar. Yeni sahne dalgalı
+# kenarlı çapraz bir fırça darbesiyle (firca) ya da ortadan yayılan bir mürekkep lekesiyle (murekkep) gelir; kenarda
+# ince koyu mürekkep çizgisi. Karakalemden vitraya, çiniden VHS'e: farklı şablonlar arasında stil değişimini gösterir.
+# xfade ifadeyi dilim dilim paralel çalıştırır; st()/ld() kayıtları iş parçacıkları arasında paylaşıldığı için
+# kullanılmaz, ara değerler metin olarak yerine konur.
+def _ifade(uzaklik: str) -> str:
+    q = "((1-P)*(1-P)*(1+2*P))"  # yumuşak başlayıp biten ilerleme (smoothstep)
+    d = uzaklik.replace("Q", q)  # maske kenarına işaretli uzaklık (piksel/2); artıda yeni sahne
+    a = f"clip({d}+0.5,0,1)"
+    c = f"((1-clip(abs({d})/3,0,1))*sin(PI*{q}))"  # mürekkep çizgisi
+    v = f"(B*{a}+A*(1-{a}))"
+    return f"if(eq(PLANE,0),{v}*(1-0.85*{c})+18.7*{c},{v}*(1-{c})+128*{c})"
+
+
+_FIRCA = _ifade("((Q*1.38-0.08-0.22*Y/H+0.08*(0.55*sin(Y/H*8.17+1.1)+0.3*sin(Y/H*23.2+0.4)+0.15*sin(Y/H*57.2))"
+                "-X/W)*W/2)")
+_ACI = "atan2(Y/H-0.46,(X/W-0.5)*W/H)"
+_MUREKKEP = _ifade(f"((Q*0.62*hypot(W,H)/H*(1+0.1*sin(5*{_ACI})+0.05*sin(11*{_ACI}+1.3)+0.025*sin(23*{_ACI}))"
+                   "-hypot((X/W-0.5)*W/H,Y/H-0.46))*H/2)")
+GECISLER = {"kesme": None, "erime": "fade", "kaydir": "slideleft", "silme": "wipeleft",
+            "firca": f"custom:expr='{_FIRCA}'", "murekkep": f"custom:expr='{_MUREKKEP}'"}
 ENERJI = {"sakin": 0, "orta": 1, "enerjik": 2}
 VARSAYILAN_AKORLAR = [[57, 60, 64, 69], [53, 57, 60, 65], [48, 52, 55, 60], [55, 59, 62, 67]]  # Am F C G
 

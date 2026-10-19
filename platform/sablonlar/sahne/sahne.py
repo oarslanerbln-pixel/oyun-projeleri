@@ -33,6 +33,7 @@ sys.path.append(str(BURADA.parents[1] / "ortak"))
 import altyazi  # noqa: E402
 import cevir  # noqa: E402
 import dil  # noqa: E402
+import karisim  # noqa: E402
 import senkron  # noqa: E402
 
 
@@ -51,7 +52,10 @@ def tum_stiller() -> list[str]:
 
 
 def kaplama_yap(s: dict, stil: str):
+    """tek stil ya da (sahnelerde `stil` / `donustur` varsa) stil karışımı"""
     import kaplama
+    if karisim.var_mi(s):
+        return karisim.Karisim(s, stil, kaplama.kaplamalar())
     return kaplama.kaplamalar()[stil](s)
 
 
@@ -298,6 +302,8 @@ def main(argv: list[str] | None = None) -> int:
         hatalar.append(f"stil: {stil} bilinmiyor ({', '.join(tum_stiller())})")
     cikti = Path(a.cikti) if a.cikti else Path(s["_klasor"]) / "cikti"
     ses_dizini = cikti / "seslendirme"
+    if not hatalar:
+        hatalar += karisim.denetle(s, stil, kaplama_adlari())
     if not hatalar and stil in cevir.STILLER:
         hatalar += cevir.denetle(dil.zamanla(s, dil.sureler_oku(ses_dizini)), stil)
     if "altyazi" in s and not (isinstance(s["altyazi"], bool) or isinstance(s["altyazi"], dict)):

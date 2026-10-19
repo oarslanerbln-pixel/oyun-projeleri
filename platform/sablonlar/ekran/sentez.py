@@ -18,6 +18,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import miks as ortak_miks  # noqa: E402  (platform/ortak/miks.py: kökler)
 import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 SR = 48000
@@ -235,5 +236,6 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
     karisim = vo + m + e
     f = int(0.02 * SR); karisim[:f] *= np.linspace(0, 1, f)[:, None]
     f = int(0.25 * SR); karisim[-f:] *= np.linspace(1, 0, f)[:, None]
+    ortak_miks.kok_yaz(cikti, "efekt", e)  # kurgu bu sahnenin efektlerini buradan alır
     sf.write(str(cikti / "ses.wav"), (karisim / max(1e-9, np.abs(karisim).max()) * 0.9).astype(np.float32), SR)
     return {"seslendirme": bulunan}

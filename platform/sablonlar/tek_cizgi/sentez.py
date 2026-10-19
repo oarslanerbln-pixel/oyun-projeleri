@@ -16,6 +16,8 @@ import numpy as np
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import miks as ortak_miks  # noqa: E402  (platform/ortak/miks.py: kökler)
+import kutuphane  # noqa: E402  (kayıtlı CC0 efektler; yoksa sentez)
 import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import sekiller
@@ -160,7 +162,8 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
     hiz = kalem_hizi(s, n)
     hiz = np.convolve(hiz, np.ones(int(0.03 * SR)) / int(0.03 * SR), "same")
     # sabit bant gürültüsü yerine sık, kısa taneler: keçe uç kâğıtta tek düze cızırdamaz
-    surt = fx.hisirti(rng, n / SR, yogunluk=260, parlak=0.8)[:n] * 0.32
+    surt = kutuphane.kayit(kutuphane.rol("tek_cizgi", "cizgi"), rng, sure=n / SR,
+                           yedek=lambda: fx.hisirti(rng, n / SR, yogunluk=260, parlak=0.8)[:n] * 0.32)[:n]
     kalem = surt * np.sqrt(np.clip(hiz, 0, 1)) * 0.10
     sfx[:, 0] += kalem; sfx[:, 1] += kalem * 0.9
 
@@ -217,5 +220,6 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
     f = int(0.02 * SR); miks[:f] *= np.linspace(0, 1, f)[:, None]
     f = int(0.3 * SR); miks[-f:] *= np.linspace(1, 0, f)[:, None]
     cikti.mkdir(parents=True, exist_ok=True)
+    ortak_miks.kok_yaz(cikti, "efekt", sfx)  # kurgu bu sahnenin efektlerini buradan alır
     sf.write(str(cikti / "ses.wav"), (miks / max(1e-9, np.abs(miks).max()) * 0.9).astype(np.float32), SR)
     return {"seslendirme": bulunan}

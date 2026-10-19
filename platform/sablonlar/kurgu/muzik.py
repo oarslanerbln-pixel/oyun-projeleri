@@ -8,7 +8,11 @@ yükselmeden önceki ölçüde yükselen bir dalga, enerjik bölümün girişind
     orta     + 1. ve 3. vuruşta davul, offbeat hi-hat, uzun bas
     enerjik  + her vuruşta davul, clap, sekizlik bas, yan zincir pompası
 
-Konuşma sırasında müzik kısılır; konuşma müziğin `muzik.ses_ustu_db` (varsayılan 8 dB) üstünde kalır.
+Bölüm değişimleri kesme anına (geçişin ortası) bağlıdır; kurgu kesmeleri vuruşa oturttuğu için katmanlar
+ve vurgular vuruşta değişir. Konuşma sırasında müzik kendiliğinden kısılır (`platform/ortak/miks.py`: önden
+bakan, kelime aralarında tutan, cümle aralarında açılan yan zincir); konuşma müziğin `muzik.ses_ustu_db`
+(varsayılan 8 dB) üstünde kalır. Sahnelerin kendi efektleri (kökler) ve kesmelerdeki geçiş sesleri
+(kayıtlı kütüphaneden, `platform/ortak/kutuphane.py`) ayrı bir efekt izinde, konuşmanın altında çalar.
 Gerekenler: numpy, soundfile.
 """
 
@@ -21,18 +25,12 @@ import numpy as np
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import kutuphane  # noqa: E402  (kayıtlı CC0 efektler; yoksa sentez yedeği)
+import miks  # noqa: E402  (konuşmada kısma, kökler)
 import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 SR = 48000
 ACIK_DB = 6.0  # konuşma yokken müzik bu kadar yükselir
-
-
-def _ortalama(x: np.ndarray, pencere: int) -> np.ndarray:
-    """Hareketli ortalama (kümülatif toplamla; uzun seste de hızlı)."""
-    pencere = max(1, pencere)
-    c = np.cumsum(np.concatenate([np.zeros(pencere), x]))
-    y = (c[pencere:] - c[:-pencere]) / pencere
-    return np.roll(y, -(pencere // 2))
 
 
 def muzik_yatagi(sure: float, bolumler: list[dict], bpm: float, akorlar: list[list[int]], tohum: int = 11) -> np.ndarray:
@@ -102,7 +100,7 @@ def muzik_yatagi(sure: float, bolumler: list[dict], bpm: float, akorlar: list[li
     def seviye(t):
         s = bolumler[0]["enerji"]
         for b in bolumler:
-            if t >= b["bas"] - 1e-6:
+            if t >= b.get("kesme", b["bas"]) - 1e-6:
                 s = b["enerji"]
         return s
 
@@ -140,11 +138,12 @@ def muzik_yatagi(sure: float, bolumler: list[dict], bpm: float, akorlar: list[li
         ekle(t0, pad(akorlar[k % len(akorlar)], min(olcu + 0.4, son_an - t0 + 0.4)), (0.20, 0.16, 0.14)[seviye(t0)])
         k += 1
     for onceki, b in zip(bolumler, bolumler[1:]):
+        kesme = b.get("kesme", b["bas"])
         if b["enerji"] > onceki["enerji"]:
-            d = min(olcu, 2.0, b["bas"] - onceki["bas"])
-            ekle(b["bas"] - d, dalga(d), 0.22)
+            d = min(olcu, 2.0, kesme - onceki.get("kesme", onceki["bas"]))
+            ekle(kesme - d, dalga(d), 0.22)
         if b["enerji"] == 2 and onceki["enerji"] < 2:
-            ekle(b["bas"], vurgu(), 0.45)
+            ekle(kesme, vurgu(), 0.45)
     kok = akorlar[0]
     ekle(son_an, pad([min(kok) - 12, *kok, kok[1] + 12], sure - son_an), 0.30)
     if seviye(son_an) >= 1:
@@ -167,7 +166,44 @@ def muzik_yatagi(sure: float, bolumler: list[dict], bpm: float, akorlar: list[li
     return m * sonum[:, None]
 
 
-def miksle(k: dict, bolumler: list[dict], satirlar: list[dict], ses_klasoru: Path, hedef: Path) -> dict:
+def _efekt_izi(k: dict, bolumler: list[dict], efektler: list[dict], n: int, v_rms: float) -> tuple[np.ndarray, dict]:
+    """Sahne efekt kökleri + kesmelerdeki geçiş sesleri → stereo efekt izi (konuşma ölçeğinde)."""
+    iz = np.zeros((n, 2))
+    rapor = {"sahne_efekti": [], "gecis_sesi": 0}
+    for e in efektler:  # her sahnenin efekti konuşmanın `db` altında (sahneler arası tutarlı seviye)
+        x = miks.kok_oku(e["yol"])
+        i0, i1 = int(e["bas"] * SR), min(n, int(e["son"] * SR))
+        x = x[: max(0, i1 - i0)]
+        r = miks.aktif_rms(x)
+        if not len(x) or r <= 0:
+            continue
+        x = x * (v_rms * 10 ** (e["db"] / 20) / r)
+        f = min(len(x), int(0.06 * SR))
+        x[-f:] *= np.linspace(1, 0, f)[:, None]  # sahne bitince kuyruk kesilmesin, sönsün
+        iz[i0:i0 + len(x)] += x
+        rapor["sahne_efekti"].append(Path(e["yol"]).name)
+    mod = k["muzik"].get("gecis_sesi", "otomatik")
+    rng = np.random.default_rng(23)
+    for b in bolumler[1:]:
+        if mod is False or mod == "yok":
+            break
+        kat = kutuphane.rol(b.get("stil") or "", "gecis")
+        if mod == "otomatik" and not kutuphane.var_mi(kat):
+            continue  # yalnız kayıt varsa: sentez whoosh'u varsayılan olarak eklenmez
+        x = kutuphane.kayit(kat, rng, yedek=lambda: fx.whoosh(rng, 0.45))
+        tepe = int(np.argmax(np.convolve(np.abs(x), np.ones(480), "same")))
+        i0 = int(b["kesme"] * SR) - tepe  # sesin en yüksek anı kesmeye denk gelir
+        if i0 < 0:
+            x, i0 = x[-i0:], 0
+        x = x[: max(0, n - i0)] * (v_rms * 10 ** (k["muzik"].get("gecis_db", -16.0) / 20) / max(miks.aktif_rms(x), 1e-9))
+        iz[i0:i0 + len(x), 0] += x
+        iz[i0:i0 + len(x), 1] += x
+        rapor["gecis_sesi"] += 1
+    return iz, rapor
+
+
+def miksle(k: dict, bolumler: list[dict], satirlar: list[dict], ses_klasoru: Path, hedef: Path,
+           efektler: list[dict] | None = None) -> dict:
     import soundfile as sf
     sure = k["sure"]
     n = int(SR * sure)
@@ -186,8 +222,7 @@ def miksle(k: dict, bolumler: list[dict], satirlar: list[dict], ses_klasoru: Pat
         i = int(x["t"] * SR)
         ses[i:i + len(y)] += y[: max(0, n - i)]
         bulunan.append(x["id"])
-    konusma = _ortalama((_ortalama(np.abs(ses), int(0.05 * SR)) > 0.01).astype(float), int(0.3 * SR))
-    konusma = np.clip(konusma * 1.5, 0, 1)
+    konusma = miks.konusma_zarfi(ses)
     m_rms = float(np.sqrt(np.mean(muzik ** 2)) + 1e-9)
     ustu = k["muzik"].get("ses_ustu_db", 8.0)
     aktif = konusma > 0.5
@@ -195,14 +230,18 @@ def miksle(k: dict, bolumler: list[dict], satirlar: list[dict], ses_klasoru: Pat
         v_rms = float(np.sqrt(np.mean(ses[aktif] ** 2)) + 1e-9)
         hedef_m = v_rms * 10 ** ((ACIK_DB - ustu) / 20)  # konuşma yokken; konuşurken ACIK_DB kadar iner
     else:
+        v_rms = 10 ** (-18 / 20) * 10 ** (ustu / 20)
         hedef_m = 10 ** (-18 / 20)
     kazanc = (hedef_m / m_rms) * (1 - (1 - 10 ** (-ACIK_DB / 20)) * konusma)
-    miks = muzik * kazanc[:, None] + ses[:, None]
-    tepe = float(np.abs(miks).max()) or 1.0
+    efekt, rapor = _efekt_izi(k, bolumler, efektler or [], n, v_rms)
+    efekt *= (1 - (1 - 10 ** (-3 / 20)) * konusma)[:, None]  # efektler de konuşurken 3 dB çekilir
+    miks_ = muzik * kazanc[:, None] + efekt + ses[:, None]
+    tepe = float(np.abs(miks_).max()) or 1.0
     hedef.parent.mkdir(parents=True, exist_ok=True)
-    sf.write(str(hedef), (miks / tepe * 0.95).astype(np.float32), SR)
+    sf.write(str(hedef), (miks_ / tepe * 0.95).astype(np.float32), SR)
     olcum = None
     if aktif.any():
         mk = muzik[aktif] * kazanc[aktif, None]
         olcum = 20 * math.log10(v_rms / (float(np.sqrt(np.mean(mk ** 2))) + 1e-9))
-    return {"seslendirme": bulunan, "konusma_ustu_db": olcum}
+    return {"seslendirme": bulunan, "konusma_ustu_db": olcum, **rapor,
+            "kutuphane": any(v["kayit"] for v in kutuphane.KULLANIM.values()), "kullanim": kutuphane.KULLANIM}

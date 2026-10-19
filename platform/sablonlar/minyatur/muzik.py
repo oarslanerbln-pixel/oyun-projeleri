@@ -18,6 +18,7 @@ import numpy as np
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import miks as ortak_miks  # noqa: E402  (platform/ortak/miks.py: kökler)
 import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import cizim
@@ -281,5 +282,6 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None) -> dict:
         yatak *= 0.5
     miks = yatak + ses[:, None]
     cikti.mkdir(parents=True, exist_ok=True)
+    ortak_miks.kok_yaz(cikti, "efekt", sfx)  # kurgu bu sahnenin efektlerini buradan alır
     sf.write(str(cikti / "ses.wav"), (miks / max(1e-9, np.abs(miks).max()) * 0.95).astype(np.float32), SR)
     return {"seslendirme": bulunan, "ses_ustu_db": fark}

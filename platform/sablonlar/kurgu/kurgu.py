@@ -38,7 +38,7 @@ from formatlar import FORMATLAR, bilinmeyenler, coz  # noqa: E402
 # sahne olarak kullanılabilen şablonlar: klasör, senaryoyu yükleyen modül, komut satırı
 STILLER = {
     "kinetik": {"klasor": "kinetik", "yukle": "zaman", "komut": "kinetik.py"},
-    "analiz": {"klasor": "analiz", "yukle": "analiz", "komut": "analiz.py", "iki_nokta": True},
+    "analiz": {"klasor": "analiz", "yukle": "analiz", "komut": "analiz.py", "iki_nokta": True, "ses": "muzik"},
     "karakalem": {"klasor": "karakalem", "yukle": "zaman", "komut": "karakalem.py"},
     "tek_cizgi": {"klasor": "tek_cizgi", "yukle": "zaman", "komut": "tek_cizgi.py"},
     "kolaj": {"klasor": "kolaj", "yukle": "zaman", "komut": "kolaj.py"},
@@ -47,6 +47,9 @@ STILLER = {
     "ekran": {"klasor": "ekran", "yukle": "zaman", "komut": "ekran.py"},  # kalkış tabelası, VHS, akış alanı
     **{ad: {"klasor": "desen", "yukle": "zaman", "komut": "desen.py"} for ad in ("vitray", "linol", "cini", "teknik-cizim")},
 }
+# her şablonun `miksle(s, klasor, seslendirme)` işlevini taşıyan modül (sahne efektleri `efekt.wav` kökü olarak alınır)
+SES_MODULU = "sentez"
+AZAMI_UZATMA = 1.25  # sn; kesmeyi vuruşa oturtmak için sahnenin son karesi en çok bu kadar tutulur
 GECISLER = {"kesme": None, "erime": "fade", "kaydir": "slideleft", "silme": "wipeleft"}
 ENERJI = {"sakin": 0, "orta": 1, "enerjik": 2}
 VARSAYILAN_AKORLAR = [[57, 60, 64, 69], [53, 57, 60, 65], [48, 52, 55, 60], [55, 59, 62, 67]]  # Am F C G
@@ -66,6 +69,8 @@ def yukle(yol: str | Path) -> dict:
     k.setdefault("muzik", {})
     k["muzik"].setdefault("bpm", 100)
     k["muzik"].setdefault("akorlar", VARSAYILAN_AKORLAR)
+    k["muzik"].setdefault("vurusa_otur", True)
+    k["muzik"].setdefault("gecis_sesi", "otomatik")
     vg = {"tur": "erime", "sure": 0.5, **(k.get("gecis") or {})}
     bas = 0.0
     for i, sh in enumerate(k.get("sahneler") or []):
@@ -86,11 +91,36 @@ def yukle(yol: str | Path) -> dict:
             g["sure"] = 0.0
         g["sure"] = round(g["sure"] * k["fps"]) / k["fps"]
         sh["_gecis"] = g
+        sh["_uzat"] = 0.0
+        if i and k["muzik"]["vurusa_otur"] and sh["_sure"] and isinstance(k["muzik"]["bpm"], (int, float)):
+            bas += _vurusa_uzat(k, k["sahneler"][i - 1], sh, bas, g["sure"])
         bas = max(0.0, bas - g["sure"])
         sh["_bas"] = round(bas, 6)
+        sh["_kesme"] = round(bas + g["sure"] / 2, 6) if i else 0.0
         bas += sh["_sure"]
     k["sure"] = round(bas, 6)
     return k
+
+
+def _vurusa_uzat(k: dict, onceki: dict, sh: dict, son: float, gecis: float) -> float:
+    """Kesme anını (geçişin ortası) müziğin vuruşuna oturtur: önceki sahnenin son karesi biraz tutulur.
+
+    Müzik t=0'da başlar, ızgara bpm'den bellidir. Enerji yükseliyorsa kesme güçlü vuruşa (1. ya da 3.)
+    gider, yoksa en yakın sonraki vuruşa. Uzatma kare sayısına yuvarlanır ve `AZAMI_UZATMA`yı geçmez.
+    """
+    import miks
+    kesme = son - gecis / 2
+    bpm = k["muzik"]["bpm"]
+    yukselir = ENERJI.get(sh.get("enerji"), 1) > ENERJI.get(onceki.get("enerji"), 1)
+    hedef = miks.sonraki_vurus(kesme, bpm, her=2 if yukselir else 1)
+    if hedef - kesme > AZAMI_UZATMA:
+        hedef = miks.sonraki_vurus(kesme, bpm)
+    uzat = round(max(0.0, hedef - kesme) * k["fps"]) / k["fps"]
+    if uzat > AZAMI_UZATMA:
+        return 0.0
+    onceki["_sure"] = round(onceki["_sure"] + uzat, 6)
+    onceki["_uzat"] = round(onceki["_uzat"] + uzat, 6)
+    return uzat
 
 
 def satirlar(k: dict) -> list[dict]:
@@ -109,7 +139,8 @@ def satirlar(k: dict) -> list[dict]:
 def bolumler(k: dict) -> list[dict]:
     """Müzik ve YouTube bölümleri için sahne sınırları."""
     return [{"id": sh["id"], "baslik": sh.get("baslik", sh["id"]), "bas": sh["_bas"], "son": sh["_bas"] + sh["_sure"],
-             "enerji": ENERJI.get(sh["enerji"], 1)} for sh in k["sahneler"]]
+             "kesme": sh.get("_kesme", sh["_bas"]), "enerji": ENERJI.get(sh["enerji"], 1), "stil": sh.get("stil")}
+            for sh in k["sahneler"]]
 
 
 def _sahne_denetle(sh: dict) -> list[str]:
@@ -203,6 +234,30 @@ def sahne_videosu(sh: dict, W: int, H: int, fps: int, sureler: dict[str, float],
     return hedef
 
 
+def sahne_efekti(sh: dict, sureler: dict[str, float], klasor: Path) -> Path | None:
+    """Sahnenin kendi efekt sesleri (whoosh, kalem, pop...): şablonun miksinden `efekt` kökü, önbellekli.
+
+    Görüntüden bağımsızdır (format değişince yeniden üretilmez). Şablonun efekti yoksa None.
+    """
+    yerel = {x["_yerel"]: sureler[x["id"]] for x in satirlar({"sahneler": [sh]}) if x["id"] in sureler}
+    hedef = klasor / f"{sh['id']}-efekt-{_imza(sh, 0, 0, 0, yerel)}.wav"
+    bos = hedef.with_suffix(".yok")
+    if bos.exists():
+        return None
+    if not hedef.exists():
+        klasor.mkdir(parents=True, exist_ok=True)
+        r = subprocess.run([sys.executable, str(Path(__file__).resolve()), "_efekt", sh["stil"], sh["_yol"],
+                            json.dumps(yerel), str(hedef)], capture_output=True, text=True)
+        if r.returncode:
+            print(f"uyarı: sahne {sh['id']} efektleri alınamadı, kurguda yalnız müzik çalar:\n{r.stderr[-400:]}",
+                  file=sys.stderr)
+            return None
+        if not hedef.exists():
+            bos.write_text("şablonun efekt kökü yok\n", encoding="utf-8")
+            return None
+    return hedef
+
+
 def _sahne_ciz(stil: str, yol: str, W: int, H: int, fps: int, yerel: dict, hedef: str) -> None:
     """Ayrı süreçte çalışır: her şablonun kendi `cizim` modülü var, aynı süreçte çakışırlar."""
     d = SABLONLAR / STILLER[stil]["klasor"]
@@ -214,13 +269,29 @@ def _sahne_ciz(stil: str, yol: str, W: int, H: int, fps: int, yerel: dict, hedef
     cizim.video(s, W, H, Path(hedef))
 
 
+def _efekt_ciz(stil: str, yol: str, yerel: dict, hedef: str) -> None:
+    """Ayrı süreçte: şablonun kendi miksini seslendirmesiz çalıştırır, yazdığı `efekt.wav` kökünü alır."""
+    d = SABLONLAR / STILLER[stil]["klasor"]
+    sys.path[:0] = [str(d), str(SABLONLAR.parent / "ses")]
+    s = importlib.import_module(STILLER[stil]["yukle"]).yukle(yol)
+    s["_sureler"] = yerel
+    ses = importlib.import_module(STILLER[stil].get("ses", SES_MODULU))
+    with tempfile.TemporaryDirectory() as tmp:
+        ses.miksle(s, Path(tmp), Path(tmp) / "seslendirme-yok")
+        kok = Path(tmp) / "efekt.wav"
+        if kok.exists():
+            Path(hedef).write_bytes(kok.read_bytes())
+
+
 def birlestir_goruntu(k: dict, parcalar: list[Path], hedef: Path) -> Path:
     """Sahne videolarını geçişlerle tek sessiz videoya çevirir (tek kodlama)."""
     fps = k["fps"]
     girdi, filtre = [], []
     for i, p in enumerate(parcalar):
         girdi += ["-i", str(p)]
-        filtre.append(f"[{i}:v]fps={fps},format=yuv420p,settb=AVTB,setpts=PTS-STARTPTS[p{i}]")
+        tut = k["sahneler"][i].get("_uzat", 0)  # vuruşa oturtma: son kare biraz tutulur
+        ek = f",tpad=stop_mode=clone:stop_duration={tut:.4f}" if tut > 0 else ""
+        filtre.append(f"[{i}:v]fps={fps},format=yuv420p,settb=AVTB,setpts=PTS-STARTPTS{ek}[p{i}]")
     son = "p0"
     for i, sh in enumerate(k["sahneler"][1:], 1):
         g = sh["_gecis"]
@@ -254,9 +325,18 @@ def render(k: dict, cikti: Path, formatlar: list[str], paralel: int | None = Non
     sureler = akis.sureler_oku(cikti / "seslendirme")
     sat = satirlar(k)
     akis.uyar_eksik([x["id"] for x in sat if x["id"] not in sureler])
-    bilgi = muzik.miksle(k, bolumler(k), sat, cikti / "seslendirme", is_ / "ses.wav")
+    efektler = []
+    for sh in k["sahneler"]:
+        yol = sahne_efekti(sh, sureler, is_ / "efektler")
+        if yol:
+            efektler.append({"yol": yol, "bas": sh["_bas"], "son": sh["_bas"] + sh["_sure"],
+                             "db": sh.get("efekt_db", k["muzik"].get("efekt_db", -12.0))})
+    bilgi = muzik.miksle(k, bolumler(k), sat, cikti / "seslendirme", is_ / "ses.wav", efektler)
     if bilgi.get("konusma_ustu_db") is not None:
         print(f"ses dengesi: konuşma müziğin {bilgi['konusma_ustu_db']:.1f} dB üstünde")
+    print(f"sahne efektleri: {len(efektler)}/{len(k['sahneler'])} sahne; geçiş sesi: {bilgi.get('gecis_sesi', 0)} "
+          f"(kayıtlı kütüphane: {'var' if bilgi.get('kutuphane') else 'yok'})")
+    (is_ / "ses-raporu.json").write_text(json.dumps(bilgi, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     mastering.master(is_ / "ses.wav", is_ / "ses-master.wav")
     paralel = paralel or max(1, (os.cpu_count() or 2) // 2)
     out = []
@@ -311,6 +391,10 @@ def main(argv: list[str] | None = None) -> int:
     if argv[:1] == ["_sahne"]:
         stil, yol, W, H, fps, yerel, hedef = argv[1:8]
         _sahne_ciz(stil, yol, int(W), int(H), int(fps), json.loads(yerel), hedef)
+        return 0
+    if argv[:1] == ["_efekt"]:
+        stil, yol, yerel, hedef = argv[1:5]
+        _efekt_ciz(stil, yol, json.loads(yerel), hedef)
         return 0
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     alt = ap.add_subparsers(dest="komut", required=True)

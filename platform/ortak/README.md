@@ -9,6 +9,8 @@
 | `akis.py` | Çıktı klasörü, seslendirme (varsayılan Piper; senaryo `seslendirme.saglayici: "elevenlabs"` derse ElevenLabs), ses + görüntü birleştirme. Birleştirme sonunda kalite kapısını çalıştırır. |
 | `kalite.py` | Kalite kapısı (aşağıda). |
 | `sfx.py` | Ortak efekt ve vurmalılar: hi-hat (metalik osilatör), shaker, zil, clap, kick, whoosh (kayan rezonanslı süzgeç), riser, kâğıt hışırtısı (kısa taneler), parıltı (tiz çınlamalar), çıtırtı; pembe/kahverengi gürültü, bant ve kayan süzgeç. Ham beyaz gürültü kullanılmaz: tekdüze cızırtı olarak duyuluyordu (Atilla, 2026-10-19). Her vuruş küçük rastgele farkla çalar. `gurultu_analizi` kalite kapısının hışırtı ölçüsüdür. Bütün şablonların efektleri buradan gelir. |
+| `miks.py` | Ortak miks araçları. `kisma(vo)`: konuşmada müziğin kendiliğinden kısılması (yan zincir): konuşmadan ~80 ms önce iner, kelime aralarında tutar (zıplamaz), ~0.6 sn'den uzun cümle aralarında yumuşakça açılır. `vurus_bul(x)`: müzik dosyasının temposu ve ilk vuruşu; `sonraki_vurus(t, bpm)`: kesmeyi vuruş ızgarasına oturtur. `kok_yaz/kok_oku`: miks öncesi izleri (ör. `efekt.wav`) yazar; kurgu sahne efektlerini buradan alır. |
+| `kutuphane.py` | Kayıtlı efekt kütüphanesi: CC0 lisanslı gerçek kayıtlar (Kenney paketleri, Freesound), kategori (kalem, kâğıt çevirme, makas, tık, whoosh, cam...) ve stil paleti (`PALETLER`: karakalem → kalem + kâğıt çevirme, kolaj → makas + kart...). Şablon `kutuphane.kayit("kalem", rng, yedek=..., sure=d)` der: kayıt varsa kayıt (yedeğin seviyesine eşlenir, her çağrı biraz farklı tonda), yoksa sentez yedeği; CI'da ve kütüphanesiz oturumda çıktı değişmez. Dosyalar repoya girmez (`/mnt/project-files/.onbellek/efekt-kutuphanesi`, kaynak ve sha256 `kutuphane.json`'da, `LISANSLAR.md`). İndirilen her kayıt hışırtı ölçüsünden geçer. Komutlar: `durum`, `indir`, `ekle <dosya> --kategori --kaynak --yazar`, `dene <kategori>`. |
 | `devir.py` | İşin teslim klasörüne kısa `DEVIR.md` yazar: teslim edilen videolar ve kalite sonuçları, senaryolar ve yeniden üretme komutları, seslendirme, kararlar. Revizyon thread'i eski konuşma yerine bunu okur. Kullanım: `devir.py <klasör> --not "karar"`. |
 | `onizleme.py` | Render'dan önce önizleme: her stil için birkaç kare tek sayfada, banding ve netlik ölçüsüyle. 4 stil yaklaşık 15 sn. Kullanım: `onizleme.py kolaj=a.json origami=b.json -o onizleme.png`. |
 | `uret.py` | Tek komutla sipariş: `siparis.json` → denetim + önizleme (onayda durur) → `--onay` ile ses, yalnız siparişteki format, kalite kapısı, `DEVIR.md` → `--kapat` ile maliyet satırı. Aşama `siparis-durum.json`'da. Piper yedeğine düşen ses ve `kaldi` video teslim edilmez. Adımlar `.claude/skills/siparis-uretimi/SKILL.md`'de. |
@@ -23,7 +25,7 @@ import akis, mastering
 from formatlar import FORMATLAR
 ```
 
-Taşınan şablonlar: kinetik, origami, tek çizgi, minyatür (`akis`, `mastering`). Diğer şablonlar kendi birleştirmesini ve mastering kopyasını kullanıyor ama render sonunda kalite kapısını onlar da çalıştırır (`kalite.render_sonrasi`). Efektlerin hepsi `sfx.py`'den gelir.
+Taşınan şablonlar: kinetik, origami, tek çizgi, minyatür (`akis`, `mastering`). Diğer şablonlar kendi birleştirmesini ve mastering kopyasını kullanıyor ama render sonunda kalite kapısını onlar da çalıştırır (`kalite.render_sonrasi`). Efektlerin hepsi `sfx.py`'den gelir; karakalem ve tek çizginin kalem sesi, kinetiğin whoosh'u kütüphanede kayıt varsa kayıttan çalar (`kutuphane.py`). Şablonların `miksle` işlevleri efekt izini `efekt.wav` kökü olarak da yazar.
 
 ## Kalite kapısı
 

@@ -15,6 +15,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import miks as ortak_miks  # noqa: E402  (platform/ortak/miks.py: kökler)
+import kutuphane  # noqa: E402  (kayıtlı CC0 efektler; yoksa sentez)
 import sfx as fx  # noqa: E402  (yerel "sfx" efekt izi adıyla çakışmasın)
 import zaman  # noqa: E402
 
@@ -109,7 +111,11 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
         e, tt = env(0.18, a=0.001, dec=0.045)
         return np.sin(2 * np.pi * np.cumsum(900 * np.exp(-tt / 0.03) + 220) / SR) * e
 
-    def whoosh(d=0.35, up=True): return fx.whoosh(rng, d, yukari=up) * 2.3
+    def whoosh(d=0.35, up=True):
+        yedek = lambda: fx.whoosh(rng, d, yukari=up) * 2.3  # noqa: E731
+        kayitli = kutuphane.var_mi("gecis_whoosh")
+        x = kutuphane.kayit("gecis_whoosh", rng, yedek=yedek, sure=d + 0.25)
+        return x[::-1].copy() if kayitli and not up else x  # "whoosh-in": kayıt ters çalar, sese doğru kabarır
     def boom(d=0.9): return fx.boom(rng, d) * 1.2
 
     def tick(f):
@@ -158,5 +164,6 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
     sonum = np.clip((sure - t_all) / 0.25, 0, 1)[:, None]
     miks = np.tanh((muzik_k * 0.8 + sfx * 0.65 + ses_iz[:, None] * 1.05) * sonum * 1.1)
     cikti.mkdir(parents=True, exist_ok=True)
+    ortak_miks.kok_yaz(cikti, "efekt", sfx)  # kurgu bu sahnenin efektlerini buradan alır
     sf.write(str(cikti / "ses.wav"), (miks / max(1e-9, np.abs(miks).max()) * 0.95).astype(np.float32), SR)
     return {"seslendirme": bulunan}

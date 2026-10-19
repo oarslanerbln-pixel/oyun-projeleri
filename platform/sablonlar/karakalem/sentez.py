@@ -17,6 +17,8 @@ import numpy as np
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import miks as ortak_miks  # noqa: E402  (platform/ortak/miks.py: kökler)
+import kutuphane  # noqa: E402  (kayıtlı CC0 efektler; yoksa sentez)
 import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import zaman
@@ -183,12 +185,12 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
 
     # --- kalem: her çizgi, köşe tıkları, tarama, başlığın yazılışı ---
     for adi, c in zaman.cizgiler(s).items():
-        ekle(sfx, c["t"], kalem_cizgisi(c["d"], rng, c.get("noktali", False)), 0.55 if adi.startswith("basamak") else 0.7,
-             0.15 if adi == "dag" else -0.1)
+        x = kutuphane.kayit("kalem", rng, sure=c["d"], yedek=lambda: kalem_cizgisi(c["d"], rng, c.get("noktali", False)))
+        ekle(sfx, c["t"], x, 0.55 if adi.startswith("basamak") else 0.7, 0.15 if adi == "dag" else -0.1)
         for tc in zaman.koseler(c):
             ekle(sfx, tc, kose_tiki(rng), 0.35)
     ta, td = zaman.tarama(s)
-    ekle(sfx, ta, tarama_sesi(td, rng), 0.55, 0.2)
+    ekle(sfx, ta, kutuphane.kayit("kalem", rng, sure=td, yedek=lambda: tarama_sesi(td, rng)), 0.55, 0.2)
 
     # --- zaman çizelgesindeki efektler ---
     for an, ad_, kaz, pan, ek in zaman.ses_olaylari(s):
@@ -274,6 +276,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
     f = int(0.02 * SR); miks[:f] *= np.linspace(0, 1, f)[:, None]
     f = int(0.9 * SR); miks[-f:] *= np.linspace(1, 0, f)[:, None] ** 1.5
     cikti.mkdir(parents=True, exist_ok=True)
+    ortak_miks.kok_yaz(cikti, "efekt", sfx)  # kurgu bu sahnenin efektlerini buradan alır
     sf.write(str(cikti / "ses.wav"), (miks / max(1e-9, np.abs(miks).max()) * 0.9).astype(np.float32), SR)
     return {"seslendirme": bulunan}
 

@@ -36,7 +36,8 @@ Format sırası: `--format` (`16:9`, `9:16`, `1:1`, `4:5`, `ikisi`), yoksa kurgu
 | `sahneler[].gecis` | Önceki sahneden geçiş: `erime`, `kaydir`, `silme`, `kesme`; ya da `{"tur": "erime", "sure": 0.8}` |
 | `gecis` | Bütün sahnelerin varsayılan geçişi (varsayılan 0,5 sn erime) |
 | `seslendirme` | Bütün video için tek ses: `saglayici`, `ses`, `dil`. Sahne dosyalarındaki sağlayıcı yok sayılır |
-| `muzik` | Tek müzik yatağı: `bpm` (60–160), `akorlar` (MIDI, ölçü başına bir akor), `ses_ustu_db` (konuşma müziğin kaç dB üstünde; varsayılan 8) |
+| `muzik` | Tek müzik yatağı: `bpm` (60–160), `akorlar` (MIDI, ölçü başına bir akor), `ses_ustu_db` (konuşma müziğin kaç dB üstünde; varsayılan 8), `vurusa_otur` (varsayılan true), `efekt_db` (sahne efektleri, varsayılan −12), `gecis_sesi` (`otomatik`), `gecis_db` (varsayılan −16) |
+| `sahneler[].efekt_db` | Bu sahnenin efekt seviyesi (konuşmaya göre dB) |
 
 Sahne dosyaları `ornekler/<iş>/sahneler/` altında durur; böylece şablonların kendi CI denetimi (`ornekler/*/senaryo.json` gibi) onları ikinci kez denetlemez, kurgunun denetimi her birini kendi şablonuyla denetler.
 
@@ -45,7 +46,9 @@ Sahne dosyaları `ornekler/<iş>/sahneler/` altında durur; böylece şablonlar�
 - **Zaman çizelgesi.** Sahneler art arda dizilir; geçiş süresi kadar üst üste biner (0,5 sn erimede bir sonraki sahne 0,5 sn erken başlar). Süreler kare sayısına yuvarlanır.
 - **Görüntü.** Her sahne kendi şablonunun `cizim.video` işleviyle, ayrı bir süreçte, sessiz çizilir (şablonların `cizim` modülleri aynı süreçte çakışır). Sahneler paralel çizilir (`--paralel`, varsayılan çekirdek/2) ve `cikti/is/sahneler/` altında önbelleğe girer: senaryo, boyut, ses süreleri ve şablon kodu değişmedikçe sahne yeniden çizilmez. Revizyonda yalnız değişen sahne çizilir. Birleştirme tek kodlamadır (ffmpeg `xfade` / `concat`, H.264 CRF 16).
 - **Seslendirme.** Bütün sahnelerin satırları `<sahne>-<satır>` kimliğiyle tek listede, kurgu zamanında; `platform/ses` önbelleği sayesinde yalnız değişen satır yeniden üretilir. Denetim, satırların birbirine ve kendi sahnesinin sonuna taşmadığına bakar. Karakalemin kelime altyazısı bu süreleri kullanır.
-- **Müzik** (`muzik.py`). Tempo ve akorlar baştan sona süren tek parça. `sakin`: pad ve çeyrek arpej; `orta`: 1. ve 3. vuruşta davul, hi-hat, uzun bas; `enerjik`: her vuruşta davul, clap, sekizlik bas, yan zincir. Enerji yükselmeden önceki ölçüde yükselen bir dalga, enerjik bölüm girişinde alçak bir vuruş çalar. Konuşurken müzik 6 dB iner; konuşma müziğin `ses_ustu_db` üstünde kalır. Master `platform/ortak/mastering.py` (-14 LUFS, gerçek tepe korumalı), sonra kalite kapısı.
+- **Müzik** (`muzik.py`). Tempo ve akorlar baştan sona süren tek parça. `sakin`: pad ve çeyrek arpej; `orta`: 1. ve 3. vuruşta davul, hi-hat, uzun bas; `enerjik`: her vuruşta davul, clap, sekizlik bas, yan zincir. Enerji yükselmeden önceki ölçüde yükselen bir dalga, enerjik bölüm girişinde alçak bir vuruş çalar. Konuşurken müzik kendiliğinden 6 dB iner (`platform/ortak/miks.py`: önden bakar, kelime aralarında tutar, cümle aralarında açılır); konuşma müziğin `ses_ustu_db` üstünde kalır. Master `platform/ortak/mastering.py` (-14 LUFS, gerçek tepe korumalı), sonra kalite kapısı.
+- **Vuruşa oturan kurgu.** Kesme anı (geçişin ortası) müziğin vuruşuna oturtulur: önceki sahnenin son karesi en çok 1,25 sn tutulur (çoğu zaman bir vuruştan az). Enerji yükselirken kesme güçlü vuruşa (1. ya da 3.) gider; müziğin katmanları ve vurguları da kesme anında değiştiği için hepsi vuruşta olur. Kapatmak için `muzik.vurusa_otur: false`.
+- **Sahne efektleri.** Her sahnenin kendi efektleri (kinetiğin whoosh'u, karakalemin kalemi, origaminin katlanması...) şablonun miksinden `efekt.wav` kökü olarak alınır ve kurgu zamanına yerleşir; seviyesi her sahnede konuşmanın `efekt_db` (varsayılan −12 dB) altında, konuşurken 3 dB daha çekilir. Kökler `cikti/is/efektler/` altında önbellekli. Kesmelerde geçiş sesi yalnız kayıtlı kütüphane varsa çalar (hedef sahnenin paletindeki `gecis` rolü; `muzik.gecis_sesi`: `otomatik` / `true` sentez yedeğiyle / `false`). Özet: `cikti/is/ses-raporu.json`.
 
 ## Sahne olabilen şablonlar
 
@@ -53,6 +56,5 @@ Bugün: **kinetik** (serbest metin ve süre), **analiz** (veri, grafik, kaynakl�
 
 ## Bilinen sınırlar
 
-- Sahnelerin kendi efekt sesleri (whoosh, pop) kurguda çalmaz; ses yalnız müzik yatağı + seslendirmedir.
 - Karakalemin basamakları kendi `muzik.bpm`'ine göre zamanlanır; vuruşa otursun diye sahne dosyasında kurgununkiyle aynı bpm yazılmalı.
 - Kalite kapısının banding ölçüsü, yan yana iki düz rengin bir kanalda 1–16 kod değeri farklı olduğu kenarları basamak sanabiliyor (ör. sarı #FFD23F üstünde turuncu #E0703E: mavi kanalları 63 ve 62). Önizlemede banding uyarısı çıkarsa paletteki yakın kanalı açmak yeter; örnekte turuncu #E2611A oldu.

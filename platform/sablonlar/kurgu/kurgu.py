@@ -44,6 +44,7 @@ STILLER = {
     "kolaj": {"klasor": "kolaj", "yukle": "zaman", "komut": "kolaj.py"},
     "golge_oyunu": {"klasor": "golge_oyunu", "yukle": "zaman", "komut": "golge_oyunu.py"},
     "origami": {"klasor": "origami", "yukle": "zaman", "komut": "origami.py"},
+    **{ad: {"klasor": "desen", "yukle": "zaman", "komut": "desen.py"} for ad in ("vitray", "linol", "cini", "teknik-cizim")},
 }
 GECISLER = {"kesme": None, "erime": "fade", "kaydir": "slideleft", "silme": "wipeleft"}
 ENERJI = {"sakin": 0, "orta": 1, "enerjik": 2}

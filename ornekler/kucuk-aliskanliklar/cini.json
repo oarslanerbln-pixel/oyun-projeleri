@@ -1,0 +1,73 @@
+{
+ "kimlik": "kucuk-aliskanliklar-cini",
+ "stil": "cini",
+ "not": "Sırlı çini madalyon ve pano.",
+ "format": "9:16",
+ "sure": 10,
+ "fps": 30,
+ "sahneler": [
+  {
+   "t": 0,
+   "motif": "yildiz",
+   "baslik": "%1",
+   "alt": "her gün",
+   "olcu": [
+    1,
+    1
+   ]
+  },
+  {
+   "t": 3.0,
+   "motif": "kalp",
+   "baslik": "37×",
+   "alt": "bir yıl sonra",
+   "olcu": [
+    1,
+    37
+   ]
+  },
+  {
+   "t": 6.0,
+   "motif": "yaprak",
+   "baslik": "küçük adım",
+   "alt": "büyük fark",
+   "olcu": [
+    6,
+    30
+   ]
+  },
+  {
+   "t": 8.0,
+   "motif": "gunes",
+   "baslik": "Bugün başla.",
+   "olcu": [
+    24,
+    7
+   ]
+  }
+ ],
+ "seslendirme": {
+  "satirlar": [
+   {
+    "id": "v0",
+    "t": 0.3,
+    "metin": "Her gün, sadece yüzde bir daha iyi ol."
+   },
+   {
+    "id": "v1",
+    "t": 3.15,
+    "metin": "Bir yıl sonra, otuz yedi kat güçlüsün."
+   },
+   {
+    "id": "v2",
+    "t": 6.15,
+    "metin": "Küçük adım. Büyük fark."
+   },
+   {
+    "id": "v3",
+    "t": 8.35,
+    "metin": "Bugün başla."
+   }
+  ]
+ }
+}

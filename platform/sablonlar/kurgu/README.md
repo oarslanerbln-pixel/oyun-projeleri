@@ -49,7 +49,7 @@ Sahne dosyaları `ornekler/<iş>/sahneler/` altında durur; böylece şablonlar�
 
 ## Sahne olabilen şablonlar
 
-Bugün: **kinetik** (serbest metin ve süre), **analiz** (veri, grafik, kaynaklı sayılar), **karakalem** (sabit yapı: dağ, basamaklar, damga; 8–20 sn), **tek çizgi**, **kolaj**, **gölge oyunu** ve **origami** (ürün vitrini). Yeni bir şablon eklemek `kurgu.py` içindeki `STILLER` tablosuna bir satırdır, yeter ki şablonun `cizim.video(s, W, H, hedef)` işlevi ve bir `yukle` işlevi olsun: minyatür de bu biçimde (`yukle` `minyatur.py`'de). Ancak bazıları içeriğe kilitli olduğu için önce genelleştirilmeli: izometrik, kâğıt kesik, piksel ve hamur "%1 her gün" hikâyesine ve sabit 10 sn yapısına bağlı; origami kahve fincanı vitrinine bağlı. Çizgi roman ve risograf `cizim.video`'ya format da istediği için küçük bir uyarlama ister.
+Bugün: **kinetik** (serbest metin ve süre), **analiz** (veri, grafik, kaynaklı sayılar), **karakalem** (sabit yapı: dağ, basamaklar, damga; 8–20 sn), **tek çizgi**, **kolaj**, **gölge oyunu** ve **origami** (ürün vitrini); desen stilleri **vitray**, **linol**, **cini**, **teknik-cizim** (sahnenin `stil` adı senaryodaki stille aynı olmalı). Yeni bir şablon eklemek `kurgu.py` içindeki `STILLER` tablosuna bir satırdır, yeter ki şablonun `cizim.video(s, W, H, hedef)` işlevi ve bir `yukle` işlevi olsun: minyatür de bu biçimde (`yukle` `minyatur.py`'de). Ancak bazıları içeriğe kilitli olduğu için önce genelleştirilmeli: izometrik, kâğıt kesik, piksel ve hamur "%1 her gün" hikâyesine ve sabit 10 sn yapısına bağlı; origami kahve fincanı vitrinine bağlı. Çizgi roman ve risograf `cizim.video`'ya format da istediği için küçük bir uyarlama ister.
 
 ## Bilinen sınırlar
 

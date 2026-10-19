@@ -1,0 +1,9 @@
+{
+  "pip": ["numpy", "pillow", "soundfile", "fonttools"],
+  "denetle": [
+    {
+      "dosyalar": ["ornekler/*/vitray.json", "ornekler/*/linol.json", "ornekler/*/cini.json", "ornekler/*/teknik-cizim.json"],
+      "komut": ["{python}", "{modul}/desen.py", "denetle", "{dosya}", "-o", "{gecici}/desen"]
+    }
+  ]
+}

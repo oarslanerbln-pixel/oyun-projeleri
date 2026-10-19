@@ -14,7 +14,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | Yol | Ne |
 |---|---|
 | `platform/docs/` | `mimari.md` (mimari), `uretim-standardi.md` (çalışma kuralları), `arastirma-3d.md` |
-| `platform/ortak/` | `akis.py` (sipariş akışı), `onizleme.py` (senaryo önizleme sayfası), `kalite.py` (kalite kapısı → kalite.json), `devir.py` (DEVIR.md yazar), `sessiz.py` (uzun çıktıyı kısaltır), `formatlar.py`, `mastering.py`, `sfx.py`, `sayfa.py` (sayfa kontrolü) |
+| `platform/ortak/` | `akis.py` (sipariş akışı), `onizleme.py` (senaryo önizleme sayfası), `kalite.py` (kalite kapısı → kalite.json), `devir.py` (DEVIR.md yazar), `sessiz.py` (uzun çıktıyı kısaltır), `formatlar.py`, `mastering.py`, `sfx.py`, `miks.py` (konuşmada kısma, vuruş, efekt kökü), `kutuphane.py` (CC0 kayıtlı efekt kütüphanesi; dosyalar `.onbellek/efekt-kutuphanesi`), `sayfa.py` (sayfa kontrolü) |
 | `platform/ses/` | `seslendirme.py`: ElevenLabs (varsayılan) + Piper yedeği, önbellek `PF/.onbellek/ses` |
 | `platform/uretim/` | AI üretim: `uretim.py` (fal.ai Kling), `gorsel.py` (Flux/Recraft), bütçe + önbellek; `FAL_KEY` gerekir |
 | `platform/marka`, `metin`, `medya` | marka paleti, metin/çeviri tablosu, teslim formatları (`teslim.json`, `turev.py`) |
@@ -48,7 +48,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `markalasma-nedir/` | Kendi kanal: güncel finaller `tek-cizgi-20sn-logo/` (TR) ve `tek-cizgi-20sn-de-logo/` (DE); her alt klasörde DEVIR. `30sn/` eski karalama |
 | `atilla-ebook/` | E-kitap tanıtımı: `FINAL-roadmap-tek-cizgi-9x16.mp4`, `roadmap-*-george.mp4`; DEVIR |
 | `al-andalus/` | Almanca sunum (minyatür): `STORYBOARD.md`, `klipler/`, deste kaynakları; DEVIR |
-| `uzun-video/kucuk-aliskanliklar/` | Uzun video örneği (kurgu); DEVIR |
+| `uzun-video/kucuk-aliskanliklar/` | Uzun video örneği (kurgu); DEVIR; `ses-paketi/` sahne efektli + vuruşa oturan sürüm |
 | `yeni-stiller-2/` | 24 aday (`aday-sayfasi.png`, `karakter/`), `ARASTIRMA.md`, `GELISTIRME-PLANI.md`; çıktılar `cizgisel/`, `paket-b/`, `paket-c/`, `maskot/`, `siluet/` |
 | `yeni-tarzlar/`, `ucuncu-tarz/`, `dorduncu-tarz/`, `besinci-tarz/`, `karakalem/` | İlk stil örnekleri ve havuz videoları (marka reklamı havuzu) |
 | `elevenlabs-ses/` | Ses örnekleri ve seçili sesler (README) |

@@ -35,6 +35,8 @@ def _anahtarlar(sh: dict) -> list[tuple[str, str]]:
         return [("ozellik", sh.get("ozellik", "")), ("fiyat", sh.get("fiyat", ""))]
     if t == "cta":
         return [("alt", sh.get("alt", ""))]
+    if t == "grafik" and isinstance(sh.get("veri"), list):  # CSV'li veri: çizim sabit zamanı kullanır
+        return [(f"veri{j}", str(r[0])) for j, r in enumerate(sh["veri"]) if isinstance(r, (list, tuple)) and r]
     return []
 
 

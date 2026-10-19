@@ -7,8 +7,9 @@ import math
 import numpy as np
 import skia
 
+import dil
 import piksel as px
-from kaplama import GUVENLI, Kaplama, clamp, out_back, prog, say
+from kaplama import GUVENLI, Kaplama, clamp, out_back, out_cubic, prog, say
 
 
 
@@ -86,6 +87,8 @@ class Piksel(Kaplama):
         gen, cx, cy = x1 - x0, (x0 + x1) // 2, (y0 + y1) // 2
         tip = sh["tip"]
         L = px.SATIR
+        if sh.get("kanca") == "sok":  # görsel şok kancası: ekran kırmızıya döner
+            buf[:] = px.KIRMIZI if int(u * 8) % 4 else px.TURUNCU
         if tip == "baslik":
             sat, k = self._sar(sh["metin"], gen, 4)
             h = len(sat) * (L * k + 2 * k)
@@ -219,9 +222,69 @@ class Piksel(Kaplama):
             if alt:
                 s2, k2 = self._sar(alt, gen, 1, 2)
                 self._blok(buf, s2, cx, cy + h // 2 + 8, px.SARI, k2, u, 0.6)
+        elif tip == "grafik":
+            self._grafik(buf, sh, u, d, A)
         elif tip == "gecis" and sh.get("metin"):
             sat, k = self._sar(sh["metin"], gen, 3, 2)
             self._blok(buf, sat, cx, cy - len(sat) * L * k // 2, px.SARI, k, u, 0.05, hiz=30)
+
+    def _grafik(self, buf, sh, u, d, A):
+        """Veri sahnesi: çubuk ve çizgi yatay piksel çubukları, pasta piksel daire + renkli lejant."""
+        x0, y0, x1, y1 = A
+        gen, cx = x1 - x0, (x0 + x1) // 2
+        L = px.SATIR
+        veri = dil.veri_oku(sh, self.klasor)
+        n, birim = len(veri), sh.get("birim", "")
+        y = y0 + 2
+        if sh.get("baslik"):
+            s2, k2 = self._sar(sh["baslik"], gen, 3, 2)
+            y += self._blok(buf, s2, cx, y, px.SARI, k2, u, 0.0) + 6
+        if sh.get("kaynak"):
+            y1 -= L + 4
+            self._yaz(buf, px.ekran(self.duzelt(sh["kaynak"]))[:40], cx, y1 + 2, px.ACIKGRI, 1, prog(u, 0.5, 0.5))
+        aralik = min(0.45, max(0.15, (d - 1.4) / (n + 1)))
+        anlar = [self.an(sh, f"veri{j}", 0.35 + j * aralik) for j in range(n)]
+        renk_ = [px.SARI, px.KIRMIZI, px.YESIL, px.CYAN, px.MOR, px.TURUNCU]
+        if sh.get("tur") == "pasta":
+            top = sum(v for _, v in veri)
+            R = max(6, min(gen // 2 - 4, (y1 - y) // 2 - (n * (L + 4)) // 2 - 2))
+            ccx, ccy = cx, y + R + 2
+            yy, xx = np.mgrid[-R:R + 1, -R:R + 1]
+            aci = (np.degrees(np.arctan2(yy, xx)) + 90) % 360
+            ic = (xx ** 2 + yy ** 2 <= R * R) & (xx ** 2 + yy ** 2 >= (R * 0.5) ** 2)
+            a = 0.0
+            for j, (_, v) in enumerate(veri):
+                sw = 360 * v / top * out_cubic(prog(u, anlar[j], 0.5))
+                m = ic & (aci >= a) & (aci < a + sw)
+                bolge = buf[ccy - R:ccy + R + 1, ccx - R:ccx + R + 1]
+                bolge[m[:bolge.shape[0], :bolge.shape[1]]] = renk_[j % 6]
+                a += 360 * v / top
+            ly = ccy + R + 6
+            for j, (e, v) in enumerate(veri):
+                pp = prog(u, anlar[j], 0.3)
+                if pp <= 0:
+                    continue
+                px.kutu(buf, x0 + 2, ly + 1, L - 2, L - 2, renk_[j % 6])
+                s2, k2 = self._sar(e, gen - 60, 1, 1)
+                self._yaz(buf, s2[0], x0 + L + 4, ly, px.BEYAZ, k2, pp, hiza="sol")
+                self._yaz(buf, f"%{round(100 * v / top)}", x1, ly, px.SARI, 1, pp, hiza="sag")
+                ly += L + 4
+            return
+        enb = max(v for _, v in veri) or 1.0
+        sat_h = max(L + 4, min(26, (y1 - y) // n))
+        ew = min(gen // 3, max(px.metin_gen(px.ekran(self.duzelt(e)), 1) for e, _ in veri))
+        dw = max(px.metin_gen(px.ekran(dil.bicim(v, birim)), 1) for _, v in veri) + 4
+        bx0, bx1 = x0 + ew + 4, x1 - dw
+        for j, (e, v) in enumerate(veri):
+            g = out_cubic(prog(u, anlar[j], 0.6))
+            if g <= 0:
+                continue
+            yy = y + j * sat_h
+            self._yaz(buf, px.ekran(self.duzelt(e)), bx0 - 3, yy + (sat_h - L) // 2, px.BEYAZ, 1, prog(u, anlar[j], 0.3), hiza="sag")
+            w = int((bx1 - bx0) * v / enb * g)
+            if w > 0:
+                px.kutu(buf, bx0, yy + 2, w, sat_h - 6, px.SARI if v == enb else px.CYAN)
+            self._yaz(buf, px.ekran(say(dil.bicim(v, birim), g)), bx0 + w + 3, yy + (sat_h - L) // 2, px.SARI, 1, min(1, g * 2), hiza="sol")
 
     def _ic(self, t, w, h, fmt):
         buf = np.zeros((h, w), np.int16)

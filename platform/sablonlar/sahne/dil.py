@@ -30,10 +30,17 @@ TIPLER: dict[str, dict] = {
     "urun": {"alan": {"ad": (True, 24), "fiyat": (False, 12), "ozellik": (False, 32), "gorsel": (False, None)}, "en_kisa": 2.4},
     "cta": {"alan": {"metin": (True, 22), "alt": (False, 32)}, "en_kisa": 2.2},
     "gecis": {"alan": {"metin": (False, 20)}, "en_kisa": 0.8},  # sahneler arası kısa ara kart, seslendirme almaz
+    # veri sahnesi: veri = CSV dosyası (etiket, değer) ya da [["Ocak", 12], ...]; birim "%{}" / "{} ₺" / "kg"
+    "grafik": {"alan": {"baslik": (False, 28), "tur": (False, None), "birim": (False, 8), "kaynak": (False, 30)},
+               "en_kisa": 3.0},
 }
+GRAFIK = {"cubuk": (2, 8), "cizgi": (3, 12), "pasta": (2, 6)}  # tür -> (en az, en çok satır)
+ETIKET = 12  # grafik etiketi en çok karakter
+KANCA = ("soru", "rakam", "sok")
 MADDE = (2, 5, 28)  # liste: en az, en çok madde, madde başına karakter
-ORTAK_ALANLAR = {"tip", "seslendirme", "okunus", "sure", "not", "stiller"}
-ENERJI = {"baslik": 1, "liste": 1, "sayi": 2, "alinti": 0, "karsilastirma": 2, "urun": 1, "cta": 2, "gecis": 0}
+ORTAK_ALANLAR = {"tip", "seslendirme", "okunus", "sure", "not", "stiller", "kanca"}
+ENERJI = {"baslik": 1, "liste": 1, "sayi": 2, "alinti": 0, "karsilastirma": 2, "urun": 1, "cta": 2, "gecis": 0,
+          "grafik": 1}
 
 
 class SenaryoHatasi(ValueError):
@@ -87,8 +94,9 @@ def denetle(s: dict) -> list[str]:
         ad = f"{ad} ({tip})"
         alan = TIPLER[tip]["alan"]
         for k in sh:
-            if k not in alan and k not in ORTAK_ALANLAR and not (tip == "liste" and k == "maddeler"):
-                h.append(f"{ad}: bilinmeyen alan {k} ({', '.join(list(alan) + (['maddeler'] if tip == 'liste' else []))})")
+            ek = {"liste": ["maddeler"], "grafik": ["veri"]}.get(tip, [])
+            if k not in alan and k not in ORTAK_ALANLAR and k not in ek:
+                h.append(f"{ad}: bilinmeyen alan {k} ({', '.join(list(alan) + ek)})")
         for k, (zorunlu, azami) in alan.items():
             v = sh.get(k)
             if v is None:
@@ -107,6 +115,16 @@ def denetle(s: dict) -> list[str]:
                 for j, x in enumerate(m):
                     if not isinstance(x, str) or not x.strip() or len(x) > MADDE[2]:
                         h.append(f"{ad}: madde {j + 1} boş olmamalı ve en çok {MADDE[2]} karakter olmalı")
+        if tip == "grafik":
+            if sh.get("tur", "cubuk") not in GRAFIK:
+                h.append(f"{ad}: tur {', '.join(GRAFIK)} olmalı")
+            else:
+                try:
+                    veri_oku(sh, s.get("_klasor", "."))
+                except SenaryoHatasi as e:
+                    h.append(f"{ad}: {e}")
+        if "kanca" in sh and sh["kanca"] not in KANCA:
+            h.append(f"{ad}: kanca {', '.join(KANCA)} olmalı")
         if tip == "urun" and sh.get("gorsel") and not (Path(s.get("_klasor", ".")) / sh["gorsel"]).exists():
             h.append(f"{ad}: gorsel {sh['gorsel']} bulunamadı (senaryoya göre)")
         if tip == "gecis" and sh.get("seslendirme"):
@@ -122,6 +140,74 @@ def denetle(s: dict) -> list[str]:
     return h
 
 
+def sayi_oku(x) -> float:
+    """12 / 12.5 / "1.200" / "1.200,5" / "12,5" / "%40" -> float (Türkçe ve Almanca ayraçlar)"""
+    if isinstance(x, bool):
+        raise ValueError(x)
+    if isinstance(x, (int, float)):
+        return float(x)
+    m = re.search(r"-?\d[\d.,]*", str(x))
+    if not m:
+        raise ValueError(x)
+    ham = m.group()
+    if "," in ham:
+        ham = ham.replace(".", "").replace(",", ".")
+    elif re.fullmatch(r"-?\d{1,3}(\.\d{3})+", ham):
+        ham = ham.replace(".", "")
+    return float(ham)
+
+
+def veri_oku(sh: dict, klasor: str | Path = ".") -> list[tuple[str, float]]:
+    """Grafik sahnesinin verisi: [(etiket, değer)]. `veri` CSV dosyası (ilk iki sütun; başlık satırı atlanır,
+    ; ya da , ayraç) ya da [[etiket, değer], ...] listesi. Hatalı veride SenaryoHatasi."""
+    import csv
+    v = sh.get("veri")
+    if isinstance(v, str):
+        yol = Path(klasor) / v
+        if not yol.exists():
+            raise SenaryoHatasi(f"veri {v} bulunamadı (senaryoya göre)")
+        metin = yol.read_text(encoding="utf-8-sig")
+        ayrac = ";" if metin.count(";") > metin.count(",") / 2 and ";" in metin else ","
+        satirlar = [r for r in csv.reader(metin.splitlines(), delimiter=ayrac) if r and any(x.strip() for x in r)]
+        if satirlar and len(satirlar[0]) >= 2:
+            try:
+                sayi_oku(satirlar[0][1])
+            except ValueError:
+                satirlar = satirlar[1:]  # başlık satırı
+        v = satirlar
+    if not isinstance(v, list) or not v:
+        raise SenaryoHatasi("veri: CSV dosyası ya da [[etiket, değer], ...] listesi gerekli")
+    out = []
+    for j, r in enumerate(v):
+        if not isinstance(r, (list, tuple)) or len(r) < 2:
+            raise SenaryoHatasi(f"veri satır {j + 1}: etiket ve değer gerekli")
+        e = str(r[0]).strip()
+        try:
+            d = sayi_oku(r[1])
+        except ValueError:
+            raise SenaryoHatasi(f"veri satır {j + 1}: değer sayı değil ({r[1]})") from None
+        if not e or len(e) > ETIKET:
+            raise SenaryoHatasi(f"veri satır {j + 1}: etiket boş olmamalı ve en çok {ETIKET} karakter olmalı ({e})")
+        out.append((e, d))
+    tur = sh.get("tur", "cubuk")
+    az, cok = GRAFIK.get(tur, (2, 8))
+    if not az <= len(out) <= cok:
+        raise SenaryoHatasi(f"veri: {tur} için {az}–{cok} satır ({len(out)})")
+    if tur in ("cubuk", "pasta") and any(d < 0 for _, d in out):
+        raise SenaryoHatasi(f"veri: {tur} için değerler negatif olamaz")
+    if tur == "pasta" and sum(d for _, d in out) <= 0:
+        raise SenaryoHatasi("veri: pasta için toplam sıfırdan büyük olmalı")
+    return out
+
+
+def bicim(d: float, birim: str = "") -> str:
+    """Grafik değeri ekran yazısı: binlik nokta, ondalık virgül; birim "%{}" / "{} ₺" kalıbı ya da sonek."""
+    s = f"{int(round(d)):,}".replace(",", ".") if abs(d - round(d)) < 1e-9 else f"{d:.1f}".replace(".", ",")
+    if not birim:
+        return s
+    return birim.replace("{}", s) if "{}" in birim else s + birim
+
+
 def zamanla(s: dict, sureler: dict[str, float] | None = None) -> dict:
     """Sahnelere `bas`/`son` verir ve seslendirme satırlarını kurar. Satır süresi seslendirme dosyasından
     (`sureler`, id → sn), yoksa sözcük sayısından tahmin edilir. Senaryonun kopyasını döner."""
@@ -132,6 +218,8 @@ def zamanla(s: dict, sureler: dict[str, float] | None = None) -> dict:
     for i, sh in enumerate(s["sahneler"]):
         sh = dict(sh)
         en_kisa = TIPLER[sh["tip"]]["en_kisa"] + (0.45 * len(sh.get("maddeler") or []) if sh["tip"] == "liste" else 0.0)
+        if sh["tip"] == "grafik" and isinstance(sh.get("veri"), list):
+            en_kisa += 0.25 * len(sh["veri"])
         d = en_kisa
         metin = sh.get("seslendirme")
         if metin:

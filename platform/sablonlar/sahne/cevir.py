@@ -13,7 +13,7 @@ DESEN = ("vitray", "linol", "cini", "teknik-cizim")
 EKRAN = ("kalkis-tabelasi", "vhs", "akis-alani")
 STILLER = DESEN + EKRAN
 MOTIF = {"baslik": "gunes", "liste": "yaprak", "sayi": "ampul", "alinti": "kalp", "karsilastirma": "dag",
-         "urun": "fincan", "cta": "yildiz"}
+         "urun": "fincan", "cta": "yildiz", "grafik": "dag"}
 
 
 def _vurgu(metin: str) -> str:
@@ -44,6 +44,11 @@ def _yazilar(sh: dict) -> tuple[str, str, str]:
         return sh["ad"], alt, _vurgu(sh["ad"])
     if t == "cta":
         return sh["metin"], sh.get("alt", ""), _vurgu(sh["metin"])
+    if t == "grafik":  # desen/ekran stilleri grafik çizmez: en yüksek değer başlık olur
+        from dil import bicim, veri_oku
+        e, v = max(veri_oku(sh, sh.get("_klasor", ".")), key=lambda r: r[1])
+        deger = bicim(v, sh.get("birim", ""))
+        return deger, f"{e} · {sh['baslik']}" if sh.get("baslik") else e, f"*{deger}* {e}"
     return sh.get("metin", ""), "", sh.get("metin", "")
 
 
@@ -51,8 +56,8 @@ def cevir(z: dict, stil: str) -> dict:
     """z: dil.zamanla() çıktısı. Hedef stilin senaryosu (sözlük); `_klasor` çağıran yazar."""
     if stil not in STILLER:
         raise ValueError(f"çevirici yok: {stil} ({', '.join(STILLER)})")
-    shs = [sh for sh in z["sahneler"] if sh["tip"] != "gecis"]
     klasor = Path(z.get("_klasor", "."))
+    shs = [{**sh, "_klasor": str(klasor)} for sh in z["sahneler"] if sh["tip"] != "gecis"]
     ana = {"kimlik": f"{z.get('kimlik', 'sahne')}-{stil}", "stil": stil, "sure": z["sure"], "fps": z.get("fps", 30),
            "seslendirme": z["seslendirme"]}
     if z.get("format"):

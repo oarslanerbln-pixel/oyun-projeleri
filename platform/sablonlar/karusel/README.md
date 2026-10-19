@@ -26,6 +26,14 @@ Bütün slaytlarda aynı alt şerit: sayfa sayacı (`02 / 06`) ve sağ kenardan 
 }
 ```
 
+Üç tasarım (`"tasarim"`, varsayılan `klasik`); metin ve fotoğraflar aynı kalır, yalnız bu alan değişir:
+
+| `tasarim` | Görünüm |
+| --- | --- |
+| `klasik` | koyu `ana` zemin; fotoğraf üstte tam genişlik, altında sola yaslı yazı |
+| `kemer` | krem (`ana-ustu`) zemin, koyu yazı; kapak ve foto slaytlarında fotoğraf kemer (pencere) biçiminde, ince altın kemer çizgisi, ortalı yazı. Vurgu küçük yazıda okunsun diye koyulaştırılır |
+| `bordo` | `renk.bordo` (yoksa `ana`) zemin; fotoğraf içe alınmış, sağ alta kaydırılmış ince altın çerçeve, foto slaytında sağda büyük çizgi numara |
+
 | Slayt (`tur`) | Görünüm |
 | --- | --- |
 | `kapak` | tam kadraj fotoğraf (yoksa büyük logo), altta koyu geçiş üstünde etiket, başlık (önce tek satır, sığmazsa iki), alt satır |

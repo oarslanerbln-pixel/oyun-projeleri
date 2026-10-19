@@ -24,6 +24,9 @@ import marka as marka_mod  # noqa: E402
 from mekan import _argb, _font, _genislik, _yaz, _satirla  # noqa: E402
 
 BOYUTLAR = {'4x5': (1080, 1350), '1x1': (1080, 1080)}
+# klasik: koyu zemin, fotoğraf üstte tam genişlik · kemer: krem zemin, kemer çerçeveli fotoğraf, ortalı yazı (gelinlik,
+# davetiye havası) · bordo: marka bordosu (yoksa ana renk), içe alınmış fotoğraf + kaydırılmış altın çerçeve, büyük numara
+TASARIMLAR = ('klasik', 'kemer', 'bordo')
 TURLER = {  # slayt türü -> izinli alanlar
     'kapak': {'tur', 'foto', 'odak', 'ust', 'baslik', 'alt'},
     'foto': {'tur', 'foto', 'odak', 'ust', 'baslik', 'metin'},
@@ -62,6 +65,8 @@ def denetle(yol):
         boyut_adi(s)
     except SenaryoHatasi as e:
         hata.append(str(e))
+    if s.get('tasarim', 'klasik') not in TASARIMLAR:
+        hata.append(f'tasarim: "{s.get("tasarim")}" bilinmiyor (geçerli: {", ".join(TASARIMLAR)})')
     sl = s.get('slaytlar', [])
     if not EN_AZ <= len(sl) <= EN_COK:
         hata.append(f'slaytlar: {len(sl)} slayt; Instagram carousel {EN_AZ}–{EN_COK} slayt alır')
@@ -111,6 +116,13 @@ class Gorunum:
         self.vurgu = bul('vurgu', 'ana-ustu')
         self.vurgu_ustu = bul('vurgu-ustu', 'ana')
         self.logo_renk = bul('logo', 'vurgu', 'ana-ustu')
+        self.tasarim = s.get('tasarim', 'klasik')
+        if self.tasarim == 'kemer':  # açık zemin: vurgu küçük yazıda okunsun diye koyulaştırılır
+            self.zemin, self.yazi = bul('ana-ustu', 'zemin'), bul('ana', 'metin')
+            self.vurgu = self.logo_renk = _koyulas(bul('vurgu', 'ana'), 0.62)
+            self.vurgu_ustu = self.zemin
+        elif self.tasarim == 'bordo':
+            self.zemin = bul('bordo', 'ana')
         self.buyuk = motor.tr_buyuk if s.get('dil', 'tr') == 'tr' else str.upper
         b, g = m.yazi.get('baslik'), m.yazi.get('govde')
         self.tf_baslik = bumper.marka_yazi_tipi(b.aile, b.agirlik) if b else motor.yazi_tipi(800)
@@ -129,8 +141,24 @@ class Gorunum:
         self.buyutmeler = {}  # slayt no -> fotoğrafın büyütme katsayısı (kalite raporu)
 
 
-def _foto(cv, g, no, f, rect, odak=(0.5, 0.5)):
-    """Fotoğrafı rect'i dolduracak şekilde odak noktasına göre kırpar (cover); büyütmeyi kaydeder."""
+def _koyulas(h, k):
+    r, g_, b = (int(h.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4))
+    return '#%02X%02X%02X' % (int(r * k), int(g_ * k), int(b * k))
+
+
+def _kemer_yolu(x0, y0, x1, y1):
+    """Üstü yarım daire, altı düz kemer (pencere) biçimi."""
+    import skia
+    r = (x1 - x0) / 2
+    p = skia.Path()
+    p.moveTo(x0, y1); p.lineTo(x0, y0 + r)
+    p.arcTo(skia.Rect(x0, y0, x1, y0 + 2 * r), 180, 180, False)
+    p.lineTo(x1, y1); p.close()
+    return p
+
+
+def _foto(cv, g, no, f, rect, odak=(0.5, 0.5), yol=None):
+    """Fotoğrafı rect'i dolduracak şekilde odak noktasına göre kırpar (cover); büyütmeyi kaydeder. yol: kırpma biçimi."""
     import skia
     img = g.resimler[f]
     x0, y0, x1, y1 = rect
@@ -141,7 +169,10 @@ def _foto(cv, g, no, f, rect, odak=(0.5, 0.5)):
     ox = min(0, max(rw - iw, rw / 2 - odak[0] * iw))
     oy = min(0, max(rh - ih, rh / 2 - odak[1] * ih))
     cv.save()
-    cv.clipRect(skia.Rect(x0, y0, x1, y1), doAntiAlias=True)
+    if yol is not None:
+        cv.clipPath(yol, doAntiAlias=True)
+    else:
+        cv.clipRect(skia.Rect(x0, y0, x1, y1), doAntiAlias=True)
     cv.drawImageRect(img, skia.Rect(x0 + ox, y0 + oy, x0 + ox + iw, y0 + oy + ih), g.ornek, skia.Paint(AntiAlias=True))
     cv.restore()
 
@@ -350,7 +381,121 @@ def _kapanis(cv, g, no, x, W, H, u):
         _yaz(cv, g.tf_govde_kalin, s, 28 * u, cx, yy + 2 * u, g.vurgu_ustu, 1.0, 'orta', 0.2)
 
 
+def _baslik_ortali(cv, g, no, metin, cx, y, genislik, boy, en_kucuk, renk=None):
+    """Önce tek satır, sığmazsa iki satır; ortalı. Son satırın taban çizgisini döndürür."""
+    sonuc = (_boy_sigdir(g.tf_baslik, metin, boy, genislik, 1, en_kucuk)
+             or _boy_sigdir(g.tf_baslik, metin, en_kucuk, genislik, 2, en_kucuk * 0.8))
+    if sonuc is None:
+        raise SenaryoHatasi(f'slayt {no}: başlık iki satıra sığmıyor')
+    b, satirlar = sonuc
+    for k, s in enumerate(satirlar):
+        _yaz(cv, g.tf_baslik, s, b, cx, y + k * b * 1.05, renk or g.yazi, 1.0, 'orta')
+    return y + (len(satirlar) - 1) * b * 1.05
+
+
+def _kemer_foto(cv, g, no, x, rect, u):
+    import skia
+    yol = _kemer_yolu(*rect)
+    _foto(cv, g, no, x['foto'], rect, x.get('odak', (0.5, 0.5)), yol)
+    d = 16 * u
+    cv.drawPath(_kemer_yolu(rect[0] - d, rect[1] - d, rect[2] + d, rect[3] + d), skia.Paint(
+        AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=2 * u, Color=_argb(g.vurgu)))
+
+
+def _kemer_kapak(cv, g, no, x, W, H, u):
+    """Krem zemin, büyük kemer pencerede fotoğraf, altında ortalı etiket, başlık, alt satır."""
+    if not x.get('foto'):
+        return _kapak(cv, g, no, x, W, H, u)
+    kw = W - 300 * u
+    rect = (W / 2 - kw / 2, 96 * u, W / 2 + kw / 2, 96 * u + H * 0.60)
+    _kemer_foto(cv, g, no, x, rect, u)
+    y = rect[3] + 74 * u
+    if x.get('ust'):
+        _etiket(cv, g, x['ust'], W / 2, y, u, 'orta'); y += 24 * u
+    y = _baslik_ortali(cv, g, no, x['baslik'], W / 2, y + 74 * u, W - 2 * KENAR * u, 88 * u, 62 * u)
+    if x.get('alt'):
+        _yaz(cv, g.tf_govde, x['alt'], 30 * u, W / 2, y + 58 * u, g.yazi, 0.85, 'orta')
+
+
+def _kemer_foto_slayt(cv, g, no, x, W, H, u):
+    """Kemer pencerede fotoğraf (ortada), altında numara + etiket, başlık, metin; hepsi ortalı."""
+    kw = W - 360 * u
+    rect = (W / 2 - kw / 2, 92 * u, W / 2 + kw / 2, 92 * u + H * 0.53)
+    _kemer_foto(cv, g, no, x, rect, u)
+    y = rect[3] + 74 * u
+    _etiket(cv, g, f'{no - 1:02d}' + (f'  ·  {x["ust"]}' if x.get('ust') else ''), W / 2, y, u, 'orta')
+    y = _baslik_ortali(cv, g, no, x['baslik'], W / 2, y + 92 * u, W - 2 * KENAR * u, 80 * u, 58 * u)
+    if x.get('metin'):
+        _metin_blogu(cv, g.tf_govde, x['metin'], 30 * u, W - 2 * KENAR * u - 60 * u, 2, W / 2, y + 62 * u, g.yazi,
+                     1.45, 'orta', en_kucuk=26 * u)
+
+
+def _bordo_foto_alani(cv, g, no, x, rect, u):
+    """İçe alınmış fotoğraf ve sağ alta kaydırılmış ince altın çerçeve (önce çerçeve, üstüne fotoğraf)."""
+    import skia
+    d = 22 * u
+    cv.drawRect(skia.Rect(rect[0] + d, rect[1] + d, rect[2] + d, rect[3] + d), skia.Paint(
+        AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=2 * u, Color=_argb(g.vurgu)))
+    _foto(cv, g, no, x['foto'], rect, x.get('odak', (0.5, 0.5)))
+
+
+def _bordo_kapak(cv, g, no, x, W, H, u):
+    if not x.get('foto'):
+        return _kapak(cv, g, no, x, W, H, u)
+    sol, sag = KENAR * u, W - KENAR * u
+    rect = (sol, 84 * u, sag - 22 * u, 84 * u + H * 0.60)
+    _bordo_foto_alani(cv, g, no, x, rect, u)
+    y = rect[3] + 96 * u
+    if x.get('ust'):
+        _etiket(cv, g, x['ust'], sol, y, u); y += 20 * u
+    sonuc = (_boy_sigdir(g.tf_baslik, x['baslik'], 104 * u, sag - sol, 1, 76 * u)
+             or _boy_sigdir(g.tf_baslik, x['baslik'], 76 * u, sag - sol, 2, 60 * u))
+    if sonuc is None:
+        raise SenaryoHatasi(f'slayt {no}: başlık iki satıra sığmıyor')
+    boy, satirlar = sonuc
+    for k, s in enumerate(satirlar):
+        y += boy * (0.95 if k == 0 else 1.05)
+        _yaz(cv, g.tf_baslik, s, boy, sol, y, g.yazi)
+    if x.get('alt'):
+        _yaz(cv, g.tf_govde, x['alt'], 30 * u, sol, y + 58 * u, g.yazi, 0.85)
+
+
+def _bordo_foto_slayt(cv, g, no, x, W, H, u):
+    """İçe alınmış fotoğraf + kaydırılmış çerçeve, sağda büyük ince numara, solda etiket, başlık, metin."""
+    import skia
+    sol, sag = KENAR * u, W - KENAR * u
+    img = g.resimler[x['foto']]
+    fw = sag - 22 * u - sol
+    rect = (sol, 84 * u, sol + fw, 84 * u + min(H * 0.52, fw * img.height() / img.width()))
+    _bordo_foto_alani(cv, g, no, x, rect, u)
+    # büyük numara: yalnız çizgi, sağa yaslı, yazının arkasında
+    f = _font(g.tf_baslik, 230 * u)
+    num = f'{no - 1:02d}'
+    p = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=1.6 * u, Color=_argb(g.vurgu, 0.6))
+    cv.drawString(num, sag - f.measureText(num), rect[3] + 250 * u, f, p)
+    ds = 290 * u  # yazı numaranın soluna sığar
+    y = rect[3] + 104 * u
+    if x.get('ust'):
+        _etiket(cv, g, x['ust'], sol, y, u); y += 22 * u
+    sonuc = _boy_sigdir(g.tf_baslik, x['baslik'], 84 * u, sag - sol - ds, 2, 54 * u)
+    if sonuc is None:
+        raise SenaryoHatasi(f'slayt {no}: başlık iki satıra sığmıyor')
+    boy, satirlar = sonuc
+    for k, s in enumerate(satirlar):
+        y += boy * (0.95 if k == 0 else 1.05)
+        _yaz(cv, g.tf_baslik, s, boy, sol, y, g.yazi)
+    if x.get('metin'):
+        kalan = H - 130 * u - (y + 66 * u)
+        satir = max(1, min(3, int(kalan // (30 * u * 1.5)) + 1))
+        _metin_blogu(cv, g.tf_govde, x['metin'], 30 * u, sag - sol - ds, satir, sol, y + 66 * u, g.yazi, 1.5,
+                     en_kucuk=26 * u)
+
+
 CIZICILER = {'kapak': _kapak, 'foto': _foto_slayt, 'liste': _liste, 'kapanis': _kapanis}
+TASARIM_CIZICILERI = {
+    'kemer': {'kapak': _kemer_kapak, 'foto': _kemer_foto_slayt},
+    'bordo': {'kapak': _bordo_kapak, 'foto': _bordo_foto_slayt},
+}
 
 
 def slayt(g, no, W, H):
@@ -362,7 +507,7 @@ def slayt(g, no, W, H):
     surf = skia.Surface(W, H)
     with surf as cv:
         cv.clear(_argb(g.zemin))
-        CIZICILER[x['tur']](cv, g, no, x, W, H, u)
+        TASARIM_CIZICILERI.get(g.tasarim, {}).get(x['tur'], CIZICILER[x['tur']])(cv, g, no, x, W, H, u)
         _serit(cv, g, no, n, W, H, u)
     return surf.makeImageSnapshot()
 

@@ -37,6 +37,7 @@ KOMUTLAR = {
     "karakalem": "karakalem/karakalem.py",
     "kurgu": "kurgu/kurgu.py",
     "karusel": "karusel/karusel.py",
+    "neon": "neon/neon.py",
 }
 IKI_NOKTALI = {"minyatur", "analiz"}  # format seçeneklerini "9:16" yazımıyla bekleyenler
 VARSAYILAN_ANLAR = (0.15, 0.5, 0.85)  # süreye oranla

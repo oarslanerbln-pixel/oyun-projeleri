@@ -1,0 +1,8 @@
+{
+  "denetle": [
+    {
+      "dosyalar": ["ornekler/*/neon.json"],
+      "komut": ["{python}", "{modul}/neon.py", "denetle", "{dosya}"]
+    }
+  ]
+}

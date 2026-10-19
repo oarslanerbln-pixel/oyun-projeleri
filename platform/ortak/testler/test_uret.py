@@ -86,12 +86,15 @@ class Siparis(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         (self.tmp / uret.DURUM).write_text(json.dumps({"asama": "teslim", "elevenlabs_karakter": 412, "videolar": [
             {"stil": "risograf", "dosya": "a.mp4"}]}), encoding="utf-8")
-        r = calistir(str(p), "--kapat", "--usd", "1.2", "--cevap", "3", "--maliyet-csv", str(csv))
+        r = calistir(str(p), "--kapat", "--usd", "1.2", "--cevap", "3", "--maliyet-csv", str(csv),
+                     ortam={"STUDYO_PAYLASIM": str(self.tmp)})
         self.assertEqual(r.returncode, 0, r.stderr)
         satir = csv.read_text(encoding="utf-8").splitlines()
         self.assertEqual(satir[0].split(","), uret.MALIYET_ALANLARI)
         self.assertTrue(satir[1].endswith(",Deneme,uretim,1,1,0,3,0,0,1.20,412"), satir[1])
         self.assertEqual(json.loads((self.tmp / uret.DURUM).read_text(encoding="utf-8"))["asama"], "kapandi")
+        k = [json.loads(x) for x in (self.tmp / "gelistirme" / "katalog.jsonl").read_text(encoding="utf-8").splitlines()]
+        self.assertEqual((k[0]["stil"], k[0]["maliyet_usd"], k[0]["kaynak"]), ("risograf", 1.2, "siparis"))
 
     @unittest.skipUnless(SKIA, "skia yok")
     def test_onizlemede_durur(self):
@@ -102,7 +105,8 @@ class Siparis(unittest.TestCase):
         self.assertTrue((self.tmp / "onizleme.png").exists())
         d = json.loads((self.tmp / uret.DURUM).read_text(encoding="utf-8"))
         self.assertEqual(d["asama"], "onizleme")
-        self.assertEqual(list(self.tmp.rglob("*.mp4")), [])  # onaydan önce render yok
+        self.assertEqual([p for p in self.tmp.rglob("*.mp4") if p.name != "animatik.mp4"], [])  # onaydan önce render yok
+        self.assertEqual(d["animatik"][0]["dosya"], str(self.tmp / "animatik.mp4"))  # yalnız küçük, sessiz taslak
 
 
 if __name__ == "__main__":

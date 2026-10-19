@@ -18,6 +18,10 @@ siparis.json (yollar siparişin klasörüne göredir):
      "klasor": ".", "direkt": false, "tur": "uretim", "notlar": ["kanal 1, 'siz' hitabı"]}
 
 Durum `<klasor>/siparis-durum.json` dosyasındadır; yeni bir thread oradan ve DEVIR.md'den devam eder.
+Önizlemeyle birlikte her stil için küçük, sessiz bir animatik (`animatik.mp4`, hareketi onaydan önce görmek
+için) çizilir; siparişte `"animatik": false` bunu kapatır. Teslim edilen videolar teslim kataloğuna
+(`katalog.py`) yazılır. Sipariş stüdyo panelinden geldiyse (`"panel": {"id": ...}`, `panel.py siparis` yazar)
+her aşamada `panel-durum.json` yazılır; thread onu `ArtifactData` ile panele geri yazar.
 """
 
 from __future__ import annotations
@@ -34,8 +38,11 @@ from pathlib import Path
 BURADA = Path(__file__).resolve().parent
 SABLONLAR = BURADA.parent / "sablonlar"
 sys.path.insert(0, str(BURADA))
+import animatik  # noqa: E402
 import kalite  # noqa: E402
+import katalog  # noqa: E402
 import onizleme  # noqa: E402
+import panel  # noqa: E402
 import render_suresi  # noqa: E402
 from formatlar import coz  # noqa: E402
 
@@ -102,6 +109,7 @@ def durum_yaz(s: dict, d: dict, asama: str, **ek) -> dict:
     p = Path(s["_klasor"]) / DURUM
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(d, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    panel.durum_yaz(s, d)
     return d
 
 
@@ -154,14 +162,33 @@ def asama_onizleme(s: dict, d: dict) -> int:
     hatali = [x for x in rapor["stiller"] if x.get("hata")]
     notlar = [f"{x['stil']} {k['an']:g} sn banding %{k['banding'] * 100:.0f}" for x in rapor["stiller"]
               for k in x["kareler"] if k["banding"] >= kalite.ESIK["banding_uyari"]]
-    durum_yaz(s, d, "onizleme-hatali" if hatali else "onizleme", onizleme=None if hatali else str(hedef), onizleme_notlari=notlar,
-              stiller=[g["stil"] for g in s["senaryolar"]])
-    for x in hatali:
-        print(f"HATA: {x['stil']} karesi çizilemedi: {x['hata']}", file=sys.stderr)
     if hatali:
+        durum_yaz(s, d, "onizleme-hatali", onizleme=None, onizleme_notlari=notlar)
+        for x in hatali:
+            print(f"HATA: {x['stil']} karesi çizilemedi: {x['hata']}", file=sys.stderr)
         return 1
+    animatikler = animatik_yap(s, fmt) if s.get("animatik", True) else []
+    durum_yaz(s, d, "onizleme", onizleme=str(hedef), onizleme_notlari=notlar, animatik=animatikler,
+              stiller=[g["stil"] for g in s["senaryolar"]])
     print(f"önizleme: {hedef}" + (f" (uyarı: {', '.join(notlar)})" if notlar else ""))
+    for a in animatikler:
+        print(f"animatik: {a['dosya']} ({a['animatik_sn']} sn, {a['hiz']}x hız)" if a.get("dosya")
+              else f"animatik yok ({a['stil']}): {a['hata']}")
     return 0
+
+
+def animatik_yap(s: dict, fmt: str) -> list[dict]:
+    """Her stil için küçük animatik; hata önizlemeyi durdurmaz, yalnız not edilir."""
+    tek = len(s["senaryolar"]) == 1
+    sonuc = []
+    for g in s["senaryolar"]:
+        hedef = Path(s["_klasor"]) / ("animatik.mp4" if tek else f"animatik-{g['stil']}.mp4")
+        try:
+            r = animatik.animatik(f"{g['stil']}={g['senaryo']}", hedef, fmt=fmt)
+        except Exception as e:  # noqa: BLE001 - animatik yardımcıdır, sipariş akışını kesmez
+            r = {"stil": g["stil"], "dosya": None, "hata": str(e)}
+        sonuc.append({k: r.get(k) for k in ("stil", "dosya", "animatik_sn", "hiz", "hata") if r.get(k) is not None})
+    return sonuc
 
 
 def asama_uretim(s: dict, d: dict, secim: list[str] | None) -> int:
@@ -219,6 +246,8 @@ def asama_uretim(s: dict, d: dict, secim: list[str] | None) -> int:
     if kalan:
         print("KALDI: teslim edilmez. Sorunu düzeltip `--onay` ile yeniden çalıştırın.", file=sys.stderr)
         return 1
+    if PAYLASIM.exists():
+        katalog.ekle(katalog.siparisten(s, d), katalog.yol(PAYLASIM))
     notlar = [*s.get("notlar", []), f"stil: {', '.join(g['stil'] for g in girdiler)}"]
     subprocess.run([sys.executable, str(BURADA / "devir.py"), s["_klasor"], *sum((["--not", n] for n in notlar), [])],
                    check=True, capture_output=True)
@@ -264,6 +293,8 @@ def asama_kapat(s: dict, d: dict, a: argparse.Namespace) -> int:
             w.writerow(MALIYET_ALANLARI)
         w.writerow(maliyet_satiri(s, d, a))
     durum_yaz(s, d, "kapandi", maliyet=str(hedef))
+    if PAYLASIM.exists():
+        katalog.ekle(katalog.siparisten(s, d, a.usd), katalog.yol(PAYLASIM))
     print(f"maliyet satırı eklendi: {hedef}")
     return 0
 
@@ -298,18 +329,21 @@ def main(argv: list[str] | None = None) -> int:
         if a.usd is None:
             print("HATA: --usd gerekli (get_session kullanımından)", file=sys.stderr)
             return 2
-        return asama_kapat(s, d, a)
-    secim = [x.strip() for x in a.stil.split(",")] if a.stil else None
-    if a.onay:
-        return asama_uretim(s, d, secim)
-    kod = asama_onizleme(s, d)
-    if kod:
+        kod = asama_kapat(s, d, a)
+        if not kod and (s.get("panel") or {}).get("id"):
+            print(panel.hatirlatma(s))
         return kod
-    if a.direkt or s.get("direkt"):
-        return asama_uretim(s, d, secim)
-    print(f"Atilla onayı bekleniyor. Onaydan sonra: uret.py {Path(s['_yol']).name} --onay"
-          + (" --stil <seçilen>" if len(s["senaryolar"]) > 1 else ""))
-    return 0
+    secim = [x.strip() for x in a.stil.split(",")] if a.stil else None
+    kod = asama_uretim(s, d, secim) if a.onay else asama_onizleme(s, d)
+    if not a.onay and not kod:
+        if a.direkt or s.get("direkt"):
+            kod = asama_uretim(s, d, secim)
+        else:
+            print(f"Atilla onayı bekleniyor. Onaydan sonra: uret.py {Path(s['_yol']).name} --onay"
+                  + (" --stil <seçilen>" if len(s["senaryolar"]) > 1 else ""))
+    if (s.get("panel") or {}).get("id"):
+        print(panel.hatirlatma(s))
+    return kod
 
 
 if __name__ == "__main__":

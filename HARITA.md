@@ -8,13 +8,13 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 - Kurallar: `CLAUDE.md` (token), `platform/docs/uretim-standardi.md` (sipariş akışı, kalite kapısı).
 - Bir işe devam: önce o klasörün `DEVIR.md` dosyası (liste aşağıda), sonra brif. Başka bir şey okuma.
 - Ortak klasör: `/mnt/project-files/` (aşağıda `PF/`). Müşteri dosyaları yalnız orada, repoda değil.
-- Stüdyo paneli (takvim, siparişler, fikir kutusu): https://claude.ai/artifact/Rpwozz6cNbi3XCHjQTDkxy
+- Stüdyo paneli (takvim, siparişler, fikir kutusu): https://claude.ai/artifact/Rpwozz6cNbi3XCHjQTDkxy — siparişler panelin veritabanında (`siparisler`); thread `ArtifactData` ile okur, `panel.py` ile klasöre çevirir, durumu geri yazar
 
 ## Repo (github.com/oarslanerbln-pixel/oyun-projeleri)
 | Yol | Ne |
 |---|---|
 | `platform/docs/` | `mimari.md` (mimari), `uretim-standardi.md` (çalışma kuralları), `arastirma-3d.md` |
-| `platform/ortak/` | `akis.py` (sipariş akışı), `onizleme.py` (senaryo önizleme sayfası), `kalite.py` (kalite kapısı → kalite.json), `devir.py` (DEVIR.md yazar), `sessiz.py` (uzun çıktıyı kısaltır), `formatlar.py`, `mastering.py`, `sfx.py`, `miks.py` (konuşmada kısma, vuruş, efekt kökü), `kutuphane.py` (CC0 kayıtlı efekt kütüphanesi; dosyalar `.onbellek/efekt-kutuphanesi`), `sayfa.py` (sayfa kontrolü) |
+| `platform/ortak/` | `akis.py` (sipariş akışı), `uret.py` (tek komutla sipariş), `onizleme.py` (senaryo önizleme sayfası), `animatik.py` (onay öncesi küçük hareket taslağı), `katalog.py` (teslim kataloğu: `ara`), `panel.py` (panel siparişi ↔ sipariş klasörü), `kalite.py` (kalite kapısı → kalite.json), `devir.py` (DEVIR.md yazar), `sessiz.py` (uzun çıktıyı kısaltır), `formatlar.py`, `mastering.py`, `sfx.py`, `miks.py` (konuşmada kısma, vuruş, efekt kökü), `kutuphane.py` (CC0 kayıtlı efekt kütüphanesi; dosyalar `.onbellek/efekt-kutuphanesi`), `sayfa.py` (sayfa kontrolü) |
 | `platform/ses/` | `seslendirme.py`: ElevenLabs (varsayılan) + Piper yedeği, önbellek `PF/.onbellek/ses` |
 | `platform/uretim/` | AI üretim: `uretim.py` (fal.ai Kling), `gorsel.py` (Flux/Recraft), bütçe + önbellek; `FAL_KEY` gerekir |
 | `platform/marka`, `metin`, `medya` | marka paleti, metin/çeviri tablosu, teslim formatları (`teslim.json`, `turev.py`) |
@@ -42,7 +42,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 ## Ortak klasör (`/mnt/project-files/`)
 | Klasör | Ne / güncel final |
 |---|---|
-| `gelistirme/` | `DEVIR.md`, `beyin-firtinasi-2026-10-19.md` (son bölüm = güncel yol haritası), `gelistirme-plani.md`, `token-analizi-2026-10-19.md`, `maliyet.csv` (her sipariş bir satır) |
+| `gelistirme/` | `DEVIR.md`, `beyin-firtinasi-2026-10-19.md` (son bölüm = güncel yol haritası), `gelistirme-plani.md`, `token-analizi-2026-10-19.md`, `maliyet.csv` (her sipariş bir satır), `katalog.jsonl` + `katalog.md` (teslim edilen her video; `katalog.py ara`), `render-sureleri.csv` |
 | `the-leaf/` | Müşteri The Leaf Berlin: `1-tv-ekrani`, `2-instagram-reel`, `3-bumper` (+ `v2`), `4-ebru-3d/` (DEVIR); kaynak `proje/` |
 | `lezzet-dunyasi/` | Müşteri, bitti: kinetik/kolaj/minyatür/origami (+ `-ses`) 9:16 |
 | `le-mariage/` | Müşteri düğün salonu: reel, karusel (`onizleme/`), `animasyon/` neon, `sunum/le-mariage-praesentation.pdf`; DEVIR |

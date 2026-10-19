@@ -323,9 +323,13 @@ def muzik(g):
     rng = np.random.default_rng(5)
     # sıcak ped (Dmaj9), yanışta bir oktav açılır
     cal(buf, 0.0, bumper._ped([m(50), m(57), m(64), m(66), m(69)], a['logo'] + 0.3, 1.2), 0.30)
-    # halka: yükselen ses, logo yanışına bağlanır
+    # halka: logo yanışına doğru kabaran yumuşak akor + ince parıltı. Testere dalgalı riser burada vızıltı gibi
+    # duyuluyordu (Atilla, 2026-10-19), yalnız sinüs kullanılır
     d = a['logo'] - a['halka']
-    cal(buf, a['halka'], fx.riser(rng, d) * np.linspace(0.3, 1.0, int(d * SR)), 0.10)
+    tt = np.arange(int(d * SR)) / SR
+    kabar = sum(np.sin(2 * np.pi * m(n) * tt + i) for i, n in enumerate((62, 69, 74, 78))) / 4 * (tt / d) ** 2
+    cal(buf, a['halka'], kabar, 0.14)
+    cal(buf, a['halka'] + d * 0.4, fx.parilti(rng, d * 0.6, yogunluk=10) * np.linspace(0, 1, int(d * 0.6 * SR)), 0.04)
     cal(buf, a['monogram'], bumper._tini(m(74), 1.6, 0.45), 0.16)
     # harfler: her yanışta yumuşak tık
     for i, h0 in sorted(g.harf_an.items(), key=lambda x: x[1]):
@@ -333,7 +337,7 @@ def muzik(g):
     # tam yanış: alçak gümbürtü + açılan akor + parıltı
     L = a['logo'] + max(g.harf_an.values()) + 0.28
     cal(buf, L, fx.boom(rng, 1.1), 0.55)
-    cal(buf, L, bumper._ped([m(38), m(50), m(57), m(62), m(66), m(69), m(76)], g.sure - L, 0.05), 0.40)
+    cal(buf, L, bumper._ped([m(50), m(57), m(62), m(66), m(69), m(76)], g.sure - L, 0.05), 0.36)
     cal(buf, L, fx.parilti(rng, 1.6), 0.06)
     # kalp: çan arpeji
     for i, nota in enumerate([78, 81, 86]):

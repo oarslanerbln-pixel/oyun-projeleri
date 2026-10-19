@@ -25,7 +25,7 @@ Kurallar `platform/docs/uretim-standardi.md`'de; bu dosya yalnız komut sırası
 7. **Kapanış:** `get_session` (oturum kimliği boş) → `external_metadata.usage` alanlarını jq/python ile çek, sonra
    `python3 platform/ortak/uret.py <klasör>/siparis.json --kapat --usd <usd> --cevap <n> --cikti-token <n> --okuma-token <n> [--revizyon <n>]`. Thread'i kapat.
 
-**Panel durumu:** sipariş panelden geldiyse `uret.py` her aşamadan sonra `panel: ArtifactData update ...` satırını basar. 4., 5. ve 7. adımın sonunda o satırdaki gibi `ArtifactData update` (collection `siparisler`, doc_id, `file_path` = `<klasör>/panel-durum.json`) çağır; panelde durum yeni → onayını bekliyor → üretimde → hazır olarak ilerler ve Claude'un notu görünür.
+**Panel durumu:** sipariş panelden geldiyse `uret.py` her aşamadan sonra `panel: ArtifactData update ...` satırını basar. 4., 5. ve 7. adımın sonunda o satırdaki gibi `ArtifactData update` (collection `siparisler`, doc_id, `file_path` = `<klasör>/panel-durum.json`, `if_version` = belgeyi son okuduğundaki ya da bir önceki update'in döndürdüğü `version`) çağır; panelde durum yeni → onayını bekliyor → üretimde → hazır olarak ilerler ve Claude'un notu görünür.
 
 Durum her an: `uret.py <siparis.json> --durum` (aşama `siparis-durum.json`'da). Revizyon yeni thread'de `DEVIR.md` + bu dosya ile başlar.
 Render süreleri `/mnt/project-files/gelistirme/render-sureleri.csv`'ye ve her `kalite.json`'un `render` alanına, teslimler `/mnt/project-files/gelistirme/katalog.jsonl`'a yazılır.

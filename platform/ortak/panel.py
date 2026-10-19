@@ -62,15 +62,25 @@ def ornek_senaryo(stil: str) -> Path | None:
     return None
 
 
+def _panel_id(klasor: Path) -> str | None:
+    try:
+        return json.loads((klasor / "siparis.json").read_text(encoding="utf-8"))["panel"]["id"]
+    except (OSError, KeyError, TypeError, json.JSONDecodeError):
+        return None
+
+
 def siparis_yaz(kayit: dict, kok: Path, belge_id: str | None = None) -> Path:
     belge_id = belge_id or kayit.get("id") or kayit.get("_id")
     if not belge_id:
         raise ValueError("panel belge kimliği yok (kayıtta id/_id ya da --id)")
     is_adi = kisa_ad(kayit.get("baslik") or belge_id)
     klasor = kok / is_adi
+    if klasor.exists() and _panel_id(klasor) != belge_id:  # aynı adlı eski işin klasörüne yazma
+        is_adi = f"{is_adi}-{belge_id[:6].lower()}"
+        klasor = kok / is_adi
     klasor.mkdir(parents=True, exist_ok=True)
     tarz = (kayit.get("tarz") or "").strip()
-    stil = TARZ_STIL.get(tarz, tarz)
+    stil = TARZ_STIL.get(kisa_ad(tarz), kisa_ad(tarz)) if tarz else ""  # "tek çizgi" → tek-cizgi
     dil = DIL.get(str(kayit.get("dil") or "").strip().lower(), "tr")
     ses = (kayit.get("ses") or "").strip()
     notlar = [f"panel siparişi {belge_id}"]
@@ -81,7 +91,7 @@ def siparis_yaz(kayit: dict, kok: Path, belge_id: str | None = None) -> Path:
          "dil": dil, "panel": {"url": PANEL_URL, "koleksiyon": KOLEKSIYON, "id": belge_id}, "notlar": notlar}
     if ses and ses not in ("yok", "var"):
         s["ses"] = {"ses": ses}
-    if kayit.get("kime") and not re.match(r"(?i)kanal", str(kayit["kime"])):
+    if kayit.get("kime") and "kanal" not in kisa_ad(str(kayit["kime"])):
         s["musteri"] = kayit["kime"]
     yazilan = []
     if stil:

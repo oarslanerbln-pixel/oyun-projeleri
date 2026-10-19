@@ -82,6 +82,9 @@ class Panel(unittest.TestCase):
         self.assertTrue((k / "risograf.json").exists())
         self.assertNotIn("musteri", s)  # kanal müşteri değildir
         self.assertIn("Kısa ve enerjik", (k / "brif.md").read_text(encoding="utf-8"))
+        # aynı kayıt aynı klasöre döner; aynı adlı başka iş varsa ayrı klasör açılır
+        self.assertEqual(panel.siparis_yaz(kayit["data"], self.tmp, "doc1"), k / "siparis.json")
+        self.assertEqual(panel.siparis_yaz(kayit["data"], self.tmp, "Zz9xyw").parent.name, "sabah-rutini-5-adim-zz9xyw")
 
     def test_durum_eslemesi(self):
         self.assertEqual(panel.durum({"asama": "onizleme", "onizleme": "/k/o.png"})["durum"], "onay")

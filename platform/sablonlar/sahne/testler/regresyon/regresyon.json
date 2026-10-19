@@ -1,0 +1,46 @@
+{
+ "dil": "sahne",
+ "kimlik": "regresyon",
+ "format": "9:16",
+ "not": "Görsel regresyon testi senaryosu. Değiştirirseniz referansları yenileyin: regresyon.py guncelle",
+ "marka": {
+  "ad": "Demli Kahve"
+ },
+ "palet": {
+  "vurgu": "#E2603F"
+ },
+ "sahneler": [
+  {
+   "tip": "baslik",
+   "ust": "Demli Kahve",
+   "metin": "İlk yudum",
+   "alt": "taze kavrum",
+   "seslendirme": "Sabahın ilk yudumu, her gün taze kavrum."
+  },
+  {
+   "tip": "liste",
+   "baslik": "Neden biz?",
+   "maddeler": [
+    "Taze kavrum",
+    "Yerel",
+    "Cam şişe"
+   ],
+   "seslendirme": "Taze kavrum, yerel çiftçi ve cam şişe."
+  },
+  {
+   "tip": "karsilastirma",
+   "baslik": "Fark",
+   "sol": "Hazır kahve",
+   "sag": "Demli",
+   "sol_deger": "3/10",
+   "sag_deger": "9/10",
+   "seslendirme": "Hazır kahve üç, demli dokuz puan."
+  },
+  {
+   "tip": "cta",
+   "metin": "Bugün dene",
+   "alt": "demlikahve.com",
+   "seslendirme": "Bugün dene."
+  }
+ ]
+}

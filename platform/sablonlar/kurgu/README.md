@@ -33,7 +33,7 @@ Format sırası: `--format` (`16:9`, `9:16`, `1:1`, `4:5`, `ikisi`), yoksa kurgu
 | `sahneler[].senaryo` | O şablonun kendi senaryo dosyası (kurguya göre yol). Süre, görüntü ve seslendirme satırları oradan gelir; anlar sahnenin başından sayılır |
 | `sahneler[].enerji` | `sakin`, `orta` (varsayılan), `enerjik`: müziğin o bölümdeki yoğunluğu |
 | `sahneler[].baslik` | YouTube bölüm listesindeki adı |
-| `sahneler[].gecis` | Önceki sahneden geçiş: `erime`, `kaydir`, `silme`, `kesme`; ya da `{"tur": "erime", "sure": 0.8}` |
+| `sahneler[].gecis` | Önceki sahneden geçiş: `erime`, `kaydir`, `silme`, `kesme`, imza stil geçişleri `firca` (dalgalı kenarlı çapraz fırça darbesi) ve `murekkep` (ortadan yayılan mürekkep lekesi; ikisinde de kenarda ince mürekkep çizgisi); ya da `{"tur": "firca", "sure": 0.8}`. Farklı şablonlar (karakalem → vitray, çini → VHS) arasında bölüm geçişi için |
 | `gecis` | Bütün sahnelerin varsayılan geçişi (varsayılan 0,5 sn erime) |
 | `seslendirme` | Bütün video için tek ses: `saglayici`, `ses`, `dil`. Sahne dosyalarındaki sağlayıcı yok sayılır |
 | `muzik` | Tek müzik yatağı: `bpm` (60–160), `akorlar` (MIDI, ölçü başına bir akor), `ses_ustu_db` (konuşma müziğin kaç dB üstünde; varsayılan 8), `vurusa_otur` (varsayılan true), `efekt_db` (sahne efektleri, varsayılan −12), `gecis_sesi` (`otomatik`), `gecis_db` (varsayılan −16) |

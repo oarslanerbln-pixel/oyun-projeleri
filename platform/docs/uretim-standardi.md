@@ -98,6 +98,16 @@ Atilla, 2026-10-19: "ses kullanımını ElevenLabs'ten yapalım, diğer sesler �
 - **Piper yalnız yedek:** anahtar yoksa, `api.elevenlabs.io`'ya ulaşılamazsa ya da kalan kredi işe yetmezse bütün iş Piper ile (Türkçe `fahrettin`, Almanca `thorsten`/`kerstin`) üretilir, render durmaz. `seslendirme.json`'a `yedek` yazılır ve kalite raporu `seslendirme` uyarısı verir; bu video teslim edilmez. Senaryoda `"seslendirme": {"saglayici": "piper"}` yalnız bilerek seçilen durumlar içindir (deneme, iç önizleme).
 - **Kredi koruması:** iş başlamadan hesapta kalan kredi sorulur. Önbellekte olmayan satırların toplamı kalandan fazlaysa tek satır bile üretilmez (yarım ElevenLabs, yarım Piper iş olmaz). `--saglayici elevenlabs` açıkça verilmişse iş hatayla durur.
 - **Önbellek:** aynı metin + ses + ayar ikinci kez kredi harcamaz (`/mnt/project-files/.onbellek/ses`). Revizyonda yalnız değişen satır yeniden üretilir.
-- **Ses seçimi:** senaryoda `seslendirme.ses` (voice_id) ya da `ELEVENLABS_VOICE_ID_TR` / `_DE`; yoksa dilin varsayılanı (`seslendirme.py sesler`).
+- **Ses seçimi:** senaryoda `seslendirme.ses`: havuzdan bir ad ya da bir voice_id; yoksa `ELEVENLABS_VOICE_ID_TR` / `_DE`, o da yoksa dilin varsayılanı. Liste: `seslendirme.py sesler`.
+
+  | Ad (`seslendirme.ses`) | Ses | Ne zaman |
+  | --- | --- | --- |
+  | `george` | erkek, sıcak anlatıcı | **Türkçe anlatım varsayılanı** (Atilla, 2026-10-19 denemesinde seçti) |
+  | `turk-haber` | erkek, İstanbul aksanlı haber sesi | anadil tınısı istenen Türkçe işler, haber/analiz |
+  | `bella` | kadın, parlak ve sıcak | kadın anlatıcı; Almanca reklamlar (Lezzet Dünyası) |
+  | `matilda` | kadın, bilgilendirici | kadın varsayılanı |
+  | `liam` | erkek, enerjik | sosyal medya, hızlı kurgular |
+
+  Denemeler: `/mnt/project-files/elevenlabs-ses/turkce-deneme/`. Yeni ses havuza `ELEVEN_ADLI_SESLER`'e eklenir (yalnız ücretsiz planda çalışan, kısa satırla denenmiş sesler).
 - **Takip:** `seslendirme.py kredi` hesapta kalanı, `seslendirme.py kullanim` iş başına harcamayı gösterir. Teslim mesajı harcanan karakteri, maliyet satırı `elevenlabs_karakter`'i yazar.
 - **Plan ve lisans:** hesap ücretsiz planda (10.000 kredi/ay, ticari kullanım yok, mp3 indirme). Aylık hedef (5 uzun + 15 kısa video) yaklaşık 26.000 kredi ister; müşteri işi ve satılan ürünler için ticari lisans gerekir. Starter (~5–6 $/ay, ~30.000 kredi, ticari) hedefi az payla karşılar; denemeler ve revizyonlarla birlikte rahat çalışmak için Creator (~22 $/ay, ≥100.000 kredi). Fiyatlar 2026-10'da üçüncü taraf kaynaklardan; satın almadan önce ElevenLabs sayfasında doğrulanır.

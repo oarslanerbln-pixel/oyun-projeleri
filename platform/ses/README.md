@@ -30,7 +30,7 @@ Bütün şablonlar sesi `seslendirme.senaryodan(senaryo, klasör, sağlayıcı, 
 
 ### ElevenLabs sesi nasıl seçilir
 
-1. Komut satırında `--ses <voice_id>`.
+1. Komut satırında `--ses <ad ya da voice_id>`. Adlar stüdyo havuzundandır (`ELEVEN_ADLI_SESLER`): `george` (Türkçe varsayılanı), `turk-haber`, `bella`, `matilda`, `liam`; liste `seslendirme.py sesler`.
 2. Senaryoda `seslendirme.ses`: bir voice_id ya da bir Piper adı. Piper adı verilirse (`kerstin` gibi) onun dili ve cinsiyeti alınır ve o dilin varsayılan ElevenLabs sesi kullanılır; böylece eski senaryoya yalnız `"saglayici": "elevenlabs"` eklemek yeter.
 3. Ortam: `ELEVENLABS_VOICE_ID_TR`, `ELEVENLABS_VOICE_ID_DE` (dile özel), `ELEVENLABS_VOICE_ID` (hepsi).
 4. Varsayılan: hazır çok dilli sesler, erkek **George** (`JBFqnCBsd6RMkjVDRZzb`), kadın **Matilda** (`XrExE9yKIg1WjnnlVkGX`). Dile özel seçimler (ör. e-kitap için beğenilen Almanca ses) `ELEVEN_DIL_SESLERI`'ne yazılır.

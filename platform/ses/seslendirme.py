@@ -67,7 +67,18 @@ ELEVEN_SESLERI = {
     "erkek": {"ad": "George", "id": "JBFqnCBsd6RMkjVDRZzb"},
     "kadin": {"ad": "Matilda", "id": "XrExE9yKIg1WjnnlVkGX"},
 }
-ELEVEN_DIL_SESLERI: dict[str, dict[str, dict]] = {}
+ELEVEN_DIL_SESLERI: dict[str, dict[str, dict]] = {
+    "tr": {"erkek": ELEVEN_SESLERI["erkek"]},  # Atilla 2026-10-19 Türkçe denemede George'u seçti
+}
+# Senaryoda `seslendirme.ses` olarak adla seçilebilen sesler (stüdyo ses havuzu). Hepsi ücretsiz planda çalışır;
+# ElevenLabs kütüphanesinden eklenen sesler (Ömer, Cahit...) ücretsiz planda 402/400 verir, buraya girmez.
+ELEVEN_ADLI_SESLER = {
+    "george": {"id": "JBFqnCBsd6RMkjVDRZzb", "cinsiyet": "erkek", "not": "sıcak anlatıcı; Türkçe anlatım varsayılanı"},
+    "turk-haber": {"id": "2LDViBMBCwziwFCATi3r", "cinsiyet": "erkek", "not": "İstanbul aksanlı haber sesi (hesapta üretilmiş ses)"},
+    "bella": {"id": "hpp4J3VqNfWAUOO0d1Us", "cinsiyet": "kadin", "not": "parlak, sıcak; Almanca reklamlarda kullanıldı"},
+    "matilda": {"id": "XrExE9yKIg1WjnnlVkGX", "cinsiyet": "kadin", "not": "bilgilendirici; kadın varsayılanı"},
+    "liam": {"id": "TX3LPaxmHKxFdv7VOQHJ", "cinsiyet": "erkek", "not": "enerjik, sosyal medya"},
+}
 
 
 def _onbellek_koku() -> Path:
@@ -140,10 +151,13 @@ def piper_indir(ses: str) -> Path:
 def eleven_ayar(ayar: dict) -> dict:
     """Ayarı istek parametrelerine çözer: ses kimliği, model, dil, ses ayarları.
 
-    `ses` bir ElevenLabs voice_id ise o kullanılır. Piper ses adıysa (senaryolar `kerstin` gibi
-    Piper adları taşır) dili ve cinsiyeti alınır, o dilin varsayılan ElevenLabs sesi seçilir.
+    `ses` stüdyo havuzundan bir adsa (`ELEVEN_ADLI_SESLER`: george, turk-haber, bella...) onun kimliği,
+    bir ElevenLabs voice_id ise o kullanılır. Piper ses adıysa (senaryolar `kerstin` gibi Piper adları
+    taşır) dili ve cinsiyeti alınır, o dilin varsayılan ElevenLabs sesi seçilir.
     """
     ses = ayar.get("ses") or ""
+    if ses.lower() in ELEVEN_ADLI_SESLER:
+        ses = ELEVEN_ADLI_SESLER[ses.lower()]["id"]
     piper_bilgi = PIPER_SESLERI.get(ses)
     dil = ayar.get("dil") or (piper_bilgi or {}).get("dil") or "tr"
     if not ses or piper_bilgi:
@@ -418,10 +432,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"piper  {ad:10} {b['dil']}  {b['lisans']:16} {'ticari' if b['ticari'] else 'ticari değil'}")
         for c, b in ELEVEN_SESLERI.items():
             print(f"elevenlabs {b['ad']:10} {c:6} varsayılan ({b['id']})")
+        for ad, b in ELEVEN_ADLI_SESLER.items():
+            print(f"elevenlabs --ses {ad:12} {b['cinsiyet']:6} {b['not']} ({b['id']})")
         for dil, c in ELEVEN_DIL_SESLERI.items():
             for cins, b in c.items():
                 print(f"elevenlabs {b['ad']:10} {cins:6} {dil} varsayılanı ({b['id']})")
-        print("elevenlabs  --ses <voice_id>  (varsayılan sağlayıcı; ELEVENLABS_API_KEY yoksa Piper yedeği)")
+        print("elevenlabs  --ses <ad ya da voice_id>  (varsayılan sağlayıcı; ELEVENLABS_API_KEY yoksa Piper yedeği)")
         return 0
     veri = json.loads(Path(a.satirlar).read_text(encoding="utf-8"))
     try:

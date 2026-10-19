@@ -36,6 +36,11 @@ class ElevenLabs(unittest.TestCase):
             e = seslendirme.eleven_ayar({"ses": "kerstin"})
             self.assertEqual((e["ses"], e["dil"]), (seslendirme.ELEVEN_SESLERI["kadin"]["id"], "de"))
             self.assertEqual(seslendirme.eleven_ayar({"ses": "abc123"})["ses"], "abc123")
+            # stüdyo havuzundaki adlar kimliğe çözülür; önbellek anahtarı adla ve kimlikle aynı
+            self.assertEqual(seslendirme.eleven_ayar({"ses": "turk-haber"})["ses"], "2LDViBMBCwziwFCATi3r")
+            self.assertEqual(seslendirme._onbellek_anahtari("elevenlabs", "x", {"ses": "Bella"}),
+                             seslendirme._onbellek_anahtari("elevenlabs", "x", {"ses": "hpp4J3VqNfWAUOO0d1Us"}))
+            self.assertEqual(seslendirme.eleven_ayar({"dil": "tr"})["ses"], seslendirme.ELEVEN_ADLI_SESLER["george"]["id"])
         with mock.patch.dict(os.environ, {"ELEVENLABS_VOICE_ID_DE": "almanca"}, clear=True):
             self.assertEqual(seslendirme.eleven_ayar({"dil": "de"})["ses"], "almanca")
 

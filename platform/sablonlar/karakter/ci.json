@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/cizgisel.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/karakter.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/karakter"
+      ]
+    }
+  ]
+}

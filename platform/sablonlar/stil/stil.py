@@ -5,7 +5,7 @@
     python3 platform/sablonlar/stil/stil.py kare      senaryo.json --stil izometrik --an 1.5 4.7 [--format 16x9]
     python3 platform/sablonlar/stil/stil.py render    senaryo.json --stil izometrik [--format 9:16 | 16:9 | ikisi]
     python3 platform/sablonlar/stil/stil.py uret      senaryo.json --stil izometrik --format 16:9   # seslendirme yoksa üretir, sonra render
-`--stil kinetik` aynı komutu kinetik şablona, `--stil urun-vitrini` 3D ürün vitrini şablonuna (platform/sablonlar/vitrin) iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
+`--stil kinetik` aynı komutu kinetik şablona, `--stil cizgisel` karakter şablonuna (platform/sablonlar/karakter), `--stil urun-vitrini` 3D ürün vitrini şablonuna (platform/sablonlar/vitrin) iletir. Stil verilmezse senaryodaki "stil" alanı kullanılır.
 Format sırası: --format, yoksa senaryodaki "format" alanı ("9:16", "16:9", "ikisi" ya da liste), yoksa yalnız 9:16.
 Çıktı varsayılanı senaryonun yanındaki `cikti/` klasörü; seslendirme `cikti/seslendirme/` (üç stilde ortak).
 """
@@ -16,7 +16,8 @@ SABLONLAR = os.path.dirname(BURADA)
 sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
-TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini']
+KARAKTER_STILLERI = ['cizgisel']  # platform/sablonlar/karakter: ortak iskelet + görünüm katmanı
+TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini'] + KARAKTER_STILLERI
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 
 
@@ -80,6 +81,20 @@ def _mekan(a):
     return mekan.main(ileri)
 
 
+def _karakter(a):
+    """Karakterli stiller (çizgisel insan...): platform/sablonlar/karakter, ağız seslendirmeyle oynar."""
+    sys.path.insert(0, os.path.join(SABLONLAR, 'karakter'))
+    import karakter
+    ileri = [a.komut, a.senaryo] + (['-o', a.cikti] if a.cikti else [])
+    if a.komut in ('seslendir', 'uret'):
+        ileri += ['--saglayici', a.saglayici] + (['--ses', a.ses] if a.ses else [])
+    if a.komut == 'kare':
+        ileri += ['--an'] + [str(t) for t in a.an] + ['--format', a.format]
+    elif a.komut in ('render', 'uret'):
+        ileri += ['--format'] + a.format
+    return karakter.main(ileri)
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
@@ -110,6 +125,10 @@ def main(argv=None):
             print(f'HATA: {e}', file=sys.stderr); return 1
     if (a.stil or s.get('stil')) == 'bumper':
         return _bumper(a)
+    if (a.stil or s.get('stil')) in KARAKTER_STILLERI:  # karakter.py senaryodaki "stil"i okur
+        if a.stil and a.stil != s.get('stil', a.stil):
+            print(f"HATA: senaryonun stili '{s.get('stil')}', --stil {a.stil} ile çelişiyor", file=sys.stderr); return 1
+        return _karakter(a)
     if a.komut == 'uret':  # tek adım: seslendirme yoksa üret, sonra render (üç stilde aynı)
         ortak = [a.senaryo] + (['-o', a.cikti] if a.cikti else []) + (['--stil', a.stil] if a.stil else [])
         cikti = a.cikti or os.path.join(os.path.dirname(os.path.abspath(a.senaryo)), 'cikti')

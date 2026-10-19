@@ -12,6 +12,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import zaman
 
@@ -69,8 +73,8 @@ class Ses:
         buf[i:i + len(x), 0] += x * gain * l * 1.414
         buf[i:i + len(x), 1] += x * gain * r * 1.414
 
-    def gur(self, d):
-        return self.rng.standard_normal(int(d * SR))
+    def gur(self, d):  # pembe gürültü: beyaz gürültünün tiz cızırtısı yok
+        return fx.renkli(int(d * SR), self.rng)
 
     # --- çalgılar ---
     def cekme(self, m, d=0.9, parlak=0.5):
@@ -119,8 +123,7 @@ class Ses:
         return bp(self.gur(0.09), 1800, 5000) * e * 1.4
 
     def shaker(self):
-        e, tt = zarf(0.07, a=0.012, dec=0.02)
-        return hp(self.gur(0.07), 5000) * e * 0.35
+        return fx.shaker(self.rng, 0.07) * 0.16
 
     # --- kâğıt efektleri ---
     def efekt(self, tur):
@@ -140,7 +143,7 @@ class Ses:
         if tur == "kaydir":
             d = 0.3; tt = np.arange(int(d * SR)) / SR
             e = np.sin(np.pi * tt / d) ** 2
-            return lp(hp(g(d), 300), 2200) * e * 0.6
+            return lp(hp(g(d), 300), 2200) * e * 0.32
         if tur == "damga":
             e, tt = zarf(0.25, a=0.001, dec=0.07)
             return np.sin(2 * math.pi * (75 + 40 * np.exp(-tt / 0.02)) * tt) * e + bp(g(0.25), 400, 2500) * np.exp(-tt / 0.01) * 0.5
@@ -259,7 +262,7 @@ def efektler(s: dict, S: Ses) -> np.ndarray:
     return out
 
 
-def miksle(s: dict, cikti: Path, seslendirme: Path, muzik_alti_db: float = 8.0, efekt_db: float = -9.0) -> dict:
+def miksle(s: dict, cikti: Path, seslendirme: Path, muzik_alti_db: float = 8.0, efekt_db: float = -10.5) -> dict:
     """Seslendirme + müzik (konuşmanın ~8 dB altında, konuşurken 3 dB ek kısma) + efektler → cikti/ses.wav"""
     import soundfile as sf
     cikti.mkdir(parents=True, exist_ok=True)

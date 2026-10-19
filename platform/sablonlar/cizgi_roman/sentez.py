@@ -13,6 +13,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 from scipy.signal import butter, lfilter
 
 import zaman
@@ -47,7 +51,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         e = np.minimum(tt / a, 1.0)
         return e * (np.exp(-tt / dec) if dec else 1.0), tt
 
-    def gurultu(d): return rng.standard_normal(int(d * SR))
+    def gurultu(d): return fx.renkli(int(d * SR), rng)  # pembe: beyaz gürültünün tiz cızırtısı yok
     def bant(x, a, b): return lfilter(*butter(2, [a / (SR / 2), b / (SR / 2)], "band"), x)
     def yuksek(x, f): return lfilter(*butter(2, f / (SR / 2), "high"), x)
     def alcak(x, f): return lfilter(*butter(1, f / (SR / 2)), x)
@@ -61,13 +65,9 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         e, tt = zarf(0.22, a=0.001, dec=0.06)
         return (bant(gurultu(0.22), 1500, 9000) * 1.6 + np.sin(2 * np.pi * 190 * tt) * 0.6 * np.exp(-tt / 0.03)) * e
 
-    def hihat(d=0.05):
-        e, _ = zarf(d, a=0.0005, dec=d / 3)
-        return yuksek(gurultu(d), 7000) * e
+    def hihat(d=0.05): return fx.hat(rng, d) * 0.45
 
-    def zil():
-        e, _ = zarf(1.6, a=0.001, dec=0.5)
-        return yuksek(gurultu(1.6), 4500) * e * 0.8
+    def zil(): return fx.zil(rng, 1.6) * 0.45
 
     def testere(f, d, k=3, ayar=0.12):
         tt = np.arange(int(d * SR)) / SR; y = np.zeros_like(tt)
@@ -150,7 +150,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
 
     def darbe():
         e, tt = zarf(0.4, a=0.001, dec=0.12)
-        return (np.sin(2 * np.pi * np.cumsum(45 + 90 * np.exp(-tt / 0.03)) / SR) * 1.2 + alcak(gurultu(0.4), 1800) * 2.0) * e
+        return (np.sin(2 * np.pi * np.cumsum(45 + 90 * np.exp(-tt / 0.03)) / SR) * 1.2 + alcak(gurultu(0.4), 1800) * 0.7) * e
 
     def pop(f=900):
         e, tt = zarf(0.12, a=0.001, dec=0.04)

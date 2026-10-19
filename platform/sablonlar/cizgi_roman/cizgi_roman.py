@@ -22,6 +22,7 @@ from pathlib import Path
 BURADA = Path(__file__).resolve().parent
 sys.path.insert(0, str(BURADA))
 sys.path.insert(0, str(BURADA.parents[1] / "ses"))
+sys.path.append(str(BURADA.parents[1] / "ortak"))  # kalite kapısı
 import zaman  # noqa: E402
 
 FORMATLAR = {"9x16": (1080, 1920), "16x9": (1920, 1080), "1x1": (1080, 1080), "4x5": (1080, 1350)}
@@ -62,6 +63,8 @@ def render(s: dict, cikti: Path, formatlar: list[str]) -> list[Path]:
         hedef = cikti / f"{kimlik}-{f}.mp4"
         subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(sessiz), "-i", str(is_ / "ses-master.wav"),
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(hedef)], check=True)
+        import kalite
+        kalite.render_sonrasi(hedef)  # kalite.json + kontakt sayfası; render'ı durdurmaz
         out.append(hedef)
     f = formatlar[0]
     out.append(cizim.kapak(s, f, *FORMATLAR[f], s.get("kapak_t", s["sure"] - 0.4), cikti / f"{kimlik}-kapak.png"))

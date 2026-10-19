@@ -18,6 +18,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 SR = 48000
 ACIK_DB = 6.0  # konuşma yokken müzik bu kadar yükselir
@@ -62,15 +66,9 @@ def muzik_yatagi(sure: float, bolumler: list[dict], bpm: float, akorlar: list[li
         f = 46 + 100 * np.exp(-tt / 0.03)
         return np.sin(2 * np.pi * np.cumsum(f) / SR) * e
 
-    def clap():
-        e, tt = zarf(0.22, dec=0.06)
-        x = rng.standard_normal(len(tt))
-        return np.diff(np.concatenate([[0], x])) * e * 0.5
+    def clap(): return fx.clap(rng, 0.22) * 1.6
 
-    def hat(d=0.05):
-        e, tt = zarf(d, dec=d / 3)
-        x = rng.standard_normal(len(tt))
-        return np.diff(np.concatenate([[0, 0], x]), 2) * e * 0.1
+    def hat(d=0.05): return fx.hat(rng, d) * 0.2
 
     def pluck(nota, parlak):
         e, tt = zarf(0.5, a=0.002, dec=0.12 + 0.06 * parlak)
@@ -94,8 +92,8 @@ def muzik_yatagi(sure: float, bolumler: list[dict], bpm: float, akorlar: list[li
         tt = np.arange(int(d * SR)) / SR
         p = tt / d
         ton = np.sin(2 * np.pi * np.cumsum(180 * 2 ** (2 * p)) / SR)
-        hisirti = np.diff(np.concatenate([[0], rng.standard_normal(len(tt))]))
-        return (ton * 0.35 + hisirti * 0.25) * p ** 2.2
+        hava = fx.kayan_suzgec(fx.renkli(len(tt), rng), 500 * 9 ** p, 1.2)  # açılan hava (türevli beyaz gürültü değil)
+        return (ton * 0.35 + hava / (np.abs(hava).max() + 1e-9) * 0.35) * p ** 2.2
 
     def vurgu():  # enerjik bölüm girişi: alçak, yumuşak vuruş
         e, tt = zarf(1.2, a=0.004, dec=0.4)

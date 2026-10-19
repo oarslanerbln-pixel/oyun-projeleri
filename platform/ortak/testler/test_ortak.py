@@ -153,6 +153,24 @@ class BandingBirim(unittest.TestCase):
         kare = np.broadcast_to(30 + x // 20, (256, 256, 3)).astype(np.uint8)
         self.assertGreater(kalite.banding_orani(kare), 0.5)
 
+    def test_iki_duz_renk_siniri_sayilmaz(self):
+        import numpy as np
+        import kalite
+        # sarı/turuncu şeritler: mavi kanalda fark ≤ 16 ama kırmızı/yeşilde keskin sınır, degrade değil
+        kare = np.zeros((256, 256, 3), dtype=np.uint8)
+        kare[:] = (0xF2, 0xC2, 0x30)
+        for x0 in range(0, 256, 40):
+            kare[:, x0:x0 + 20] = (0xE0, 0x70, 0x3E)
+        self.assertEqual(kalite.banding_orani(kare), 0.0)
+
+    def test_koyu_renkli_degrade_yakalanir(self):
+        import numpy as np
+        import kalite
+        x = np.arange(256)[None, :]
+        kare = np.stack([np.broadcast_to(40 + x // 24, (256, 256)), np.broadcast_to(30 + x // 32, (256, 256)),
+                         np.broadcast_to(60 + x // 20, (256, 256))], axis=2).astype(np.uint8)
+        self.assertGreater(kalite.banding_orani(kare), 0.2)
+
     def test_acik_zemin_sayilmaz(self):
         import numpy as np
         import kalite

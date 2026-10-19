@@ -14,6 +14,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 from scipy.signal import butter, lfilter
 
 import zaman
@@ -47,7 +51,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         e = np.minimum(tt / a, 1.0)
         return e * (np.exp(-tt / dec) if dec else 1.0), tt
 
-    def gurultu(d): return rng.standard_normal(int(d * SR))
+    def gurultu(d): return fx.renkli(int(d * SR), rng)  # pembe: beyaz gürültünün tiz cızırtısı yok
     def bant(x, a, b): return lfilter(*butter(2, [a / (SR / 2), b / (SR / 2)], "band"), x)
     def yuksek(x, f): return lfilter(*butter(2, f / (SR / 2), "high"), x)
     def alcak(x, f): return lfilter(*butter(1, f / (SR / 2)), x)
@@ -71,9 +75,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         e, _ = zarf(0.25, a=0.004, dec=0.07)
         return bant(gurultu(0.25), 900, 5000) * e
 
-    def shaker():
-        e, _ = zarf(0.06, a=0.006, dec=0.018)
-        return yuksek(gurultu(0.06), 6000) * e
+    def shaker(): return fx.shaker(rng, 0.06) * 0.35
 
     def sub(nota, d):
         tt = np.arange(int(d * SR)) / SR
@@ -139,7 +141,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
 
     def damga():
         e, tt = zarf(0.2, a=0.001, dec=0.04)
-        return (np.sin(2 * np.pi * 110 * tt) + alcak(gurultu(0.2), 2500) * 1.5) * e
+        return (np.sin(2 * np.pi * 110 * tt) + alcak(gurultu(0.2), 2500) * 0.55) * e
 
     def pop(f=700):
         e, tt = zarf(0.1, a=0.001, dec=0.035)

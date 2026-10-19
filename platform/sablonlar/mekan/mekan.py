@@ -812,6 +812,7 @@ def calistir(yol, cikti, boyutlar, olcek=1.0):
         hedef = os.path.join(cikti, f'{ad}-{b}.mp4')
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', sessiz, '-i', ses, '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-t', f'{g.sure:.3f}', '-movflags', '+faststart', hedef], check=True)
+        motor.kalite_kapisi(hedef)
         ciktilar.append(hedef)
         if g.v == 'tv':  # mekânda ses çoğu zaman kapalı: aynı görüntü, ses izi yok
             sessiz_hedef = os.path.join(cikti, f'{ad}-{b}-sessiz.mp4')

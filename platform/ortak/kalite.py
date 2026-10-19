@@ -1,7 +1,7 @@
 """Kalite kapısı: teslimden önce videoyu makine kontrol eder, insan yalnız sonuca bakar.
 
 Kontroller: çözünürlük, kare hızı, kodek ve piksel biçimi; ses var mı, ses yüksekliği -14 LUFS
-ve gerçek tepe; videonun ortasında siyah, donmuş kare ya da sessizlik; degrade zeminlerde
+ve gerçek tepe; tekdüze tiz cızırtı (hışırtı); videonun ortasında siyah, donmuş kare ya da sessizlik; degrade zeminlerde
 banding (dairesel/düz basamak); büyütülmüş, yumuşak görüntü. Sonunda bir kontakt sayfası çıkar:
 8 örnek kare, dikey videoda Reels/TikTok/Shorts arayüzünün kapattığı bölgeler kırmızı taralı
 (yazının o bölgeye düşüp düşmediğine insan bakar; yazıyı makine güvenilir ayırt edemiyor).
@@ -41,6 +41,8 @@ ESIK = {
     "donma_bilgi": 2.5,         # sn; sondaki tutuş (CTA) sayılmaz
     "donma_uyari": 4.0,
     "sessizlik_sn": 1.0,
+    "hisirti_uyari": 1.0,       # sn; kesintisiz gürültü gibi tiz bant (konuşmadaki s/ş < 0.2 sn)
+    "hisirti_hata": 2.0,
     "banding_uyari": 0.03,      # banding'li karo oranı
     "banding_hata": 0.12,
     "banding_parlak": 200,      # bu parlaklığın üstündeki karolar sayılmaz (tek kod basamağı açık zeminde seçilmez)
@@ -151,7 +153,30 @@ def ses_kontrol(yol: Path, b: dict) -> tuple[list[dict], dict]:
         t1 = bit[i] if i < len(bit) else sure
         if t0 > 0.3 and t1 < sure - 0.3:
             out.append(_bul("uyari", "sessizlik", f"{t0:.1f}–{t1:.1f} sn arası sessiz", t0))
+    h = hisirti_olc(yol)
+    if h is not None:
+        o["hisirti"] = h
+        mesaj = (f"{h['en_uzun_an']:.1f} sn'den itibaren {h['en_uzun_sn']:.1f} sn tekdüze tiz cızırtı (gürültü gibi "
+                 "tiz bant müzik kadar yüksek); efekti platform/ortak/sfx.py'deki biçimli seslerle yapın")
+        if h["en_uzun_sn"] >= ESIK["hisirti_hata"]:
+            out.append(_bul("hata", "hisirti", mesaj, h["en_uzun_an"]))
+        elif h["en_uzun_sn"] >= ESIK["hisirti_uyari"]:
+            out.append(_bul("uyari", "hisirti", mesaj, h["en_uzun_an"]))
     return out, o
+
+
+def hisirti_olc(yol: Path) -> dict | None:
+    """Sesi mono 48 kHz çözüp `sfx.gurultu_analizi` ile ölçer (en uzun kesintisiz cızırtı, oranı)."""
+    try:
+        import numpy as np
+        import sfx
+    except ImportError:
+        return None
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(yol), "-vn", "-ac", "1", "-ar", "48000",
+                        "-f", "f32le", "-"], capture_output=True)
+    if r.returncode != 0 or not r.stdout:
+        return None
+    return sfx.gurultu_analizi(np.frombuffer(r.stdout, dtype=np.float32), 48000)
 
 
 # ---------------------------------------------------------------- siyah ve donma
@@ -204,12 +229,16 @@ def banding_orani(kare, karo: int = KARO) -> float:
         return 0.0
     k = kare[: H * karo, : W * karo].astype(np.int16)
     bantli = np.zeros(H * W, dtype=bool)
+    # karo bütün kanallarda yumuşak olmalı: iki düz rengin keskin sınırı (sarı/turuncu gibi, tek kanalda
+    # fark ≤ 16) degrade değildir, eskiden yanlış alarm veriyordu
+    tum = k.reshape(H, karo, W, karo, 3).transpose(0, 2, 1, 3, 4).reshape(H * W, -1, 3)
+    hepsi_yumusak = (tum.max(axis=1) - tum.min(axis=1)).max(axis=1) <= 16
     parlak = (k @ np.array([0.299, 0.587, 0.114])).reshape(H, karo, W, karo).mean(axis=(1, 3)).ravel() > ESIK["banding_parlak"]
     for c in range(3):
         t = k[:, :, c].reshape(H, karo, W, karo).transpose(0, 2, 1, 3).reshape(H * W, karo, karo)
         mn = t.min(axis=(1, 2))
         aralik = t.max(axis=(1, 2)) - mn
-        yumusak = (aralik >= 1) & (aralik <= 16)
+        yumusak = (aralik >= 1) & (aralik <= 16) & hepsi_yumusak
         if not yumusak.any():
             continue
         i = np.nonzero(yumusak)[0]

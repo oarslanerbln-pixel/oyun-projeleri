@@ -3,11 +3,17 @@
   python3 muzik.py gercekci CIKTI.wav   # LÉVA: sıcak pad + keçeli piyano, ışık süpürmesinde cam parıltısı
   python3 muzik.py ebru     CIKTI.wav   # Desenhane: Hicaz kanun arpejleri (Karplus-Strong), ney benzeri dem, damla sesleri
 Çıktı 48 kHz stereo; sonra ffmpeg loudnorm ile -14 LUFS / -1.5 dBTP.
+Parıltı ve fısıltı platform/ortak/sfx.py'den gelir: eskiden bant süzgeçli beyaz gürültüydü ve LÉVA'nın
+ilk 3.5 sn'sinde müzik kadar yüksek, düz bir "şşş" olarak duyuluyordu (Atilla, 2026-10-19).
 """
 import sys
+from pathlib import Path
 import numpy as np
 from scipy.io import wavfile
 from scipy.signal import butter, sosfilt
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "platform" / "ortak"))
+import sfx as fx  # noqa: E402
 
 SR, SURE = 48000, 10.0
 N = int(SR * SURE)
@@ -72,9 +78,13 @@ def damla(f=1400, g=1.0):
 
 
 def parilti(d, lo=3000, hi=9000):
-    x = filtre(rng.standard_normal(int(d * SR)), lo, hi)
-    t = np.arange(len(x)) / SR
-    return (x * np.sin(np.pi * t / d) ** 2 * 0.25).astype(np.float32)
+    """cam parıltısı: tiz sinüs çınlamaları (gürültü değil)"""
+    return (fx.parilti(rng, d, alt=lo, ust=hi, yogunluk=16) * 0.16).astype(np.float32)
+
+
+def fisilti(d, parlak=0.7):
+    """su yüzeyinde iğne/tarak: kısa, seyrek taneler (tek düze bant gürültüsü değil)"""
+    return (fx.hisirti(rng, d, yogunluk=150, parlak=parlak) * 0.12).astype(np.float32)
 
 
 def vurus(f=55, d=1.2):
@@ -131,7 +141,7 @@ def ebru():
     for k in range(3):
         for j in range(6): ekle(s, 3.0 + 0.09 * k + 0.2 * j, damla(1100 + 120 * j), 0.11, -0.5 + 0.5 * k)
     # iğne/tarak: su yüzeyinde fısıltı
-    ekle(s, 4.4, parilti(1.4, 1200, 4000), 0.6, -0.3); ekle(s, 5.8, parilti(0.95, 1500, 5000), 0.6, 0.3)
+    ekle(s, 4.4, fisilti(1.4, 0.6), 0.6, -0.3); ekle(s, 5.8, fisilti(0.95, 0.8), 0.6, 0.3)
     return yanki(m + s, 0.27, 0.3, 0.2)
 
 

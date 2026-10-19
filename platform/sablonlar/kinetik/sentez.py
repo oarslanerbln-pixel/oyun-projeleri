@@ -2,17 +2,21 @@
 
 Müzik: `muzik.bpm` hızında sekizlik arpej, pad, offbeat hi-hat; `muzik.dusus` anından sonra clap,
 pompalayan bas ve yan zincir. Akorlar `muzik.akorlar` listesinden birer ölçü (4 vuruş) çalar.
+Vurmalılar ve efektler `platform/ortak/sfx.py`'den gelir (beyaz gürültü cızırtısı yok).
 Gerekenler: numpy, soundfile.
 """
 
 from __future__ import annotations
 
 import math
+import sys
 from pathlib import Path
 
 import numpy as np
 
-import zaman
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (yerel "sfx" efekt izi adıyla çakışmasın)
+import zaman  # noqa: E402
 
 SR = 48000
 
@@ -42,26 +46,10 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
 
     def mtof(m): return 440 * 2 ** ((m - 69) / 12)
 
-    def lp(x, cut):  # tek kutuplu alçak geçiren; cut sabit ya da örnek başına dizi
-        cut = np.broadcast_to(np.asarray(cut, dtype=float), x.shape)
-        a = np.exp(-2 * np.pi * cut / SR); y = np.empty_like(x); v = 0.0
-        for i in range(len(x)): v = (1 - a[i]) * x[i] + a[i] * v; y[i] = v
-        return y
-
     # --- davul ---
-    def kick():
-        e, tt = env(0.42, dec=0.16)
-        f = 48 + 110 * np.exp(-tt / 0.035)
-        return np.sin(2 * np.pi * np.cumsum(f) / SR) * e + 0.25 * rng.standard_normal(len(tt)) * np.exp(-tt / 0.004)
-
-    def clap():
-        e, tt = env(0.25, dec=0.07); x = rng.standard_normal(len(tt))
-        for k in (0.0, 0.011, 0.022): x[int(k * SR):int(k * SR) + 200] *= 2.2
-        return np.diff(np.concatenate([[0], x])) * e * 0.55
-
-    def hat(d=0.06):
-        e, tt = env(d, dec=d / 3); x = rng.standard_normal(len(tt))
-        return np.diff(np.concatenate([[0], np.diff(np.concatenate([[0], x]))])) * e * 0.12
+    def kick(): return fx.kick(rng, 0.42)
+    def clap(): return fx.clap(rng, 0.25) * 1.65
+    def hat(d=0.06): return fx.hat(rng, d) * 0.33
 
     # --- tonal ---
     def pluck(m, d=0.32, br=1.0):
@@ -97,7 +85,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
         if vur and not bosta(tb): ekle(muzik, tb, kick(), 0.9)
         if not vur: ekle(muzik, tb, hat(), 0.9, pan=0.3)
         if tam and i % 4 == 2: ekle(muzik, tb, clap(), 0.7, pan=-0.1)
-        if tam: ekle(muzik, tb, hat(0.03), 0.6, pan=-0.3)
+        if tam and i % 4 == 3: ekle(muzik, tb, fx.shaker(rng) * 0.2, 0.6, pan=-0.3)
         ekle(muzik, tb, pluck(notlar[arp[i % 8] % len(notlar)] + 12, br=1.4 if tam else 1.0), 0.16, pan=(-0.4 if i % 2 else 0.4))
         if tam and not bosta(tb):
             ekle(muzik, tb, bas(min(notlar) - 24 + (12 if not vur else 0), adim * 0.95), 0.32)
@@ -121,23 +109,14 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None) -> dict:
         e, tt = env(0.18, a=0.001, dec=0.045)
         return np.sin(2 * np.pi * np.cumsum(900 * np.exp(-tt / 0.03) + 220) / SR) * e
 
-    def whoosh(d=0.35, up=True):
-        tt = np.arange(int(d * SR)) / SR; p = tt / d
-        return lp(rng.standard_normal(len(tt)), 300 + 5000 * (p if up else 1 - p)) * np.sin(np.pi * p) ** 2 * 2.2
-
-    def boom(d=0.9):
-        e, tt = env(d, a=0.002, dec=0.28)
-        sub = np.sin(2 * np.pi * np.cumsum(70 * np.exp(-tt / 0.25) + 32) / SR) * e
-        return sub + lp(rng.standard_normal(len(tt)), 900) * np.exp(-tt / 0.05) * 1.5
+    def whoosh(d=0.35, up=True): return fx.whoosh(rng, d, yukari=up) * 2.3
+    def boom(d=0.9): return fx.boom(rng, d) * 1.2
 
     def tick(f):
         e, tt = env(0.03, a=0.0005, dec=0.008)
         return np.sin(2 * np.pi * f * tt) * e
 
-    def riser(d):
-        tt = np.arange(int(d * SR)) / SR; p = tt / d
-        saw = 2 * ((np.cumsum(200 * 2 ** (3 * p)) / SR) % 1) - 1
-        return (saw * 0.25 + rng.standard_normal(len(tt)) * 0.3) * p ** 2
+    def riser(d): return fx.riser(rng, d) * 0.66
 
     def sparkle():
         out = np.zeros(int(0.8 * SR))

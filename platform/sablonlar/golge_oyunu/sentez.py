@@ -12,6 +12,10 @@ import math
 from pathlib import Path
 
 import numpy as np
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+import sfx as fx  # noqa: E402  (platform/ortak/sfx.py: beyaz gürültüsüz efektler)
 
 import zaman
 
@@ -43,7 +47,7 @@ def zarf(d, a=0.003, dec=None):
 
 
 def gurultu(d, seed=0):
-    return np.random.default_rng(seed).standard_normal(int(d * SR))
+    return fx.renkli(int(d * SR), seed)  # pembe: beyaz gürültünün tiz cızırtısı yok
 
 
 def ud(m, d=1.2, parlak=0.5, seed=0):
@@ -90,8 +94,8 @@ def tahta(f=900):
 
 
 def hisirti(d, seed):
-    g = _lfilter([1, -1], [1, -0.6], gurultu(d, seed))
-    return g * np.sin(np.pi * np.arange(len(g)) / len(g)) ** 1.5 * 0.4
+    """perde/deri hışırtısı: kısa taneler (türevi alınmış beyaz gürültü tek düze cızırdıyordu)"""
+    return fx.hisirti(seed, d, yogunluk=90, parlak=0.8) * 0.45
 
 
 def ekle(buf, t0, x, gain=1.0, pan=0.0):

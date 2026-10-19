@@ -448,9 +448,10 @@ def _davul(d=0.35):
 
 
 def _hisirti(d, dec, seed, cut=6000):
-    e, _ = motor.zarf(d, 0.001, dec)
-    x = motor.gurultu(d, seed)
-    return (x - motor.lp_hizli(x, cut)) * e
+    """kısa olanı shaker tanesi; uzun olanı (logo açılışı) tiz çınlamalar: tek düze tiz gürültü değil"""
+    if d <= 0.2:
+        return motor.fx.shaker(seed, d) * 0.6
+    return motor.fx.parilti(seed, d, alt=cut * 0.6, ust=cut * 1.6, yogunluk=14) * 0.5 * motor.zarf(d, 0.001, dec)[0]
 
 
 def muzik(g):
@@ -524,6 +525,7 @@ def calistir(senaryo_yolu, cikti, boyutlar=('9x16',), olcek=1.0):
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', sessiz, '-i', ses, '-c:v', 'copy',
                         '-c:a', 'aac', '-b:a', '192k', '-t', f'{g.sure:.3f}', '-movflags', '+faststart', hedef], check=True)
         os.remove(sessiz)
+        motor.kalite_kapisi(hedef)
         ciktilar.append(hedef)
     for f in ('ses.wav', 'ses_14.wav'):
         os.remove(os.path.join(is_, f))

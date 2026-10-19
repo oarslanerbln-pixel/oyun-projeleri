@@ -17,7 +17,8 @@ sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
 KARAKTER_STILLERI = ['cizgisel', 'maskot', 'siluet']  # platform/sablonlar/karakter: ortak iskelet + görünüm katmanı
-TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini'] + KARAKTER_STILLERI
+EKRAN_STILLERI = ['kalkis-tabelasi', 'vhs', 'akis-alani']  # platform/sablonlar/ekran
+TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini'] + KARAKTER_STILLERI + EKRAN_STILLERI
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)
 
 
@@ -40,6 +41,28 @@ def _kinetik(argv):
     sys.path.insert(0, os.path.join(SABLONLAR, 'kinetik'))
     import kinetik
     return kinetik.main(argv)
+
+
+def _ekran(a, s):
+    """Kalkış tabelası, VHS, akış alanı: platform/sablonlar/ekran (stil senaryonun "stil" alanından okunur)."""
+    if a.stil and a.stil != s.get('stil'):
+        print(f'HATA: ekran stilleri senaryonun "stil" alanını kullanır ({s.get("stil")}); --stil {a.stil} için senaryoyu değiştirin',
+              file=sys.stderr)
+        return 1
+    sys.path.insert(0, os.path.join(SABLONLAR, 'ekran'))
+    import ekran
+    ortak = [a.senaryo] + (['-o', a.cikti] if a.cikti else [])
+    ses = ['--saglayici', a.saglayici] + (['--ses', a.ses] if a.ses else []) if a.komut in ('seslendir', 'uret') else []
+    if a.komut in ('denetle', 'seslendir'):
+        return ekran.main([a.komut] + ortak + ses)
+    if a.komut == 'kare':
+        return ekran.main(['kare'] + ortak + ['--an', *map(str, a.an), '--format', a.format])
+    if a.komut == 'uret':
+        cikti = a.cikti or os.path.join(os.path.dirname(os.path.abspath(a.senaryo)), 'cikti')
+        if not os.path.exists(os.path.join(cikti, 'seslendirme', 'seslendirme.json')):
+            r = ekran.main(['seslendir'] + ortak + ses)
+            if r: return r
+    return ekran.main(['render'] + ortak + ['--format'] + a.format)
 
 
 def _vitrin(argv):
@@ -125,6 +148,8 @@ def main(argv=None):
             print(f'HATA: {e}', file=sys.stderr); return 1
     if (a.stil or s.get('stil')) == 'bumper':
         return _bumper(a)
+    if (a.stil or s.get('stil')) in EKRAN_STILLERI:
+        return _ekran(a, s)
     if (a.stil or s.get('stil')) in KARAKTER_STILLERI:  # karakter.py senaryodaki "stil"i okur
         if a.stil and a.stil != s.get('stil', a.stil):
             print(f"HATA: senaryonun stili '{s.get('stil')}', --stil {a.stil} ile çelişiyor", file=sys.stderr); return 1

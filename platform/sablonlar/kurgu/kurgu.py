@@ -44,6 +44,7 @@ STILLER = {
     "kolaj": {"klasor": "kolaj", "yukle": "zaman", "komut": "kolaj.py"},
     "golge_oyunu": {"klasor": "golge_oyunu", "yukle": "zaman", "komut": "golge_oyunu.py"},
     "origami": {"klasor": "origami", "yukle": "zaman", "komut": "origami.py"},
+    "ekran": {"klasor": "ekran", "yukle": "zaman", "komut": "ekran.py"},  # kalkış tabelası, VHS, akış alanı
 }
 GECISLER = {"kesme": None, "erime": "fade", "kaydir": "slideleft", "silme": "wipeleft"}
 ENERJI = {"sakin": 0, "orta": 1, "enerjik": 2}

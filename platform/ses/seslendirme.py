@@ -257,7 +257,8 @@ def senaryodan(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: st
     """
     sb = s.get("seslendirme") or {}
     satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in sb.get("satirlar", [])]
-    ayar = {"ses": ses or sb.get("ses"), "dil": sb.get("dil") or s.get("dil"), "saglayici": sb.get("saglayici"),
+    dil = sb.get("dil") or (s.get("dil") if s.get("dil") != "sahne" else None)  # ortak sahne dilinde "dil" biçimdir
+    ayar = {"ses": ses or sb.get("ses"), "dil": dil, "saglayici": sb.get("saglayici"),
             "telaffuz": sb.get("telaffuz"), "klasor": s.get("_klasor")}
     return uret(satirlar, Path(cikti), saglayici, ayar)
 

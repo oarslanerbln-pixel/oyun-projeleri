@@ -4,6 +4,7 @@
     python3 platform/ortak/uret.py siparis.json --onay [--stil a,b]  # 2. ses, render, kalite kapısı, DEVIR.md
     python3 platform/ortak/uret.py siparis.json --kapat --usd 1.42 --cevap 4 --cikti-token 21000 --okuma-token 2400000
     python3 platform/ortak/uret.py siparis.json --durum
+    python3 platform/ortak/uret.py siparis.json --yayin                # yayın paketlerini yeniden yaz
 
 Önizlemeden sonra komut durur: tam render Atilla onay vermeden yapılmaz (uretim-standardi.md §1). Siparişte
 `"direkt": true` varsa (Atilla "direkt üret" dediyse) ya da `--direkt` verilirse önizlemeden sonra sürer.
@@ -16,6 +17,11 @@ siparis.json (yollar siparişin klasörüne göredir):
      "senaryolar": [{"stil": "tek-cizgi", "senaryo": "tek-cizgi.json"}],   # ya da tek: "senaryo": "a.json"
      "format": "9:16", "ses": {"saglayici": "otomatik", "ses": "liam"},
      "klasor": ".", "direkt": false, "tur": "uretim", "notlar": ["kanal 1, 'siz' hitabı"]}
+
+Dil varyantı: `"diller": ["tr", "de"]` (+ isteğe bağlı `"dil_sesleri": {"de": "liam"}`) aynı kurgudan her dil için
+video çıkarır (`cikti-de/`). Kaynak dil `dil` alanıdır; öteki dilin çevirisi `<senaryo>.ceviri-de.json` tablosundadır:
+tablo yoksa ilk çalıştırma onu boş yazıp durur, thread doldurur, komut yeniden çalışır (dil_varyanti.py).
+Teslimde her video için `yayin/<video>/` yayın paketi yazılır: kapak, altyazı, başlık/açıklama/etiket (yayin.py).
 
 Durum `<klasor>/siparis-durum.json` dosyasındadır; yeni bir thread oradan ve DEVIR.md'den devam eder.
 Önizlemeyle birlikte her stil için küçük, sessiz bir animatik (`animatik.mp4`, hareketi onaydan önce görmek
@@ -39,11 +45,13 @@ BURADA = Path(__file__).resolve().parent
 SABLONLAR = BURADA.parent / "sablonlar"
 sys.path.insert(0, str(BURADA))
 import animatik  # noqa: E402
+import dil_varyanti  # noqa: E402
 import kalite  # noqa: E402
 import katalog  # noqa: E402
 import onizleme  # noqa: E402
 import panel  # noqa: E402
 import render_suresi  # noqa: E402
+import yayin  # noqa: E402
 from formatlar import coz  # noqa: E402
 
 PAYLASIM = Path(os.environ.get("STUDYO_PAYLASIM", "/mnt/project-files"))
@@ -73,12 +81,41 @@ def oku(yol: Path) -> dict:
         g["stil"] = stil_bul(senaryo, Path(g["senaryo"]), g.get("stil"))
         if g["stil"] not in bilinen_stiller():
             hata.append(f"tanımsız stil: {g['stil']} ({g['senaryo']}); siparişte \"stil\" yazın")
+    if not hata:
+        girdiler = dilleri_ac(s, girdiler, hata)
     if hata:
         raise ValueError("; ".join(hata))
     s["senaryolar"] = girdiler
     s["_yol"] = str(yol)
     s["_klasor"] = str((yol.parent / s.get("klasor", ".")).resolve())
     return s
+
+
+def dilleri_ac(s: dict, girdiler: list[dict], hata: list[str]) -> list[dict]:
+    """`"diller": ["tr", "de"]` → her senaryo her dilde bir girdi. Kaynak dil siparişin `dil`i (yoksa ilk dil); öteki
+    diller `<ad>.ceviri-<dil>.json` tablosundan `<ad>.<dil>.json` varyantı olur (dil_varyanti.py). Tablo boşsa hata."""
+    diller = list(dict.fromkeys(s.get("diller") or []))
+    kaynak = s.get("dil") or (diller[0] if diller else "tr")
+    if len(diller) < 2 and (not diller or diller[0] == kaynak):
+        for g in girdiler:
+            g.setdefault("etiket", g["stil"])
+        return girdiler
+    sesler = s.get("dil_sesleri") or {}
+    tek_stil = len(girdiler) == 1
+    out = []
+    for g in girdiler:
+        for dil in diller:
+            y = dict(g, dil=dil, etiket=dil if tek_stil else f"{g['stil']}-{dil}")
+            if sesler.get(dil):
+                y["ses"] = sesler[dil]
+            if dil != kaynak:
+                vp, mesaj = dil_varyanti.hazirla(Path(g["senaryo"]), dil, sesler.get(dil), kaynak)
+                if not vp:
+                    hata.append(mesaj)
+                    continue
+                y["senaryo"] = str(vp)
+            out.append(y)
+    return out
 
 
 def bilinen_stiller() -> set[str]:
@@ -121,8 +158,8 @@ def sablon_komutu(stil: str, alt: str, senaryo: str, cikti: Path, ek: list[str] 
     return [sys.executable, str(SABLONLAR / "stil" / "stil.py"), alt, senaryo, "-o", str(cikti), *ek, "--stil", stil]
 
 
-def ses_bayraklari(s: dict) -> list[str]:
-    ses = s.get("ses") or {}
+def ses_bayraklari(s: dict, g: dict | None = None) -> list[str]:
+    ses = dict(s.get("ses") or {}, **({"ses": g["ses"]} if g and g.get("ses") else {}))
     return (["--saglayici", ses["saglayici"]] if ses.get("saglayici") else []) + (["--ses", ses["ses"]] if ses.get("ses") else [])
 
 
@@ -139,7 +176,7 @@ def calistir(cmd: list[str], ortam: dict | None = None) -> tuple[int, str]:
 
 def cikti_klasoru(s: dict, g: dict) -> Path:
     tek = len(s["senaryolar"]) == 1
-    return Path(s["_klasor"]) / ("cikti" if tek else f"cikti-{g['stil']}")
+    return Path(s["_klasor"]) / ("cikti" if tek else f"cikti-{g.get('etiket') or g['stil']}")
 
 
 def mp4ler(k: Path) -> dict[Path, float]:
@@ -182,7 +219,7 @@ def animatik_yap(s: dict, fmt: str) -> list[dict]:
     tek = len(s["senaryolar"]) == 1
     sonuc = []
     for g in s["senaryolar"]:
-        hedef = Path(s["_klasor"]) / ("animatik.mp4" if tek else f"animatik-{g['stil']}.mp4")
+        hedef = Path(s["_klasor"]) / ("animatik.mp4" if tek else f"animatik-{g.get('etiket') or g['stil']}.mp4")
         try:
             r = animatik.animatik(f"{g['stil']}={g['senaryo']}", hedef, fmt=fmt)
         except Exception as e:  # noqa: BLE001 - animatik yardımcıdır, sipariş akışını kesmez
@@ -192,7 +229,7 @@ def animatik_yap(s: dict, fmt: str) -> list[dict]:
 
 
 def asama_uretim(s: dict, d: dict, secim: list[str] | None) -> int:
-    girdiler = [g for g in s["senaryolar"] if not secim or g["stil"] in secim]
+    girdiler = [g for g in s["senaryolar"] if not secim or {g["stil"], g.get("etiket"), g.get("dil")} & set(secim)]
     if not girdiler:
         print(f"HATA: seçilen stil siparişte yok ({', '.join(secim)}); siparişte: "
               f"{', '.join(g['stil'] for g in s['senaryolar'])}", file=sys.stderr)
@@ -200,14 +237,14 @@ def asama_uretim(s: dict, d: dict, secim: list[str] | None) -> int:
     if not d.get("onizleme"):
         print("HATA: önce önizleme (komutu bayraksız çalıştırın); onaydan önce render yok", file=sys.stderr)
         return 1
-    durum_yaz(s, d, "onaylandi", secilen=[g["stil"] for g in girdiler])
+    durum_yaz(s, d, "onaylandi", secilen=[g.get("etiket") or g["stil"] for g in girdiler])
     paylasim_csv = PAYLASIM / "gelistirme" / "render-sureleri.csv"
     videolar, karakter = [], 0
     for g in girdiler:
         cikti = cikti_klasoru(s, g)
         senaryo = json.loads(Path(g["senaryo"]).read_text(encoding="utf-8"))
         if g["stil"] not in TEK_ADIM and senaryo.get("seslendirme"):
-            kod, kuyruk = calistir(sablon_komutu(g["stil"], "seslendir", g["senaryo"], cikti, ses_bayraklari(s)))
+            kod, kuyruk = calistir(sablon_komutu(g["stil"], "seslendir", g["senaryo"], cikti, ses_bayraklari(s, g)))
             if kod:
                 print(f"HATA: {g['stil']} seslendirmesi:\n{kuyruk}", file=sys.stderr)
                 durum_yaz(s, d, "ses-hatali")
@@ -235,7 +272,8 @@ def asama_uretim(s: dict, d: dict, secim: list[str] | None) -> int:
                 return 1
             for p, t in mp4ler(cikti).items():
                 if once.get(p) != t:
-                    videolar.append(kapi(p, s, f, g["stil"], paylasim_csv))
+                    videolar.append(dict(kapi(p, s, f, g["stil"], paylasim_csv), senaryo=g["senaryo"],
+                                         dil=g.get("dil") or s.get("dil") or "tr"))
     kalan = [v for v in videolar if v["sonuc"] == "kaldi"]
     d = durum_yaz(s, d, "kaldi" if kalan else "teslim", videolar=videolar, elevenlabs_karakter=karakter)
     for v in videolar:
@@ -248,12 +286,32 @@ def asama_uretim(s: dict, d: dict, secim: list[str] | None) -> int:
         return 1
     if PAYLASIM.exists():
         katalog.ekle(katalog.siparisten(s, d), katalog.yol(PAYLASIM))
+    paketler = yayin_paketleri(s, videolar)
     notlar = [*s.get("notlar", []), f"stil: {', '.join(g['stil'] for g in girdiler)}"]
+    if paketler:
+        notlar.append(f"yayın paketi: {Path(s['_klasor']) / 'yayin'} (her video için kapak, altyazı, başlık/açıklama/etiket)")
     subprocess.run([sys.executable, str(BURADA / "devir.py"), s["_klasor"], *sum((["--not", n] for n in notlar), [])],
                    check=True, capture_output=True)
     print(f"DEVIR.md yazıldı. ElevenLabs: {karakter} karakter. Kapanışta maliyet satırı: "
           f"uret.py {Path(s['_yol']).name} --kapat --usd <get_session> --cevap <n> --cikti-token <n> --okuma-token <n>")
     return 0
+
+
+def yayin_paketleri(s: dict, videolar: list[dict]) -> list[dict]:
+    """Teslim edilen her video için yayın paketi (yayin.py). Hata teslimi durdurmaz, yalnız yazdırılır."""
+    out = []
+    for v in videolar:
+        if v.get("sonuc") == "kaldi" or not v.get("senaryo"):
+            continue
+        try:
+            p = yayin.paketle(Path(v["dosya"]), Path(v["senaryo"]), s)
+        except Exception as e:  # noqa: BLE001 - paket yardımcıdır
+            print(f"yayın paketi yazılamadı ({Path(v['dosya']).name}): {e}", file=sys.stderr)
+            continue
+        hatalar = [b for b in p["bulgular"] if b["seviye"] == "hata"]
+        print(f"yayın paketi: {p['klasor']}" + (f" ({len(hatalar)} metin hatası, YUKLE.md)" if hatalar else ""))
+        out.append(p)
+    return out
 
 
 def kapi(video: Path, s: dict, fmt: str, stil: str, csv_yolu: Path) -> dict:
@@ -306,6 +364,7 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--onay", action="store_true", help="Atilla önizlemeyi onayladı: ses, render, kalite, DEVIR")
     g.add_argument("--kapat", action="store_true", help="teslimden sonra maliyet satırını yaz")
     g.add_argument("--durum", action="store_true", help="siparişin aşamasını göster")
+    g.add_argument("--yayin", action="store_true", help="teslim edilen videoların yayın paketlerini yeniden yaz")
     ap.add_argument("--direkt", action="store_true", help='önizlemede durma (Atilla "direkt üret" dediyse)')
     ap.add_argument("--stil", help="birden çok stilden onaylananlar, virgülle")
     ap.add_argument("--usd", type=float, help="get_session → external_metadata.usage (tahmin edilmez)")
@@ -325,6 +384,14 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({k: d.get(k) for k in ("asama", "zaman", "onizleme", "secilen", "videolar")},
                          ensure_ascii=False, indent=1))
         return 0
+    if a.yayin:
+        if d.get("asama") not in ("teslim", "kapandi"):
+            print(f"HATA: yayın paketi teslimden sonra yazılır (aşama: {d.get('asama')})", file=sys.stderr)
+            return 1
+        senaryolar = {g.get("etiket") or g["stil"]: g["senaryo"] for g in s["senaryolar"]}
+        for v in d.get("videolar") or []:
+            v.setdefault("senaryo", senaryolar.get(v["stil"]) or s["senaryolar"][0]["senaryo"])
+        return 0 if yayin_paketleri(s, d.get("videolar") or []) else 1
     if a.kapat:
         if a.usd is None:
             print("HATA: --usd gerekli (get_session kullanımından)", file=sys.stderr)

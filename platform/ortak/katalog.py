@@ -88,8 +88,9 @@ def siparisten(s: dict, d: dict, maliyet_usd: float | None = None) -> list[dict]
         kayitlar.append({
             "tarih": time.strftime("%Y-%m-%d"), "is": s.get("is"), "baslik": s.get("baslik") or s.get("is"),
             "tur": s.get("tur_katalog") or ("musteri" if s.get("musteri") else "kendi"), "stil": v.get("stil"),
-            "format": v.get("format"), "sure_sn": _sure(r), "dil": s.get("dil") or "tr",
-            "ses": (s.get("ses") or {}).get("ses"), "dosya": v["dosya"], "senaryo": senaryolar.get(v.get("stil")),
+            "format": v.get("format"), "sure_sn": _sure(r), "dil": v.get("dil") or s.get("dil") or "tr",
+            "ses": (s.get("ses") or {}).get("ses"), "dosya": v["dosya"],
+            "senaryo": v.get("senaryo") or senaryolar.get(v.get("stil")),
             "klasor": s.get("_klasor"), "kalite": v.get("sonuc"),
             "maliyet_usd": None if maliyet_usd is None else round(maliyet_usd / n, 2),
             "elevenlabs_karakter": round((d.get("elevenlabs_karakter") or 0) / n),

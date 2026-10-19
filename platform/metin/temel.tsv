@@ -10,3 +10,6 @@ TEMEL-YUZDE-YUZ	UYARI	*	%\s?100|100\s?%	Mutlak iddia; ölçümle destekleyin ya 
 TEMEL-BEST	HATA	en	the best|best ever|number one|no\. 1	Unsubstantiated superiority claim
 TEMEL-MIRACLE	HATA	en	miracle|miraculous	Exaggerated, unverifiable promise
 TEMEL-GUARANTEED	UYARI	en	guarantee(d)?	A guarantee is a legal commitment; state its scope or drop it
+TEMEL-DE-BESTE	HATA	de	der beste|die beste|das beste|nummer eins|nr\. 1	Kanıtsız üstünlük iddiası (UWG §5); karşılaştırma kanıtla yapılır.
+TEMEL-DE-WUNDER	HATA	de	wundermittel|wunderwirkung	Mucize vaadi.
+TEMEL-DE-GARANTIE	UYARI	de	garantiert|garantie	Garanti sözü hukuki taahhüttür; kapsamı yazılmalı.

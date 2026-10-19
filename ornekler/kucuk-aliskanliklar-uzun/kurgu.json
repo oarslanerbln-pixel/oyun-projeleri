@@ -1,0 +1,14 @@
+{
+  "kimlik": "kucuk-aliskanliklar-uzun",
+  "format": "16:9",
+  "fps": 30,
+  "dil": "tr",
+  "muzik": {"bpm": 100, "akorlar": [[57, 60, 64, 69], [53, 57, 60, 65], [48, 52, 55, 60], [55, 59, 62, 67]]},
+  "gecis": {"tur": "erime", "sure": 0.5},
+  "sahneler": [
+    {"id": "acilis", "baslik": "Giriş", "stil": "kinetik", "senaryo": "sahneler/01-acilis.json", "enerji": "enerjik"},
+    {"id": "matematik", "baslik": "Yüzde birin matematiği", "stil": "analiz", "senaryo": "sahneler/02-matematik.json", "enerji": "sakin"},
+    {"id": "metafor", "baslik": "Basamak basamak", "stil": "karakalem", "senaryo": "sahneler/03-metafor.json", "enerji": "orta"},
+    {"id": "kapanis", "baslik": "Bugün başla", "stil": "kinetik", "senaryo": "sahneler/04-kapanis.json", "enerji": "enerjik", "gecis": "kaydir"}
+  ]
+}

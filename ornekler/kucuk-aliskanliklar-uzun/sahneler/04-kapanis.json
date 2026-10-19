@@ -1,0 +1,16 @@
+{
+  "stil": "kinetik",
+  "kimlik": "kapanis",
+  "sure": 8,
+  "palet": {"zemin": "#15122E", "vurgu": "#FFD23F", "ikinci": "#E2611A", "ucuncu": "#3DDC97", "acik": "#FFF8E7"},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.3, "metin": "Yani küçük başla."},
+    {"id": "v1", "t": 2.4, "metin": "Ama her gün başla. Yarın, bugünden yüzde bir daha iyi ol."}
+  ]},
+  "sahneler": [
+    {"tur": "kelimeler", "bas": 0, "kelimeler": [{"metin": "KÜÇÜK", "t": 0.35}, {"metin": "BAŞLA", "t": 0.75, "renk": "vurgu"}]},
+    {"tur": "kapanis", "bas": 2.3, "gecis": "iris",
+     "satirlar": [{"metin": "HER GÜN", "t": 2.5}, {"metin": "BAŞLA.", "t": 2.9, "renk": "ikinci"}],
+     "cizgi_t": 3.3, "alt": "küçük alışkanlıklar · her gün %1", "alt_t": 3.6}
+  ]
+}

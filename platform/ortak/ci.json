@@ -1,0 +1,4 @@
+{
+  "pip": ["playwright==1.56.0"],
+  "hazirlik": [["{python}", "-m", "playwright", "install", "--with-deps", "chromium"]]
+}

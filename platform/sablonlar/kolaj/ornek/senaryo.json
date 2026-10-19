@@ -1,0 +1,34 @@
+{
+  "kimlik": "demli-ofis-simit",
+  "$aciklama": "Örnek: uydurma B2B marka Demli Ofis (Demli Kahve'nin ofis aboneliği). İlke: çapalama + fiyat çerçeveleme (önce pahalı kafe hesabı, sonra 'günde bir simit').",
+  "sure": 10,
+  "fps": 30,
+  "palet": {"zemin": "#C9A67A", "kagit": "#FBF8F1", "gazete": "#E9E3D5", "murekkep": "#221A16",
+            "vurgu": "#D63A2C", "ikinci": "#E0A243", "marka": "#3B2418"},
+  "muzik": {"bpm": 100, "dusus": 3.0, "zirve": 6.0, "sakin": [6.8, 7.8]},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Kafeden gelen her kahve, ofise pahalıya patlar."},
+    {"id": "v1", "t": 3.25, "metin": "Oysa taze kahve, çalışan başına"},
+    {"id": "v2", "t": 5.50, "metin": "günde bir simit fiyatına."},
+    {"id": "v3", "t": 7.70, "metin": "Demli Ofis. Kahveniz ofiste."}
+  ]},
+  "sahneler": [
+    {"tur": "fis", "bas": 0,
+     "nesne": {"tur": "bardak", "t": 0.45},
+     "kalemler": ["LATTE ×4", "FİLTRE ×6", "AMERİKANO ×3", "MOCHA ×2", "LATTE ×5", "ESPRESSO ×4"],
+     "kalem_t": 0.45, "kalem_son": 1.85, "toplam": "TOPLAM", "toplam_t": 1.95, "cember_t": 2.05,
+     "damga": {"metin": "PAHALI", "t": 2.2, "son": 2.45}},
+    {"tur": "esitlik", "bas": 3.0, "gecis": "yirt",
+     "nesne": {"tur": "kupa", "t": 3.3},
+     "ust": {"metin": "ÇALIŞAN BAŞINA", "t": 4.3, "son": 5.05},
+     "esit_t": 5.45,
+     "alt": {"metin": "GÜNDE 1 SİMİT", "t": 5.5, "son": 5.95},
+     "nesne2": {"tur": "simit", "t": 6.0},
+     "cizgi_t": 6.35},
+    {"tur": "kapanis", "bas": 7.5, "gecis": "kaydir",
+     "marka": {"metin": "DEMLİ OFİS", "t": 7.75, "son": 8.1},
+     "nesne": {"tur": "cekirdek", "t": 8.4},
+     "alt": {"metin": "ofis kahve aboneliği", "t": 8.8},
+     "damga_t": 9.15, "damga": {"metin": "GÜNDE 1 SİMİT FİYATINA"}}
+  ]
+}

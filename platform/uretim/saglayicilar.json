@@ -1,0 +1,35 @@
+{
+  "$aciklama": "YZ video sağlayıcıları (orkestrasyon hattı). Fiyat ve süre değerleri sık değişir: her satır 'kontrol' tarihiyle tutulur; 6 aydan eski bir değer gözden geçirilir. 'sureler' sağlayıcının kabul ettiği klip süreleridir: 3 sn'lik çekim 5 sn üretilip kırpılır ve 5 sn faturalanır. 'ticari': false olan bir sağlayıcının çıktısı ticari teslime giremez. 'tur': kuru (ağ yok, yer tutucu), fal (fal.ai kuyruk API'si), elle (araç dışında üretilip kayda elle girilen), henuz-yok (bağdaştırıcı yazılmadı).",
+  "saglayicilar": {
+    "kuru": {
+      "tur": "kuru", "usd_sn": 0, "ticari": false, "kare_gerekli": false,
+      "not": "Prova: ağa çıkmaz, isteği yer tutucu dosyaya yazar. Teslime giremez."
+    },
+    "fal-kling": {
+      "tur": "fal", "model": "fal-ai/kling-video/v2.1/standard/image-to-video", "anahtar": "FAL_KEY",
+      "usd_sn": 0.07, "sureler": [5, 10], "ticari": true, "kare_gerekli": true, "tohum": false,
+      "kontrol": "2026-10-17",
+      "not": "Model yolu ve fiyat ilk gerçek işten önce fal.ai model sayfasında doğrulanmalı (Kling 3.0 yolu farklı olabilir)."
+    },
+    "veo-lite": {
+      "tur": "henuz-yok", "usd_sn": 0.05, "sureler": [4, 6, 8], "ticari": true, "kare_gerekli": false,
+      "kontrol": "2026-10-17", "not": "Veo 3.1 Lite, 720p; taslak katmanı için."
+    },
+    "runpod-wan": {
+      "tur": "henuz-yok", "usd_sn": 0.025, "sureler": [5], "ticari": true, "kare_gerekli": true,
+      "kontrol": "2026-10-17", "not": "Wan 2.2 (Apache 2.0), RunPod Serverless; fiyat GPU süresinden tahmin."
+    },
+    "yerel-wan": {
+      "tur": "henuz-yok", "usd_sn": 0, "sureler": [5], "ticari": true, "kare_gerekli": true,
+      "kontrol": "2026-10-17", "not": "Wan 2.2, kendi bilgisayarında ComfyUI API'si."
+    },
+    "kling-ucretsiz": {
+      "tur": "elle", "usd_sn": 0, "ticari": false, "kontrol": "2026-10-17",
+      "not": "Kling uygulamasının ücretsiz katmanı: ticari kullanım yok."
+    },
+    "flow-ucretsiz": {
+      "tur": "elle", "usd_sn": 0, "ticari": false, "kontrol": "2026-10-17",
+      "not": "Google Flow ücretsiz katmanı: 720p, filigranlı, ticari kullanım belirsiz."
+    }
+  }
+}

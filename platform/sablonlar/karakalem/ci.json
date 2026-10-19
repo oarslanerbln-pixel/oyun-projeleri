@@ -1,0 +1,24 @@
+{
+  "hazirlik": [
+    [
+      "{python}",
+      "{modul}/karakalem.py",
+      "fontlar"
+    ]
+  ],
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/karakalem.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/karakalem.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/karakalem"
+      ]
+    }
+  ]
+}

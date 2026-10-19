@@ -1,0 +1,17 @@
+{
+  "denetle": [
+    {
+      "dosyalar": [
+        "ornekler/*/kurgu.json"
+      ],
+      "komut": [
+        "{python}",
+        "{modul}/kurgu.py",
+        "denetle",
+        "{dosya}",
+        "-o",
+        "{gecici}/kurgu"
+      ]
+    }
+  ]
+}

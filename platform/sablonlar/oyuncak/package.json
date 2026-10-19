@@ -1,0 +1,10 @@
+{
+  "name": "oyuncak-sablonu",
+  "private": true,
+  "type": "module",
+  "description": "Oyuncak şablonu: three.js sahnesi başsız Chromium'da render edilir",
+  "dependencies": {
+    "playwright": "1.56.1",
+    "three": "0.170.0"
+  }
+}

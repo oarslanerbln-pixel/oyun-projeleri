@@ -1,0 +1,92 @@
+# platform/sablonlar/animasyon
+
+Animasyon videosu hattı (mimari §5.1): **brif → metin → çekim listesi → animatik → render**. Animatik zamanlamayı ve yerleşimi V1 kapısında onaylatmak içindir; render aynı zaman çizelgesinden teslime hazır MP4 çıkarır. El yapımı uzun animasyon yine depo dışındaki araçlarda yapılır.
+
+```sh
+python3 platform/sablonlar/animasyon/animasyon.py yeni musteriler/acme --ad "Acme"
+python3 platform/sablonlar/animasyon/animasyon.py denetle musteriler/acme/proje.json
+python3 platform/sablonlar/animasyon/animasyon.py uret musteriler/acme/proje.json   # → musteriler/acme/cikti/
+python3 platform/sablonlar/animasyon/animasyon.py render musteriler/acme/proje.json --muzik muzik.wav
+#   → musteriler/acme/cikti/render/<kurgu>/<ön ayar>/<kimlik>-<kurgu>-<ön ayar>-<dil>.mp4
+```
+
+Örnek: [`ornekler/demli-kahve/`](../../../ornekler/demli-kahve) (14 sn dikey/kare/4:5 + 6 sn bumper, TR/EN).
+
+## Proje
+
+`proje.json` (yollar depo köküne göre):
+
+```json
+{
+  "kimlik": "demli-kahve-sabah", "tur": "animasyon",
+  "marka": "…/marka/marka.json", "diller": ["tr", "en"],
+  "metin": { "tablolar": ["…/metin/metin.csv"], "sozlukler": ["platform/metin/temel.tsv"] },
+  "brif": "…/docs/01-oz/brif.json",
+  "kurgular": [{ "ad": "sabah-14", "cekimler": "…/docs/04-yapi/cekimler-sabah-14.csv", "fps": 30,
+                 "teslim": ["dikey", "kare", "dikey-akis"] }]
+}
+```
+
+- **Brif** (`01-oz`): `hedef, kitle, icgoru, onerme, olcut` zorunlu; `cagri`, `kanitlar`.
+- **Kurgu:** bir çekim listesi, bir kare hızı, bir ya da daha çok teslim ön ayarı. Aynı brif birden çok kurgu taşır (15 sn dikey, 6 sn bumper).
+- **Çekim listesi** (`04-yapi`): mimarideki sütunlar (`cekim, sure_sn, metin_anahtari, gorsel, kamera, gecis, odak_x, odak_y, sinif, durum`) + animatik için `ekran` (ekran yazısının metin anahtarı), `zemin`, `on` (marka renk adları), `logo`, `cagri` (`evet`). `gecis`: `kesme | erime | kayma`; `durum`: `animatik | uretim | onay | kilit`; `sinif`: `A | B | C | elle`.
+
+## Denetimler
+
+**HATA** üretimi durdurur, **UYARI** durdurmaz.
+
+| Denetim | Düzey |
+| --- | --- |
+| Marka şeması ve kontrast çiftleri (`platform/marka`) | HATA |
+| Metin tablosu: yasak ifade (temel + proje + marka), `azami` uzunluk | HATA |
+| Çekimde tanımsız metin anahtarı ya da renk adı | HATA |
+| Ekran yazısı kontrastı < 3.0 (WCAG büyük metin) | HATA |
+| Kurgu süresi ön ayarın sınırını aşıyor (örn. bumper 6 sn) | HATA |
+| Brifte zorunlu alan boş; bilinmeyen ön ayar; desteklenmeyen fps | HATA |
+| Seslendirme > 2.5 sözcük/sn, ekran yazısı > 3 sözcük/sn | UYARI |
+| Kısa biçimde logo ilk 3 sn'de yok; brifte çağrı var ama çekimde yok | UYARI |
+| Önerme 12 sözcüğü aşıyor ya da "ve" içeriyor; kanıt yok; çeviri boş | UYARI |
+
+## Çıktılar (`cikti/`, depoya girmez)
+
+```
+brif.md                                   müşteriye giden tek sayfa
+marka/tokens.css figma.json unity.uss unity.json prompt.txt
+<kurgu>/manifest.json                     araçtan bağımsız zaman çizelgesi (kare aralıkları, odak, hareket)
+<kurgu>/altyazi.<dil>.srt | .vtt          seslendirme satırlarından, zaman çekim listesinden
+<kurgu>/<ön ayar>/kareler/NN-cekim.svg    güvenli alana göre yerleşik kareler
+<kurgu>/<ön ayar>/animatik.html           tarayıcıda oynar: zaman çubuğu, kare sayacı, geçişler, kamera itme/çekme, kılavuz aç/kapa
+```
+
+Karelerde kılavuz katmanı (görsel notu, kamera, YZ sınıfı, güvenli alan, kırpma odağı) animatikte kapatılabilir.
+
+`manifest.json` Clipkit, DaVinci (EDL/FCPXML) ve Unity Timeline bağdaştırıcılarının girdisidir; bağdaştırıcılar faz 3'te ilk gerçek işle yazılır.
+
+## Render (`animasyon.py render`)
+
+Her kurgu × teslim ön ayarı için bir MP4. Yalnız Python standart kitaplığı ve ffmpeg (librsvg ile derli; Ubuntu ve Homebrew paketleri öyle). `--kurgu`, `--teslim`, `--dil` (ekran yazısının dili; varsayılan ilk dil), `--muzik`, `--yazdir` (ffmpeg komutlarını yalnız yazar).
+
+| Katman | Nereden |
+| --- | --- |
+| Arka plan | `sinif=C` ise `yz-kaydi.csv`'de o çekime (`kurgu/çekim`) yazılmış en son video; yoksa `anahtar_kare` görseli; yoksa marka renklerinden yavaş dönen degrade (yer tutucu). Kaynak odak noktasına göre ön ayarın oranına kırpılır (`medya/turev.py`). |
+| Kamera | `kamera` notunda `itme` → %6 yaklaşma, `çekme` → %6 uzaklaşma; odak noktasına doğru, yalnız arka planda. |
+| Yazı | Animatik karesinin saydam katmanı (`cekim_svg(katman=True)`): logo, ekran yazısı, seslendirme satırı, CTA. Markanın `hareket.giris` süresiyle belirir. Görüntü üstünde okunurluk için zemin renginde %35 örtü. |
+| Geçiş | `kesme` doğrudan, `erime` çapraz geçiş, `kayma` sağdan kayma; süre animatikle aynı (giriş süresi, çekimin üçte birini geçmez). Toplam süre ve kare sayısı çekim listesiyle birebir. |
+| Ses | `--muzik` verilirse kurgu boyuna kesilir, sonu 1 sn kısılır, ön ayarın `lufs` değerine çekilir (-14 LUFS). Verilmezse sessiz stereo iz; `lufs: null` ön ayarda ses yok. |
+| Altyazı | Projenin her dili için yumuşak altyazı izi (mov_text, dil etiketli). Ekrana basılı satır `--dil`'deki seslendirme metnidir. |
+
+YZ klibi olmayan `sinif=C` çekimi köşede **"YZ C03 · yer tutucu"** etiketiyle basılır ve render UYARI verir: bu çıktı taslaktır. Gerçek klip `platform/uretim` ile üretilip kayda düştüğünde aynı komut onu kullanır. Teslimden önce lisans kapısı: `uretim.py denetle`.
+
+Yazı tipi fontconfig ile çözülür; marka yazı tipi makinede kurulu değilse sans-serif'e düşer (CI'da Fraunces ve Inter yok).
+
+## Kod
+
+| Dosya | Görev |
+| --- | --- |
+| `animasyon.py` | Komut satırı |
+| `proje.py` | `proje.json` + brif; bütün katmanları birlikte yükler ve doğrular |
+| `cekimler.py` | Çekim listesi, zaman çizelgesi, kurgu denetimleri |
+| `cizim.py` | SVG kareler, animatik, manifest, altyazı |
+| `render.py` | Çekim listesi + YZ kaydı → MP4 (ffmpeg) |
+| `sablon/` | `yeni` komutunun kopyaladığı proje iskeleti |
+| `_yollar.py` | Kardeş modülleri (`marka`, `metin`, `medya`) yükler; `platform` adı Python paketi olamaz (standart kitaplığı gölgeler) |

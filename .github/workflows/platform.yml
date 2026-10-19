@@ -1,0 +1,51 @@
+name: Platform testleri
+
+# Mimari §4.5: CI mantığı platform/ci altında. Bu dosya yalnız sistem paketlerini kurar; hangi
+# testlerin ve örnek denetimlerinin koşacağını platform/ci/calistir.py modül klasörlerinden bulur.
+on:
+  pull_request:
+    paths:
+      - "platform/**"
+      - "ornekler/**"
+      - "kirk-oda/tools/metin-denetimi/**"
+      - "kirk-oda/localization/**"
+      - ".github/workflows/platform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "platform/**"
+      - "ornekler/**"
+      - "kirk-oda/tools/metin-denetimi/**"
+      - "kirk-oda/localization/**"
+      - ".github/workflows/platform.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Platform (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: ffmpeg (render ve türev testleri; Ubuntu paketi librsvg ile derli)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
+      - name: Görüntü şablonu bağımlılıkları (skia için EGL/GL, Inter)
+        run: |
+          sudo apt-get install -y -qq --no-install-recommends libegl1 libgl1 fonts-inter
+          python -m pip install -q skia-python numpy soundfile fonttools pillow
+          # fonts-inter beklenen statik ağırlıkları vermezse kinetik, stil şablonunun örneklediği Inter'i kullanır
+          ls /usr/share/fonts/opentype/inter/Inter-ExtraBold.otf 2>/dev/null || echo "KINETIK_FONT_DIZINI=$HOME/.cache/studyo/fonts" >> "$GITHUB_ENV"
+      # Modüller kendini bildirir: her testler/ klasörü ve her ci.json (platform/ci/calistir.py).
+      # Yeni şablon bu dosyaya dokunmadan CI'a girer.
+      - name: Modül hazırlıkları (ci.json içindeki pip paketleri ve yazı tipi önbellekleri)
+        run: python platform/ci/calistir.py hazirla
+      - name: Testler ve örnek denetimleri
+        run: python platform/ci/calistir.py test

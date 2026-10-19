@@ -1,0 +1,29 @@
+{
+  "$description": "{{ad}} marka kiti",
+  "kimlik": "{{kimlik}}",
+  "ad": "{{ad}}",
+  "renk": {
+    "ana": { "$type": "color", "$value": "#1f3a5f" },
+    "ana-ustu": { "$type": "color", "$value": "#ffffff" },
+    "vurgu": { "$type": "color", "$value": "#f2a541" },
+    "vurgu-ustu": { "$type": "color", "$value": "#1b1b1b" },
+    "zemin": { "$type": "color", "$value": "#fbf8f3" },
+    "metin": { "$type": "color", "$value": "#1b1b1b" }
+  },
+  "ciftler": [
+    { "on": "metin", "zemin": "zemin" },
+    { "on": "ana-ustu", "zemin": "ana" },
+    { "on": "vurgu-ustu", "zemin": "vurgu" }
+  ],
+  "yazi": {
+    "baslik": { "aile": { "$type": "fontFamily", "$value": "Inter" }, "agirlik": { "$type": "fontWeight", "$value": 700 } },
+    "govde": { "aile": { "$type": "fontFamily", "$value": "Inter" }, "agirlik": { "$type": "fontWeight", "$value": 400 } }
+  },
+  "logo": { "metin": "{{AD}}" },
+  "hareket": {
+    "giris": { "$type": "duration", "$value": "400ms" },
+    "egri": { "$type": "cubicBezier", "$value": [0.2, 0, 0, 1] }
+  },
+  "ses": { "ton": ["net", "sıcak"], "yasak": [] },
+  "prompt": { "uslup": "", "negatif": [] }
+}

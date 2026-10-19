@@ -1,0 +1,34 @@
+{
+  "$aciklama": "YZ görsel modelleri (gorsel.py). Kodla çizilemeyen durağan görseller için: hero görsel, foto zemin, ikon/logo taslağı. Hepsi fal.ai kuyruk API'si üzerinden (FAL_KEY), abonelik yok. Fiyat satırları 'kontrol' tarihiyle tutulur; ilk gerçek işten önce fal.ai model sayfasında doğrulanır. 'boyut': oran (model en-boy oranı alır, çıktı ~4 MP) ya da piksel (genişlik/yükseklik alır; 'azami_kenar' ve 'kat' ile sınırlanır). 'usd_gorsel' görsel başına, 'usd_mp' megapiksel başına (yukarı yuvarlanır). 'taslak': true olan modelin çıktısı büyütülerek hedefe getirilebilir, teslime girmez.",
+  "modeller": {
+    "kuru": {
+      "tur": "kuru", "usd_gorsel": 0, "boyut": "piksel", "azami_kenar": 4096, "kat": 1, "ticari": false,
+      "not": "Prova: ağa çıkmaz, isteği .kuru.json olarak yazar."
+    },
+    "flux-ultra": {
+      "tur": "fal", "model": "fal-ai/flux-pro/v1.1-ultra", "usd_gorsel": 0.06, "boyut": "oran",
+      "oranlar": ["21:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:21"],
+      "govde": {"output_format": "png", "enable_safety_checker": true, "safety_tolerance": "2"},
+      "ticari": true, "kontrol": "2026-10-18",
+      "not": "Final fotogerçekçi görsel. ~4 MP üretir, hedefe küçültülerek kırpılır (büyütme yok)."
+    },
+    "flux-schnell": {
+      "tur": "fal", "model": "fal-ai/flux/schnell", "usd_mp": 0.003, "boyut": "piksel", "azami_kenar": 1024, "kat": 16,
+      "govde": {"num_inference_steps": 4, "output_format": "png", "enable_safety_checker": true},
+      "ticari": true, "taslak": true, "kontrol": "2026-10-18",
+      "not": "Ucuz önizleme: fikir ve kompozisyon seçmek için. Apache 2.0."
+    },
+    "recraft": {
+      "tur": "fal", "model": "fal-ai/recraft-v3", "usd_gorsel": 0.04, "boyut": "piksel", "azami_kenar": 2048, "kat": 32,
+      "govde": {"style": "digital_illustration"}, "renkler": true,
+      "ticari": true, "kontrol": "2026-10-18",
+      "not": "İllüstrasyon ve marka renkli görsel. --stil ile realistic_image ya da alt stil seçilir. Model yolu fal'da 'fal-ai/recraft/v3/text-to-image' olarak da geçebilir; ilk işte doğrulanmalı."
+    },
+    "recraft-svg": {
+      "tur": "fal", "model": "fal-ai/recraft-v3", "usd_gorsel": 0.08, "boyut": "piksel", "azami_kenar": 2048, "kat": 32,
+      "govde": {"style": "vector_illustration"}, "renkler": true, "cikti": "svg",
+      "ticari": true, "kontrol": "2026-10-18",
+      "not": "Vektörel ikon, logo taslağı, düz illüstrasyon: SVG olarak gelir, her boyutta keskin."
+    }
+  }
+}

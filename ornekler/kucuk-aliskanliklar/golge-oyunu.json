@@ -1,0 +1,22 @@
+{
+  "kimlik": "kucuk-adimlar-golge",
+  "sure": 10,
+  "fps": 30,
+  "format": "9x16",
+  "palet": {"perde": "#F2DDB0", "govde": "#2E7D4F", "vurgu": "#B83A2E", "altin": "#C98B2B", "lacivert": "#34477A"},
+  "kukla": {"entari": "govde", "kusak": "altin", "kulah": "vurgu", "kol": "altin", "bacak": "lacivert", "pabuc": "vurgu", "ten": "ten"},
+  "muzik": {"bpm": 100, "makam": "hicaz", "nareke": true},
+  "seslendirme": {"satirlar": [
+    {"id": "v0", "t": 0.30, "metin": "Her gün, sadece yüzde bir daha iyi ol."},
+    {"id": "v1", "t": 3.15, "metin": "Bir yıl sonra, otuz yedi kat güçlüsün."},
+    {"id": "v2", "t": 6.15, "metin": "Küçük adım. Büyük fark."},
+    {"id": "v3", "t": 8.35, "metin": "Bugün başla."}
+  ]},
+  "sahneler": [
+    {"tur": "yuruyus", "bas": 0, "giris_t": 0.15, "kol_t": 1.45, "levha": {"metin": "%1", "t": 1.35}},
+    {"tur": "merdiven", "bas": 3.0, "basamak": 7, "t": 3.2, "tirman_t": 3.45, "tirman_sure": 1.0, "zafer_t": 4.45,
+     "levha": {"metin": "37×", "t": 4.3, "renk": "vurgu"}},
+    {"tur": "agac", "bas": 6.0, "filiz_t": 6.15, "t": 6.7},
+    {"tur": "kapanis", "bas": 8.0, "bayrak_t": 8.25, "kol_t": 8.1, "levha": {"metin": "BUGÜN BAŞLA", "t": 8.35, "renk": "altin"}}
+  ]
+}

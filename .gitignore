@@ -36,3 +36,12 @@ TestResults/
 # İşletim sistemi
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+
+# Platform şablonlarının üretilmiş çıktısı (yeniden üretilir)
+cikti/
+
+# Node bağımlılıkları (3D şablonlar: npm install)
+node_modules/

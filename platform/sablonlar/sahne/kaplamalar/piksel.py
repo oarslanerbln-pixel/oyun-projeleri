@@ -96,21 +96,24 @@ class Piksel(Kaplama):
             self._blok(buf, sat, cx, y, px.BEYAZ, k, u, 0.2)
             if sh.get("alt"):
                 s2, k2 = self._sar(sh["alt"], gen, 2, 2)
-                self._blok(buf, s2, cx, y + h + 4, px.SARI, k2, u, 0.6)
+                self._blok(buf, s2, cx, y + h + 4, px.SARI, k2, u, self.an(sh, "alt", 0.6))
         elif tip == "sayi":
-            deger = say(sh["deger"], prog(u, 0.2, min(1.2, d * 0.45)))
+            td = self.an(sh, "deger", 0.1)
+            deger = say(sh["deger"], prog(u, td + 0.1, min(1.2, d * 0.45)))
             k = px.sigdir([px.ekran(sh["deger"])], 7, gen)
+            alt_h = (2 * (L * 2 + 4) + 6 if sh.get("etiket") else 0) + (L + 6 if sh.get("ust") else 0)
+            k = max(1, min(k, (y1 - y0 - alt_h) // L))  # etiket alanın (altyazı bandının) üstünde kalsın
             y = cy - (L * k) // 2 - (8 if sh.get("etiket") else 0)
             if sh.get("ust"):
                 s2, k2 = self._sar(sh["ust"], gen, 1, 1)
                 self._yaz(buf, s2[0], cx, y - L - 6, px.BEYAZ, k2, prog(u, 0, 0.4))
-            self._yaz(buf, px.ekran(deger), cx, y, px.SARI, k, prog(u, 0.1, 0.05))
-            if u > 0.2 + min(1.2, d * 0.45) and int(u * 6) % 2 == 0:
+            self._yaz(buf, px.ekran(deger), cx, y, px.SARI, k, prog(u, td, 0.05))
+            if u > td + 0.1 + min(1.2, d * 0.45) and int(u * 6) % 2 == 0:
                 for j, (dx, dy) in enumerate(((-0.42, -0.1), (0.44, 0.0), (0.38, 0.9))):
                     px.ciz_sprite(buf, px._YILDIZ, cx + int(dx * px.metin_gen(px.ekran(sh["deger"]), k)), y + int(dy * L * k))
             if sh.get("etiket"):
                 s2, k2 = self._sar(sh["etiket"], gen, 2, 2)
-                self._blok(buf, s2, cx, y + L * k + 6, px.BEYAZ, k2, u, 0.6)
+                self._blok(buf, s2, cx, y + L * k + 6, px.BEYAZ, k2, u, self.an(sh, "etiket", max(0.6, td + 0.3)))
         elif tip == "liste":
             y = y0 + 4
             if sh.get("baslik"):
@@ -120,15 +123,17 @@ class Piksel(Kaplama):
             sat_h = min(34, (y1 - y) // len(m))
             aralik = min(0.55, max(0.25, (d - 1.0) / (len(m) + 1)))
             km = min(self._sar(x, gen - 22, 2, 1)[1] for x in m)  # bütün maddeler aynı boyda
+            km = max(1, min(km, (sat_h - 6) // L))  # satır kutusuna sığsın
             for j, x in enumerate(m):
-                pp = prog(u, 0.35 + j * aralik, 0.25)
+                tj = self.an(sh, f"madde{j}", 0.35 + j * aralik)
+                pp = prog(u, tj, 0.25)
                 yy = y + j * sat_h
                 self._kutu(buf, x0, yy, gen, sat_h - 4, px.LACI, pp)
                 if pp >= 1:
                     px.ciz_sprite(buf, px.PARA[int(u * 10 + j) % 4], x0 + 5, yy + (sat_h - 4) // 2 - 4)
                     s2, k2 = self._sar(x, gen - 22, km, 1)
                     self._yaz(buf, s2[0], x0 + 16, yy + (sat_h - 4 - L * k2) // 2, px.BEYAZ, k2,
-                              prog(u, 0.45 + j * aralik, 0.4), hiza="sol")
+                              prog(u, tj + 0.1, 0.4), hiza="sol")
         elif tip == "karsilastirma":
             y = y0
             if sh.get("baslik"):
@@ -144,7 +149,7 @@ class Piksel(Kaplama):
                 kutular = [(x0, y, pw, y1 - y), (x1 - pw, y, pw, y1 - y)]
             for j, ((bx, by, bw, bh), ad, deger, dolgu, t0) in enumerate(zip(kutular, (sh["sol"], sh["sag"]),
                                                                             (sh.get("sol_deger"), sh.get("sag_deger")),
-                                                                            (px.KOYUGRI, px.KIRMIZI), (0.1, 0.55))):
+                                                                            (px.KOYUGRI, px.KIRMIZI), (self.an(sh, "sol", 0.1), self.an(sh, "sag", 0.55)))):
                 pp = prog(u, t0, 0.3)
                 self._kutu(buf, bx, by, bw, bh, dolgu, pp)
                 if pp < 1:
@@ -194,7 +199,7 @@ class Piksel(Kaplama):
             if sh.get("fiyat"):
                 f = px.ekran(self.duzelt(sh["fiyat"])); k = px.sigdir([f], 2, tg - 10)
                 w = px.metin_gen(f, k) + 10
-                pp = prog(u, 0.8, 0.25)
+                pp = prog(u, self.an(sh, "fiyat", 0.8), 0.25)
                 self._kutu(buf, tcx - w // 2, yy, w, L * k + 6, px.TURUNCU, pp)
                 if pp >= 1:
                     self._yaz(buf, f, tcx, yy + 3, px.BEYAZ, k)
@@ -222,6 +227,8 @@ class Piksel(Kaplama):
         buf = np.zeros((h, w), np.int16)
         self._fon(buf, t)
         sol, sag, ust, alt = GUVENLI.get(fmt, GUVENLI["1x1"])
+        if self.altyazi:  # altyazı bandı (tasarım biriminde, kısa kenar 1080)
+            alt -= self.altyazi_bandi(fmt)[0] / (1080 * h / min(w, h))
         A = (int(w * sol), int(h * ust), int(w * (1 - sag)), int(h * alt))
         shs = self.s["sahneler"]
         i = self.sahne_sirasi(t)
@@ -247,6 +254,11 @@ class Piksel(Kaplama):
         cv.drawImage(skia.Image.fromarray(np.ascontiguousarray(big), colorType=skia.kRGBA_8888_ColorType), 0, 0)
         for tur, yol, (x, y, gw, gh), p in katman:  # gerçek görseller tam çözünürlükte
             self.gorsel(cv, yol, skia.Rect.MakeXYWH(x * S, y * S, gw * S, gh * S), p, cerceve=False)
+        if self.altyazi:
+            u = min(W, H) / 1080
+            cv.save(); cv.scale(u, u)
+            self.altyazi_ciz(cv, W / u, H / u, t, fmt)
+            cv.restore()
 
 
 KAPLAMA = Piksel

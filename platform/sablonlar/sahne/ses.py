@@ -117,15 +117,17 @@ def muzik(s: dict, prof: dict, sfx_tur: str) -> tuple[np.ndarray, np.ndarray]:
         if i:
             ekle(e, max(0.0, sh["bas"] - 0.08), _efekt(sfx_tur, rng), 0.22)
         u = sh["son"] - sh["bas"]
+        an = sh.get("_an") or {}
         if sh["tip"] == "liste":
             aralik = min(0.55, max(0.25, (u - 1.0) / (len(sh["maddeler"]) + 1)))
-            for j in range(len(sh["maddeler"])):
-                ekle(e, sh["bas"] + 0.35 + j * aralik, _efekt("pop" if sfx_tur != "blip" else "blip", rng), 0.16)
+            for j in range(len(sh["maddeler"])):  # madde söylendiği an girer (senkron.py); efekt onunla
+                ekle(e, sh["bas"] + an.get(f"madde{j}", 0.35 + j * aralik), _efekt("pop" if sfx_tur != "blip" else "blip", rng), 0.16)
         elif sh["tip"] == "sayi":
             d = min(1.2, u * 0.45)
+            t0 = sh["bas"] + an.get("deger", 0.12) + 0.08
             for j in range(10):
-                ekle(e, sh["bas"] + 0.2 + d * (1 - (1 - j / 10) ** (1 / 3)), fx.tik(rng, 2600 + 120 * j, 0.012), 0.10)
-            ekle(m, sh["bas"] + 0.2 + d, calgi(mtof(kok + 24), 1.0), 0.14)
+                ekle(e, t0 + d * (1 - (1 - j / 10) ** (1 / 3)), fx.tik(rng, 2600 + 120 * j, 0.012), 0.10)
+            ekle(m, t0 + d, calgi(mtof(kok + 24), 1.0), 0.14)
     ekle(e, son_bas, fx.zil(rng, 1.8), 0.08)
     kk, ak = akor(son_bas)
     for j, x in enumerate(ak + [12]):

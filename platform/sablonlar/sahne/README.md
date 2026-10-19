@@ -42,9 +42,15 @@ python3 $S kare      ornekler/demli-kahve/sahne.json --stil origami --an 2.0 8.5
 | `cta` | `metin`* 22, `alt` 32 | düğme kartı; `marka.logo` varsa üstte logo, `alt` yoksa marka adı |
 | `gecis` | `metin` 20 | kısa ara kart (0,8 sn), seslendirme almaz |
 
-Her sahnede ortak: `seslendirme` (okunan satır), `okunus` (farklı telaffuz), `sure` (en az), `stiller` (çeviriciye özel ayar, ör. `{"vitray": {"motif": "kalp"}}`). Sahne süresi = 0,35 sn + satır süresi + 0,45 sn (seslendirme yoksa sözcük sayısından tahmin); tipin en kısa süresinden az olmaz. Kısa video 9:16'da yazılar güvenli alanın içinde kalır (üst %10, alt %22 boş); yazı sığmazsa küçülür ya da satıra bölünür.
+Senaryo düzeyinde: `"altyazi": true` (kelime kelime yakılı altyazı), `"senkron": false` (öğeler sabit zamanda). Her sahnede ortak: `seslendirme` (okunan satır), `okunus` (farklı telaffuz), `sure` (en az), `stiller` (çeviriciye özel ayar, ör. `{"vitray": {"motif": "kalp"}}`). Sahne süresi = 0,35 sn + satır süresi + 0,45 sn (seslendirme yoksa sözcük sayısından tahmin); tipin en kısa süresinden az olmaz. Kısa video 9:16'da yazılar güvenli alanın içinde kalır (üst %10, alt %22 boş); yazı sığmazsa küçülür ya da satıra bölünür.
 
 Müzik sahnelere kilitli: alıntı/geçiş sakin, başlık/liste/ürün orta, sayı/karşılaştırma/çağrı enerjik; son sahnede final akoru. Enstrüman stilden (kalimba, çan, marimba, kare dalga, mızrap, sinüs). Konuşurken müzik kısılır, çıktı -14 LUFS.
+
+## Kelimeye senkron ve altyazı
+
+ElevenLabs her satırın harf zamanlarını verir (`cikti/seslendirme/<id>.hizalama.json`). Öğeler anlatıcı kendi kelimesini söylediği an girer: liste maddeleri, sayının saymaya başlaması, karşılaştırmanın iki kartı, başlığın alt satırı, ürünün özelliği ve fiyatı, alıntının satırları. Eşleşme ekleri tanır (`adım` ~ `adımlar`) ve rakamları sözle bulur (`37x` → "otuz yedi", `%1` → "yüzde"). Liste efektleri ve sayaç tıkları aynı ana kayar. Eşleşmeyen öğe eski sabit zamanında gelir; `"senkron": false` hepsini sabite döndürür.
+
+Her render yanına `<kimlik>-<stil>.srt`, `.vtt` (platforma yüklemek için) ve `.altyazi.json` yazar. Senaryoda `"altyazi": true` kelime kelime altyazıyı videoya yakar: 2–4 kelimelik grup, söylenen kelime vurgu renkli pulda. Kaplamalar altyazıyı kendi yazı tipi ve paletiyle çizer ve bandı güvenli alanın altından ayırır (sahne yazısı altına girmez); çeviricili stillerde altyazı render sonrası libass ile yakılır. Varsayılan kapalı (az yazı kuralı); sessiz izlenecek kısa videolarda açın. Hizalama yoksa (Piper, eski önbellek) zamanlar hecelerden tahmin edilir ve uyarı verilir. Ortak çekirdek `platform/ortak/altyazi.py`; başka bir videoya: `altyazi.py yak video.mp4 x.altyazi.json`.
 
 ## Yeni stil kiti
 

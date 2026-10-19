@@ -1,0 +1,7 @@
+# Türkçe seslere okunuş: yazılış<TAB>okunuş. Bütün kelime eşleşir, büyük/küçük harf yazıldığı gibi.
+# Yeni ad: önce `python3 platform/ses/telaffuz.py dene "cümle" --dil tr` ile bakın, sonra buraya ekleyin.
+Residenzstraße	Rezidents-ştrase
+Mezquita	Meskita
+LÉVA	Leva
+The Leaf	Di Lif
+Le Mariage	Lö Mariyaj

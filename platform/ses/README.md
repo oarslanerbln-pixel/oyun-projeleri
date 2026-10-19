@@ -28,6 +28,15 @@ python3 platform/ses/seslendirme.py kredi                                    # h
 
 Bütün şablonlar sesi `seslendirme.senaryodan(senaryo, klasör, sağlayıcı, ses)` ile alır: satırlar (`okunus` varsa o okunur), ses, dil ve sağlayıcı senaryonun `seslendirme` alanından gelir; komut satırındaki `--saglayici` / `--ses` senaryoyu ezer. `--saglayici elevenlabs` yedeğe düşmez, anahtar ya da kredi yoksa açık hatayla durur.
 
+### Telaffuz sözlüğü
+
+Marka ve yer adları (Residenzstraße, Mezquita, LÉVA) sese gitmeden önce okunuşuyla değişir; ekrandaki yazı değişmez (`telaffuz.py`, seslendirmedeki tek bağlantı noktası `uret`). Sözlükler, sonraki öncekini ezer: ortak `platform/ses/telaffuz/<dil>.tsv` (sesin diline göre, `yazılış<TAB>okunuş`), senaryo klasöründeki `telaffuz.tsv` / `telaffuz.<dil>.tsv` ve senaryonun `"seslendirme": {"telaffuz": {"LÉVA": "Leva"}}` alanı. Bütün kelime eşleşir, büyük/küçük harf yazıldığı gibi. Önbellek okunan metne göre tutulur: sözlüğe yeni ad eklemek yalnız o adın geçtiği satırlara kredi harcatır. Denemek için:
+
+```sh
+python3 platform/ses/telaffuz.py dene "Residenzstraße 109'da The Leaf" --dil tr [--klasor proje/]
+python3 platform/ses/telaffuz.py liste --dil de
+```
+
 ### ElevenLabs sesi nasıl seçilir
 
 1. Komut satırında `--ses <ad ya da voice_id>`. Adlar stüdyo havuzundandır (`ELEVEN_ADLI_SESLER`): `george` (Türkçe varsayılanı), `turk-haber`, `bella`, `matilda`, `liam`; liste `seslendirme.py sesler`.

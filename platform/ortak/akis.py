@@ -58,6 +58,8 @@ def birlestir(sessiz: Path, ses: Path, hedef: Path, kalite: bool = True) -> Path
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(sessiz), "-i", str(ses),
                     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(hedef)],
                    check=True)
+    import okunabilirlik
+    okunabilirlik.kaydi_tasi(sessiz, hedef)
     if kalite:
         import kalite as k
         k.render_sonrasi(hedef)

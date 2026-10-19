@@ -117,6 +117,84 @@ class Kalite(unittest.TestCase):
         self.assertIn("KALDI", r.stdout)
 
 
+class OkunabilirlikBirim(unittest.TestCase):
+    def test_okuma_suresi_ve_kontrast(self):
+        import okunabilirlik as o
+        self.assertEqual(o.okuma_suresi("BAŞLA."), o.ESIK["okuma_taban"] + 0.05)
+        self.assertGreater(o.okuma_suresi("küçük alışkanlıklar · her gün %1"), 1.5)
+        self.assertAlmostEqual(o.kontrast((255, 255, 255), (0, 0, 0)), 21.0, places=1)
+        self.assertAlmostEqual(o.kontrast((119, 119, 119), (255, 255, 255)), 4.48, places=1)
+
+    def test_kayit_sayac_ve_ayri_gorunusler(self):
+        import okunabilirlik as o
+        k = o.MetinKaydi(1080, 1920)
+        for i in range(60):  # 2 sn, 30 kare/sn
+            k.kare(i / 30)
+            k.ciz(f"{1 + i / 100:.2f}×", (100, 100, 300, 80), (255, 255, 255))  # sayaç: tek yazı
+            if i < 10 or i >= 40:
+                k.ciz("BAŞLA", (100, 600, 300, 80))  # iki ayrı görünüş
+            k.ciz("hayalet", (0, 0, 10, 10), alfa=0.2)  # saydam: sayılmaz
+        ol = k.olaylar()
+        self.assertEqual(len(ol), 3)
+        sayac = [m for m in ol if "×" in m["metin"]]
+        self.assertEqual(len(sayac), 1)
+        self.assertEqual(sayac[0]["metin"], "1.59×")
+        self.assertAlmostEqual(sayac[0]["bit"] - sayac[0]["bas"], 2.0, places=2)
+        basla = [m for m in ol if m["metin"] == "BAŞLA"]
+        self.assertEqual([(m["bas"], round(m["bit"], 2)) for m in basla], [(0.0, 0.33), (1.333, 2.0)])
+
+    def test_sigma(self):
+        import okunabilirlik as o
+        self.assertEqual(o.sigma_olc((100, 800, 300, 100), 1080, 1920), {"disari": 0.0, "arayuz": 0.0})
+        self.assertEqual(o.sigma_olc((100, 1700, 300, 100), 1080, 1920)["arayuz"], 1.0)
+        self.assertEqual(o.sigma_olc((100, 1700, 300, 100), 1920, 1080)["arayuz"], 0.0)  # yatayda arayüz bandı yok
+        self.assertAlmostEqual(o.sigma_olc((900, 100, 360, 100), 1080, 1920)["disari"], 0.5, places=2)
+
+    @unittest.skipUnless(NUMPY, "numpy yok")
+    def test_kontrast_olcumu(self):
+        import numpy as np
+        import okunabilirlik as o
+        kare = np.full((400, 400, 3), 119, dtype=np.uint8)
+        kare[180:220, 100:300:8] = 255  # gri zeminde beyaz "harf" çizgileri
+        for renk in ((255, 255, 255), None):
+            ko = o.kontrast_olc(kare, (100, 180, 200, 40), renk)
+            self.assertAlmostEqual(ko["oran"], 4.48, delta=0.05)
+
+
+@unittest.skipUnless(FFMPEG and NUMPY, "ffmpeg ya da numpy yok")
+class OkunabilirlikVideo(unittest.TestCase):
+    def test_kanca_okuma_kontrast_ve_tasima(self):
+        import akis
+        import kalite
+        with tempfile.TemporaryDirectory() as tmp:
+            t = Path(tmp)
+            # 3 sn kıpırtısız gri zemin, 1.0–1.3 sn arası soluk yazı kutusu (gri üstüne açık gri)
+            sessiz = t / "sessiz.mp4"
+            ffmpeg("-f", "lavfi", "-i", "color=c=0x777777:s=1080x1920:d=3:r=30",
+                   "-vf", "drawbox=x=300:y=900:w=480:h=20:color=0x999999:t=fill:enable='between(t,1,1.3)',"
+                   "drawbox=x=300:y=940:w=480:h=20:color=0x999999:t=fill:enable='between(t,1,1.3)'",
+                   "-c:v", "libx264", "-pix_fmt", "yuv420p", str(sessiz))
+            (t / "sessiz.metin.json").write_text(json.dumps({"W": 1080, "H": 1920, "metinler": [
+                {"metin": "bu yazı çok kısa kalıyor ve okunmuyor", "bas": 1.0, "bit": 1.3, "an": 1.15,
+                 "kutu": [300, 900, 480, 60], "renk": [153, 153, 153]},
+                {"metin": "ALT", "bas": 0.0, "bit": 3.0, "an": 2.0, "kutu": [300, 1800, 480, 60], "renk": None}]}),
+                encoding="utf-8")
+            ses = t / "ses.wav"
+            ffmpeg("-f", "lavfi", "-i", "sine=f=330:d=3:sample_rate=48000", str(ses))
+            hedef = akis.birlestir(sessiz, ses, t / "video.mp4", kalite=False)
+            self.assertTrue(hedef.with_suffix(".metin.json").exists())
+            r = kalite.denetle(hedef)
+            hata = {b["kontrol"] for b in r["bulgular"] if b["seviye"] == "hata"}
+            uyari = {b["kontrol"] for b in r["bulgular"] if b["seviye"] == "uyari"}
+            self.assertEqual({"okuma", "kontrast", "sigma"} - hata, set())
+            self.assertIn("kanca", uyari)
+            self.assertEqual(r["olcum"]["okunabilirlik"]["metin"]["metin_sayisi"], 2)
+            # kayıt yoksa yalnız bilgi
+            hedef.with_suffix(".metin.json").unlink()
+            r = kalite.denetle(hedef)
+            self.assertIn(("bilgi", "okunabilirlik"), {(b["seviye"], b["kontrol"]) for b in r["bulgular"]})
+
+
 class SeslendirmeKaynagi(unittest.TestCase):
     def test_piper_yedegi_uyari(self):
         import kalite

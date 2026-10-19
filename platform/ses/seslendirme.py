@@ -40,6 +40,9 @@ import urllib.request
 import wave
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import telaffuz  # noqa: E402
+
 ORNEKLEME = 48000
 HEDEF_LUFS = -16.0
 
@@ -254,7 +257,8 @@ def senaryodan(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: st
     """
     sb = s.get("seslendirme") or {}
     satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in sb.get("satirlar", [])]
-    ayar = {"ses": ses or sb.get("ses"), "dil": sb.get("dil") or s.get("dil"), "saglayici": sb.get("saglayici")}
+    ayar = {"ses": ses or sb.get("ses"), "dil": sb.get("dil") or s.get("dil"), "saglayici": sb.get("saglayici"),
+            "telaffuz": sb.get("telaffuz"), "klasor": s.get("_klasor")}
     return uret(satirlar, Path(cikti), saglayici, ayar)
 
 
@@ -375,6 +379,8 @@ def uret(satirlar: list[dict], cikti: Path, saglayici: str | None = "otomatik", 
     ayar = dict(ayar or {})
     saglayici = saglayici_coz(saglayici, ayar)
     ayar.pop("saglayici", None)
+    # telaffuz sözlüğü (platform/ses/telaffuz.py): sese giden metinde marka ve yer adları okunuşuyla değişir
+    satirlar = telaffuz.uygula(satirlar, eleven_ayar(ayar)["dil"], ayar.pop("klasor", None), ayar.pop("telaffuz", None))
     if saglayici not in SAGLAYICILAR:
         raise SeslendirmeHatasi(f"bilinmeyen sağlayıcı: {saglayici}")
     try:

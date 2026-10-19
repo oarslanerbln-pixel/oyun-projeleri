@@ -224,6 +224,30 @@ class Uret(unittest.TestCase):
         self.assertEqual((yakalanan["ayar"]["ses"], yakalanan["ayar"]["dil"]), ("kerstin", "de"))
         self.assertEqual(k["saglayici"], "sahte")
 
+    def test_telaffuz_sozlugu(self):
+        yakalanan = []
+
+        def sahte(metin, ayar):
+            yakalanan.append(metin)
+            self.assertNotIn("telaffuz", ayar)  # önbellek anahtarına girmez
+            return ton(metin, ayar)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "telaffuz.tsv").write_text("# proje\nHamurkar\tHamurkaar\n", encoding="utf-8")
+            s = {"_klasor": tmp, "seslendirme": {"saglayici": "sahte", "telaffuz": {"LÉVA": "Lee-va"}, "satirlar": [
+                {"id": "a", "metin": "LÉVA, Hamurkar ve Mezquita."}, {"id": "b", "metin": "Mezquitalar"}]}}
+            with mock.patch.dict(seslendirme.SAGLAYICILAR, {"sahte": sahte}):
+                seslendirme.senaryodan(s, Path(tmp) / "c")
+        # senaryo ortak sözlüğü ezer, proje dosyası eklenir; kelimenin parçası değişmez
+        self.assertEqual(yakalanan, ["Lee-va, Hamurkaar ve Meskita.", "Mezquitalar"])
+
+    def test_telaffuz_birim(self):
+        import telaffuz
+        s = {"The Leaf": "Di Lif", "Leaf": "Lif"}
+        self.assertEqual(telaffuz.degistir("The Leaf'te Leafy değil, Leaf.", s), "Di Lif'te Leafy değil, Lif.")
+        self.assertEqual(telaffuz.sozluk("de")["Mezquita"], "Meskíta")
+        self.assertEqual(telaffuz.uygula([{"id": "a", "metin": "x"}], "yok"), [{"id": "a", "metin": "x"}])
+
     def test_bilinmeyen_saglayici(self):
         with self.assertRaises(seslendirme.SeslendirmeHatasi):
             seslendirme.uret([], Path(tempfile.gettempdir()), "yok")

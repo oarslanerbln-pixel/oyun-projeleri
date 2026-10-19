@@ -20,6 +20,6 @@
      "buyuk": "BÜYÜK FARK", "buyuk_t": 6.80},
     {"tur": "kapanis", "bas": 8.0, "gecis": "iris",
      "satirlar": [{"metin": "BUGÜN", "t": 8.38}, {"metin": "BAŞLA.", "t": 8.68, "renk": "ikinci"}],
-     "cizgi_t": 8.95, "alt": "küçük alışkanlıklar · her gün %1", "alt_t": 9.15}
+     "cizgi_t": 8.95, "alt": "küçük alışkanlıklar · her gün %1", "alt_t": 8.5}
   ]
 }

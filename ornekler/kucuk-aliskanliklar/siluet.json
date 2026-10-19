@@ -1,0 +1,26 @@
+{
+  "kimlik": "birlikte-siluet",
+  "stil": "siluet",
+  "sure": 15.0,
+  "fps": 30,
+  "format": ["9x16"],
+  "dil": "tr",
+  "karakter": {"sac": "kisa", "eslik": {"x": 0.36, "boy": 0.9, "sac": "uzun"}},
+  "muzik": {"bpm": 84},
+  "sahneler": [
+    {"bas": 0, "poz": "ayakta", "ifade": "notr", "yazi": "her akşam", "enerji": "sakin"},
+    {"bas": 3.6, "poz": "dusun", "ifade": "dusunceli", "yazi": "aynı tepe, aynı güneş", "enerji": "sakin"},
+    {"bas": 7.2, "poz": "isaret", "ifade": "kararli", "yazi": "ama yol hep yeni", "enerji": "orta",
+     "anahtarlar": [{"t": 8.6, "poz": "yuru", "x": -0.35}, {"t": 10.2, "poz": "ayakta"}]},
+    {"bas": 11.2, "poz": "sevin", "ifade": "sevincli", "nesne": {"tur": "kalp"}, "yazi": "birlikte", "enerji": "orta"}
+  ],
+  "seslendirme": {
+    "ses": "george",
+    "satirlar": [
+      {"id": "s1", "t": 0.4, "metin": "Her akşam buraya gelirdik.", "konusan": "anlatici"},
+      {"id": "s2", "t": 3.8, "metin": "Aynı tepe, aynı güneş.", "konusan": "anlatici"},
+      {"id": "s3", "t": 7.4, "metin": "Ama yol her seferinde yeniydi.", "konusan": "anlatici"},
+      {"id": "s4", "t": 11.4, "metin": "Çünkü birlikteydik.", "konusan": "anlatici"}
+    ]
+  }
+}

@@ -10,11 +10,20 @@ from pathlib import Path
 
 import iskelet
 
-GORUNUMLER = ("cizgisel",)   # gorunumler/<ad>.py; yeni görünüm (maskot, siluet) buraya eklenir
+GORUNUMLER = ("cizgisel", "maskot", "siluet")   # gorunumler/<ad>.py; yeni görünüm buraya eklenir
 NESNELER = ("tabela", "ampul", "soru", "grafik", "balon", "kalp")
+EK_NESNELER = {"maskot": ("logo",)}   # yalnız o görünümde anlamlı nesneler
+MASKOT_NESNELERI = ("kupa", "sise", "kutu", "gorsel")   # maskotun gövdesi; gorsel = müşterinin ürün fotoğrafı (PNG)
 SACLAR = ("kase", "kisa", "uzun", "topuz", "kel")
 FORMATLAR = ("9x16", "16x9", "1x1", "4x5")
 VARSAYILAN_PALET = {"zemin": "#F7F5EF", "cizgi": "#161616", "vurgu": "#FFD25A", "dolgu": "#FFFFFF", "yazi": "#161616"}
+# Görünüme göre varsayılan palet (senaryonun "palet"i bunların üstüne yazılır).
+STIL_PALETLERI = {
+    "maskot": {"zemin": "#FDE3DA", "cizgi": "#2A1E1A", "vurgu": "#F49A8E", "dolgu": "#FFFFFF", "yazi": "#2A1E1A",
+               "golge": "#F2CBBE", "govde": "#FFFFFF", "icerik": "#7A4A2C"},
+    "siluet": {"cizgi": "#1E1424", "vurgu": "#FFF1C9", "dolgu": "#FFF1C9", "yazi": "#FFE7B0",
+               "bantlar": ["#FBE3A8", "#F9CB7E", "#F4A764", "#E2805F", "#B85A69", "#6E3C5E"]},
+}
 YAZI_SN = 0.32
 YAZI_SINIR = 42   # karakter: ekranda az yazı (Atilla'nın içerik brifi)
 
@@ -29,7 +38,7 @@ def yukle(yol: str | Path) -> dict:
     s["_klasor"] = str(yol.resolve().parent)
     s.setdefault("stil", "cizgisel")
     s.setdefault("fps", 30)
-    s["palet"] = {**VARSAYILAN_PALET, **s.get("palet", {})}
+    s["palet"] = {**VARSAYILAN_PALET, **STIL_PALETLERI.get(s["stil"], {}), **s.get("palet", {})}
     s["karakter"] = {"sac": "kase", "gozluk": False, **s.get("karakter", {})}
     s.setdefault("muzik", {}).setdefault("bpm", 100)
     s.setdefault("seslendirme", {"satirlar": []}).setdefault("satirlar", [])
@@ -60,6 +69,8 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
     h += [f"format {f} bilinmiyor ({', '.join(FORMATLAR)})" for f in s.get("format", []) if f not in FORMATLAR]
     if s["karakter"].get("sac") not in SACLAR:
         h.append(f"karakter.sac '{s['karakter'].get('sac')}' bilinmiyor ({', '.join(SACLAR)})")
+    h += _gorunum_denetle(s)
+    nesneler = NESNELER + EK_NESNELER.get(s.get("stil"), ())
     sh_ = s.get("sahneler") or []
     if not sh_:
         h.append("en az bir sahne gerekli")
@@ -85,8 +96,8 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
         if sh.get("yazi") and len(sh["yazi"].get("metin", "")) > YAZI_SINIR:
             h.append(f"sahne {i}: yazı {YAZI_SINIR} karakterden uzun (ekranda az yazı)")
         n = sh.get("nesne")
-        if n and n.get("tur") not in NESNELER:
-            h.append(f"sahne {i}: nesne '{n.get('tur')}' bilinmiyor ({', '.join(NESNELER)})")
+        if n and n.get("tur") not in nesneler:
+            h.append(f"sahne {i}: nesne '{n.get('tur')}' bilinmiyor ({', '.join(nesneler)})")
         if n and n.get("tur") in ("tabela", "balon") and len(n.get("metin", "")) > 14:
             h.append(f"sahne {i}: {n['tur']} metni 14 karakterden uzun")
     son = -1.0
@@ -101,6 +112,30 @@ def denetle(s: dict, sureler: dict[str, float] | None = None) -> list[str]:
             son = t + d
             if sure and son > sure - 0.3:
                 h.append(f"seslendirme {x['id']}: {d:.2f} sn sürüyor, videonun sonuna sığmıyor (t+süre ≤ sure-0.3)")
+    return h
+
+
+def _gorunum_denetle(s: dict) -> list[str]:
+    """Görünüme özgü karakter alanları: maskotun gövdesi ve logosu, siluetin bantları ve eşlikçisi."""
+    k, h = s["karakter"], []
+    klasor = Path(s.get("_klasor", "."))
+    if s.get("stil") == "maskot":
+        if k.get("nesne", "kupa") not in MASKOT_NESNELERI:
+            h.append(f"karakter.nesne '{k.get('nesne')}' bilinmiyor ({', '.join(MASKOT_NESNELERI)})")
+        if k.get("nesne") == "gorsel" and not k.get("gorsel"):
+            h.append("karakter.nesne 'gorsel' için karakter.gorsel (şeffaf PNG yolu) gerekli")
+        for alan in ("gorsel", "logo"):
+            if k.get(alan) and not (klasor / k[alan]).exists():
+                h.append(f"karakter.{alan} bulunamadı: {k[alan]}")
+        if len(k.get("logo_metin", "")) > 14:
+            h.append("karakter.logo_metin 14 karakterden uzun")
+    if s.get("stil") == "siluet":
+        b = s["palet"].get("bantlar")
+        if not isinstance(b, list) or not 2 <= len(b) <= 9:
+            h.append("palet.bantlar 2–9 renklik liste olmalı (düz bantlar, gradyan yok)")
+        e = k.get("eslik")
+        if e is not None and not (isinstance(e, dict) and -1 <= e.get("x", 0.35) <= 1.5):
+            h.append("karakter.eslik bir nesne olmalı, x -1..1.5")
     return h
 
 
@@ -170,10 +205,11 @@ def sahne_at(s: dict, t: float) -> dict:
     return sh
 
 
-def durum(s: dict, t: float, agiz=None) -> tuple:
-    """t anı → (Govde, Yuz, x). `agiz`: agiz.Agiz (konuşma satırları), yoksa ağız ifadeden."""
+def durum(s: dict, t: float, agiz=None, oran: iskelet.Oranlar | None = None) -> tuple:
+    """t anı → (Govde, Yuz, x). `agiz`: agiz.Agiz (konuşma satırları), yoksa ağız ifadeden.
+    `oran`: görünümün beden oranları (maskot kısa bacaklı, büyük gövdeli); yoksa insan oranı."""
     p, _ = poz_at(s, t)
-    g = iskelet.govde_kur(p)
+    g = iskelet.govde_kur(p, oran or iskelet.Oranlar())
     e = ifade_at(s, t)
     acik, bicim, konusuyor = agiz.an(t) if agiz else (0.0, "M", False)
     y = iskelet.Yuz(kas=e["kas"], kas_aci=e["kas_aci"], goz=e["goz"] * iskelet.goz_kirp(t), mutlu_goz=e["mutlu_goz"],

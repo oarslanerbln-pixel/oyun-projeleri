@@ -18,7 +18,7 @@ sys.path.insert(0, BURADA)
 import motor  # noqa: E402
 
 DESEN_STILLERI = ['vitray', 'linol', 'cini', 'teknik-cizim']  # platform/sablonlar/desen (kendi senaryo biçimi, serbest süre)
-KARAKTER_STILLERI = ['cizgisel']  # platform/sablonlar/karakter: ortak iskelet + görünüm katmanı
+KARAKTER_STILLERI = ['cizgisel', 'maskot', 'siluet']  # platform/sablonlar/karakter: ortak iskelet + görünüm katmanı
 EKRAN_STILLERI = ['kalkis-tabelasi', 'vhs', 'akis-alani']  # platform/sablonlar/ekran
 TUM_STILLER = sorted(motor.STILLER) + ['kinetik', 'bumper', 'mekan', 'urun-vitrini'] + KARAKTER_STILLERI + EKRAN_STILLERI + DESEN_STILLERI
 VARSAYILAN_FORMAT = ['9x16']  # ikisi birden yalnız istenince (takvimde video başına seçilir)

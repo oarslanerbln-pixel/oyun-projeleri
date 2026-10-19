@@ -1,6 +1,6 @@
 # platform/sablonlar/karakter
 
-Karakterli anlatım videosu (5–90 sn): bir karakter poz değiştirerek, yüz ifadesiyle ve seslendirmeye göre oynayan ağzıyla anlatır; ekranda az yazı, tek vurgu rengi. Ortak bir iskelet (eklemler, 8 poz, 7 ifade, göz kırpma, nefes, ağız senkronu) ile görünüm katmanı ayrıdır: ilk görünüm **çizgisel insan** (ince siyah çizgi, beyaz yamuk gövde, nokta gözler, sarı vurgu dairesi). Konuşan maskot ve siluet gibi yeni görünümler yalnız `gorunumler/<ad>.py` ekler.
+Karakterli anlatım videosu (5–90 sn): bir karakter poz değiştirerek, yüz ifadesiyle ve seslendirmeye göre oynayan ağzıyla anlatır; ekranda az yazı, tek vurgu rengi. Ortak bir iskelet (eklemler, 8 poz, 7 ifade, göz kırpma, nefes, ağız senkronu) ile görünüm katmanı ayrıdır: ilk görünüm **çizgisel insan** (ince siyah çizgi, beyaz yamuk gövde, nokta gözler, sarı vurgu dairesi). Diğer görünümler: **konuşan nesne maskot** (`maskot`) ve **gün batımı siluet** (`siluet`); yeni görünümler yalnız `gorunumler/<ad>.py` ekler.
 
 Ağız senkronu ElevenLabs'in harf zamanlarından gelir (platform/ses `with-timestamps` ister, aynı kredi; `<id>.hizalama.json`). Harf zamanı yoksa (Piper yedeği ya da zamanlar eklenmeden önce önbelleğe girmiş satır) ağız ses genliğinden oynar ve render bunu bildirir.
 
@@ -42,10 +42,19 @@ Format verilmezse senaryonun `format` listesi, o da yoksa yalnız `9x16`. Dikeyd
 - **karakter.sac**: `kase`, `kisa`, `uzun`, `topuz`, `kel`; `gozluk: true`.
 - **seslendirme.satirlar[].konusan**: `karakter` (varsayılan, ağız oynar) ya da `anlatici` (ağız kapalı kalır).
 
+## Konuşan nesne maskot (`"stil": "maskot"`)
+
+Ürün konuşur: gövde `karakter.nesne` = `kupa`, `sise`, `kutu` ya da `gorsel` (müşterinin **şeffaf PNG** ürün fotoğrafı, `karakter.gorsel` senaryoya göre yol; yüz üstüne çizilir, `"yuz": false` ile kapatılır). Logo: `karakter.logo` (PNG) ya da `karakter.logo_metin` (en fazla 14 karakter, koyu hap); kupa/şişe/kutunun üstünde hep görünür, `{"tur": "logo"}` nesnesi başın üstünde büyük rozet açar (kapanış sahnesi). Diğer alanlar: `govde_rengi`, `icerik_rengi` (kahve bandı, kapak), `buhar` (kupa). Palet varsayılanı pembe zemin + düz yer gölgesi (`palet.golge`). Yüz, ağız senkronu ve yanaklar ortak iskeletten; beden kısa bacaklı, kadrajda insandan büyük durur. Örnek: `ornekler/kucuk-aliskanliklar/maskot.json` (uydurma marka). Müşteri dosyaları repoya girmez; senaryo müşteri klasöründe durur.
+
+## Gün batımı siluet (`"stil": "siluet"`)
+
+Düz renk bantlı gökyüzü (`palet.bantlar`, yukarıdan aşağı 2–9 renk; gradyan yok), video boyunca yavaşça batan güneş (`palet.vurgu`), koyu tepe ve tek renk siluet (`palet.cizgi`), uçan kuşlar. Yazı tepenin koyu zemininde açık renkle (`palet.yazi`). `karakter.eslik`: yanında ikinci siluet, `{"x": 0.36, "boy": 0.9, "sac": "uzun", "poz": "ayakta"}`. Yüz çizilmez, ifade beden dilinden okunur; seslendirme satırlarında `"konusan": "anlatici"` kullan. Örnek: `ornekler/kucuk-aliskanliklar/siluet.json`.
+
 ## Yeni görünüm eklemek (konuşan maskot, siluet...)
 
 1. `gorunumler/<ad>.py` içinde `Gorunum(s, cizici)` sınıfı: `karakter(cv, govde, yuz, ekran)` ve `nesne(cv, nesne, govde, ekran, olcek, gecen)`. `govde` eklem konumlarını (`iskelet.Govde`: baş, boyun, omuz, dirsek, el, kalça, diz, ayak; karakter boyu birimi), `yuz` ifade ve ağız değerlerini (`iskelet.Yuz`: kaş, göz, ağız açıklığı ve biçimi A/E/O/M/F) verir; `ekran(p)` karakter birimini piksele çevirir.
 2. `senaryo.GORUNUMLER`'e ve `stil/stil.py` içindeki `KARAKTER_STILLERI`'ne adı ekle, `ci.json`'a örnek dosya desenini ekle.
-3. Beden oranı farklıysa `iskelet.Oranlar(...)` ile kendi oranlarını ver; pozlar ve ağız senkronu aynen çalışır.
+3. Beden oranı farklıysa modülde `ORAN = iskelet.Oranlar(...)` ver (maskot); pozlar ve ağız senkronu aynen çalışır.
+4. İsteğe bağlı: `Gorunum.zemin(cv, t, govde, ekran)` kendi zeminini çizer (siluet), modüldeki `DUZEN = {"16x9": {...}}` format düzenini değiştirir, `senaryo.STIL_PALETLERI` varsayılan paleti, `senaryo.EK_NESNELER` yalnız o görünüme ait nesneleri verir.
 
 Senaryo dosyasının adı bilerek `senaryo.json` değil: CI `ornekler/*/senaryo.json` dosyalarını kinetik şablonla denetliyor.

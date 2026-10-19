@@ -56,11 +56,12 @@ class Cizici:
     def __init__(self, s: dict, W: int, H: int, seslendirme: Path | None = None):
         import skia
         self.s, self.W, self.H = s, W, H
-        self.d = DUZEN[format_adi(W, H)]
+        fmt = format_adi(W, H)
+        gor = importlib.import_module(f"gorunumler.{s['stil']}")
+        self.d = {**DUZEN[fmt], **getattr(gor, "DUZEN", {}).get(fmt, {})}   # görünüm düzeni değiştirebilir
         self.boy = self.d["boy"] * H
         self.pal = s["palet"]
         self.yazi_tipi = skia.Typeface.MakeFromFile(font_bul())
-        gor = importlib.import_module(f"gorunumler.{s['stil']}")
         self.gorunum = gor.Gorunum(s, self)
         self.agiz = agiz_mod.Agiz()
         self.agiz_kaynak = {}
@@ -96,11 +97,15 @@ class Cizici:
     def kare(self, cv, t: float):
         import skia
         s = self.s
-        cv.clear(renk(self.pal["zemin"]))
-        g, y, xk = senaryo.durum(s, t, self.agiz)
+        g, y, xk = senaryo.durum(s, t, self.agiz, getattr(self.gorunum, "ORAN", None))
         ekr = self.ekran(xk)
-        # vurgu dairesi: düz dolgu (gradyan yok, bantlanmaz); başlangıçta açılır
-        p = out_back(prog(t, 0.08, 0.45), 1.3)
+        if hasattr(self.gorunum, "zemin"):   # görünümün kendi zemini (siluet: gün batımı bantları, güneş, tepe)
+            self.gorunum.zemin(cv, t, g, ekr)
+            p = 0.0
+        else:
+            cv.clear(renk(self.pal["zemin"]))
+            # vurgu dairesi: düz dolgu (gradyan yok, bantlanmaz); başlangıçta açılır
+            p = out_back(prog(t, 0.08, 0.45), 1.3)
         if p > 0:
             mx, my = ekr((g.boyun[0], g.boyun[1] - 0.06))
             cv.drawCircle(mx, my, 0.30 * self.boy * p, skia.Paint(AntiAlias=True, Color=renk(self.pal["vurgu"])))

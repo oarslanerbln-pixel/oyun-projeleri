@@ -119,3 +119,43 @@ class Cizim(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Gorunumler(unittest.TestCase):
+    """Maskot ve siluet: örnekler denetimden geçer, yanlış alan yakalanır, kare boş değildir."""
+
+    def test_ornekler_ve_hatalar(self):
+        for ad in ("maskot", "siluet"):
+            s = senaryo.yukle(ORNEK.with_name(f"{ad}.json"))
+            self.assertEqual(senaryo.denetle(s), [], ad)
+        s = senaryo.yukle(ORNEK.with_name("maskot.json"))
+        s["karakter"]["nesne"] = "ayakkabi"
+        s["sahneler"][0]["nesne"] = {"tur": "logo", "t": 0.3}
+        self.assertEqual(len(senaryo.denetle(s)), 1)   # logo maskotta geçerli, nesne türü değil
+        c = senaryo.yukle(ORNEK)
+        c["sahneler"][0]["nesne"] = {"tur": "logo", "t": 0.3}
+        self.assertTrue(any("logo" in h for h in senaryo.denetle(c)))   # çizgiselde logo nesnesi yok
+        s = senaryo.yukle(ORNEK.with_name("siluet.json"))
+        self.assertEqual(s["palet"]["yazi"], "#FFE7B0")   # görünüm paleti varsayılanın üstüne gelir
+        s["palet"]["bantlar"] = ["#000000"]
+        self.assertTrue(any("bantlar" in h for h in senaryo.denetle(s)))
+
+    @unittest.skipUnless(SKIA, "skia/numpy/soundfile/ffmpeg yok")
+    def test_kareler_bos_degil(self):
+        import numpy as np
+        import cizim
+        import skia
+        with tempfile.TemporaryDirectory() as tmp:
+            urun = Path(tmp) / "urun.png"   # şeffaf PNG ürün fotoğrafı yerine: dolu daire
+            surf = skia.Surface(200, 300)
+            with surf as cv:
+                cv.clear(skia.ColorTRANSPARENT); cv.drawCircle(100, 150, 90, skia.Paint(Color=skia.ColorRED))
+            surf.makeImageSnapshot().save(str(urun), skia.kPNG)
+            for ad, ek in (("maskot", {}), ("maskot", {"nesne": "gorsel", "gorsel": str(urun)}), ("maskot", {"nesne": "sise"}),
+                           ("siluet", {})):
+                s = senaryo.yukle(ORNEK.with_name(f"{ad}.json"))
+                s["karakter"].update(ek)
+                for W, H in ((540, 960), (960, 540)):
+                    p = cizim.kareler(s, W, H, [13.5], Path(tmp) / ad)[0]
+                    a = np.asarray(skia.Image.open(str(p)).toarray())
+                    self.assertGreater(len(np.unique(a.reshape(-1, a.shape[-1]), axis=0)), 8, f"{ad} {ek} {W}x{H}")

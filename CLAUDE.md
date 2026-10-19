@@ -12,3 +12,4 @@ Her araç çağrısı thread'in bütün bağlamını yeniden okur. Bir thread ~1
 4. **Thread'i büyütme.** Thread ~250k bağlama ya da ~12 cevaba ulaştıysa yeni tur başlatma: `platform/ortak/devir.py <klasör> --not "..."` ile `DEVIR.md` yaz, Atilla'ya "devam yeni thread'de" de ve koordinatörden yeni thread iste. Yeni thread yalnız `DEVIR.md` + brif okur.
 5. **Alt ajan pahalıdır.** Her alt ajan ~60–70k token ile başlar. Yalnız gerçekten paralel ve ağır işte kullan; tek dosya okumak, birkaç komut çalıştırmak için kullanma.
 6. **Uzun bekleme sonrası.** Render ya da Atilla'nın cevabı bir saatten uzun sürdüyse önbellek düşer ve bütün bağlam yeniden yazılır (en pahalı token türü). Büyük bir thread'e saatler sonra dönülecekse yeni thread + `DEVIR.md` daha ucuzdur.
+7. **Sipariş tek komutla.** Video siparişinde `.claude/skills/siparis-uretimi/SKILL.md` adımlarını izle (`platform/ortak/uret.py siparis.json`); akışı elle yeniden kurma.

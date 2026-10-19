@@ -455,6 +455,8 @@ def render_sonrasi(hedef: Path) -> dict | None:
     except Exception as e:  # kapı render'ı asla düşürmez
         print(f"UYARI: kalite kapısı çalışmadı ({e})", file=sys.stderr)
         return None
+    import render_suresi  # sn/kare ölçümü (uret.py başlatır; elle render'da boş kalır)
+    render_suresi.ekle(r)
     hedef.with_suffix(".kalite.json").write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
     print(ozet(r), file=sys.stderr if r["sonuc"] != "gecti" else sys.stdout)
     return r

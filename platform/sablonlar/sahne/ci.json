@@ -1,0 +1,12 @@
+{
+  "denetle": [
+    {
+      "dosyalar": ["ornekler/*/sahne.json"],
+      "komut": ["{python}", "{modul}/sahne.py", "denetle", "{dosya}", "-o", "{gecici}/sahne"]
+    },
+    {
+      "dosyalar": ["ornekler/kucuk-aliskanliklar/sahne.json"],
+      "komut": ["{python}", "{modul}/sahne.py", "denetle", "{dosya}", "--stil", "kalkis-tabelasi", "-o", "{gecici}/sahne"]
+    }
+  ]
+}

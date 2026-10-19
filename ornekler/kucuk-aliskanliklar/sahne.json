@@ -1,0 +1,17 @@
+{
+ "dil": "sahne",
+ "kimlik": "kucuk-aliskanliklar-sahne",
+ "not": "Ortak sahne dili örneği: aynı senaryo 13 stilde (sahne.py kontakt). Seslendirme satırları sahne sürelerini belirler.",
+ "format": "9:16",
+ "marka": {"ad": "küçük alışkanlıklar"},
+ "sahneler": [
+  {"tip": "baslik", "ust": "küçük alışkanlıklar", "metin": "Her gün %1", "alt": "daha iyi ol",
+   "seslendirme": "Her gün, sadece yüzde bir daha iyi ol."},
+  {"tip": "sayi", "deger": "37x", "etiket": "bir yıl sonra", "seslendirme": "Bir yıl sonra, otuz yedi kat güçlüsün."},
+  {"tip": "liste", "baslik": "Nasıl?", "maddeler": ["küçük başla", "her gün yap", "say"],
+   "seslendirme": "Küçük başla. Her gün yap. Ve say."},
+  {"tip": "karsilastirma", "sol": "küçük adım", "sag": "büyük fark", "sol_deger": "%1", "sag_deger": "37x",
+   "seslendirme": "Küçük adım. Büyük fark."},
+  {"tip": "cta", "metin": "Bugün başla.", "seslendirme": "Bugün başla."}
+ ]
+}

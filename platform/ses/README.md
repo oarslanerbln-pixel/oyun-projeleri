@@ -4,9 +4,10 @@ Seslendirme adımı: metin satırlarından teslime hazır 48 kHz mono WAV dosyal
 
 ```sh
 python3 platform/ses/seslendirme.py sesler                                   # kullanılabilir sesler ve lisansları
-python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme  # varsayılan Piper "fahrettin"
+python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme  # varsayılan ElevenLabs (yedek Piper "fahrettin")
 python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme --saglayici elevenlabs --ses <voice_id>
 python3 platform/ses/seslendirme.py kullanim                                 # ElevenLabs'te harcanan karakterler
+python3 platform/ses/seslendirme.py kredi                                    # hesapta kalan kredi ve plan
 ```
 
 `satirlar.json`:
@@ -19,13 +20,13 @@ python3 platform/ses/seslendirme.py kullanim                                 # E
 
 | Ad | Ne | Gereken |
 | --- | --- | --- |
-| `otomatik` (varsayılan) | `piper`. İş ElevenLabs isterse `elevenlabs`: senaryoda (ya da `satirlar.json`'da) `"seslendirme": {"saglayici": "elevenlabs"}`. Anahtar yoksa ya da ElevenLabs'e ulaşılamazsa (ağ, kota) uyarır ve Piper ile devam eder; render durmaz. | |
+| `otomatik` (varsayılan) | `elevenlabs` (Atilla, 2026-10-19). Anahtar yoksa, ElevenLabs'e ulaşılamazsa ya da kalan kredi işe yetmezse bütün iş Piper ile üretilir; render durmaz, `seslendirme.json`'a `yedek` yazılır ve kalite raporu uyarır. Senaryoda `"seslendirme": {"saglayici": "piper"}` o işi bilerek Piper'la yapar. | |
 | `piper` | Yerel, ücretsiz sinirsel TTS (sherpa-onnx). Türkçe sesler: `fahrettin`, `fettah` (CC0, ticari işe uygun), `dfki` (CC BY-NC-SA, ticari işte reddedilir). Almanca: `thorsten` (erkek), `kerstin` (kadın, düşük kalite modeli); ikisi de CC0. | `pip install sherpa-onnx numpy`. Ses modeli ilk kullanımda GitHub'dan (`k2-fsa/sherpa-onnx` sürümü `tts-models`) `~/.cache/studyo/piper` altına iner; `PIPER_SES_DIZINI` ile değiştirilir. |
-| `elevenlabs` | Ücretli API, `eleven_multilingual_v2` (dili metinden anlar; Türkçe ve Almanca). | `ELEVENLABS_API_KEY` (ortam değişkeni; depoya, dosyaya yazılmaz). Ağ izninde `api.elevenlabs.io` açık olmalı. İstek biçimi testlerde doğrulandı; bulut ortamının ağı ElevenLabs'e kapalı olduğu için gerçek anahtarla henüz denenmedi. |
+| `elevenlabs` | Ücretli API, `eleven_multilingual_v2` (dili metinden anlar; Türkçe ve Almanca). Ses `mp3_44100_128` olarak iner ve ffmpeg ile açılır (ücretsiz ve Starter planda `pcm_44100` 403 verir). | `ELEVENLABS_API_KEY` (ortam değişkeni; depoya, dosyaya yazılmaz). Ağ izninde `api.elevenlabs.io` açık olmalı (proje ortamı "elevenlabs claude"). |
 
-### ElevenLabs ne zaman
+### Şablonlardan
 
-Her işte değil: müşteri işleri ve öne çıkan videolar gibi sesin fark yarattığı işlerde, siparişte ya da senaryoda seçilir. Seri üretimde (kanal videoları, testler, önizlemeler) Piper kalır. `--saglayici elevenlabs` komut satırında zorlar ve anahtar yoksa açık hatayla durur.
+Bütün şablonlar sesi `seslendirme.senaryodan(senaryo, klasör, sağlayıcı, ses)` ile alır: satırlar (`okunus` varsa o okunur), ses, dil ve sağlayıcı senaryonun `seslendirme` alanından gelir; komut satırındaki `--saglayici` / `--ses` senaryoyu ezer. `--saglayici elevenlabs` yedeğe düşmez, anahtar ya da kredi yoksa açık hatayla durur.
 
 ### ElevenLabs sesi nasıl seçilir
 
@@ -39,6 +40,7 @@ Dil senaryonun `seslendirme.dil` ya da `dil` alanından (yoksa `tr`) gelir.
 ### Kredi koruması
 
 - **Önbellek:** her satır metin + ses + model + ayar özetiyle saklanır. Aynı satır ikinci kez üretilirken (yeniden seslendirme, başka format, başka stil) API çağrılmaz, kredi harcanmaz. Yer: `STUDYO_SES_ONBELLEK`, yoksa proje klasöründe `/mnt/project-files/.onbellek/ses` (bütün oturumlar paylaşır), o da yoksa `~/.cache/studyo/ses`.
+- **Kredi kapısı:** iş başlamadan hesaptaki kalan kredi sorulur (`/v1/user/subscription`). Önbellekte olmayan satırların karakter toplamı kalandan fazlaysa tek satır bile üretilmez; `otomatik`te bütün iş Piper'a geçer (uyarılı), `elevenlabs`'te hata verir. Bütün satırlar önbellekteyse hesap sorulmaz.
 - **Kayıt:** her iş `kullanim.jsonl`'a yazılır (zaman, ses, iş klasörü, harcanan karakter, API'den ve önbellekten gelen satır sayısı); iş sonunda özet basılır ve `seslendirme.json`'a `kullanim` alanı eklenir. Toplam: `seslendirme.py kullanim`. ElevenLabs'te 1 kredi ≈ 1 karakter.
 
 ## Cila

@@ -402,7 +402,7 @@ def main(argv=None):
         p = alt.add_parser(ad)
         p.add_argument('senaryo'); p.add_argument('-o', '--cikti')
         if ad in ('seslendir', 'uret'):
-            p.add_argument('--saglayici', default='piper'); p.add_argument('--ses')
+            p.add_argument('--saglayici', default='otomatik'); p.add_argument('--ses')
         if ad == 'kare':
             p.add_argument('--an', type=float, nargs='+', required=True)
             p.add_argument('--format', default='9x16')
@@ -429,7 +429,7 @@ def main(argv=None):
             sys.path.insert(0, str(BURADA.parents[1] / 'ses'))
             import seslendirme
             try:
-                k = seslendirme.uret(satirlar, ses_dizini, a.saglayici, {'ses': a.ses})
+                k = seslendirme.senaryodan(s, ses_dizini, a.saglayici, a.ses)
             except seslendirme.SeslendirmeHatasi as e:
                 print(f'HATA: {e}', file=sys.stderr); return 2
             for x in k['satirlar']:

@@ -352,6 +352,25 @@ def kontakt_yaz(kareler: list, hedef: Path, dikey: bool, sutun: int = 4) -> Path
     return hedef
 
 
+def seslendirme_kontrol(yol: Path) -> tuple[list[dict], dict | None]:
+    """Videonun yanındaki `seslendirme/seslendirme.json`: ElevenLabs yerine Piper yedeği kullanıldıysa uyarı."""
+    k = Path(yol).parent / "seslendirme" / "seslendirme.json"
+    if not k.exists():
+        return [], None
+    try:
+        j = json.loads(k.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return [], None
+    bilgi = {"saglayici": j.get("saglayici"), "ses": j.get("ses"), "yedek": j.get("yedek")}
+    if j.get("yedek"):
+        y = j["yedek"]
+        return [_bul("uyari", "seslendirme", f"{y.get('istenen', 'elevenlabs')} yerine {j.get('saglayici')} yedeğiyle "
+                     f"seslendirildi ({y.get('neden', '?')}); teslimden önce yeniden seslendirin")], bilgi
+    if j.get("saglayici") == "piper":
+        return [_bul("bilgi", "seslendirme", "seslendirme bilerek Piper ile (senaryo ya da komut satırı)")], bilgi
+    return [], bilgi
+
+
 # ---------------------------------------------------------------- ana akış
 
 def denetle(yol: str | Path, sessiz_olabilir: bool = False, kontakt: str | Path | None = None) -> dict:
@@ -367,6 +386,10 @@ def denetle(yol: str | Path, sessiz_olabilir: bool = False, kontakt: str | Path 
         k, ko = kare_kontrol(yol, b, Path(kontakt) if kontakt else None)
         bulgular += k
         olcum["kareler"] = ko
+    sk, so = seslendirme_kontrol(yol)
+    bulgular += sk
+    if so:
+        olcum["seslendirme"] = so
     sev = {x["seviye"] for x in bulgular}
     sonuc = "kaldi" if "hata" in sev else ("uyarili" if "uyari" in sev else "gecti")
     return {"dosya": str(yol), "sonuc": sonuc, "akis": b, "olcum": olcum, "bulgular": bulgular,

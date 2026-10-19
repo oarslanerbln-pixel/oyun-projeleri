@@ -7,7 +7,7 @@ Anlatının omurgası **doluluk**tur (0–1). Boş minderler sahne sahne dolar; 
 ```sh
 M=platform/sablonlar/minyatur/minyatur.py
 python3 $M denetle   ornekler/lale-sofrasi/minyatur.json
-python3 $M seslendir ornekler/lale-sofrasi/minyatur.json             # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $M seslendir ornekler/lale-sofrasi/minyatur.json             # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $M kare      ornekler/lale-sofrasi/minyatur.json --an 3.4 7.4 --format 16:9   # önizleme PNG
 python3 $M uret      ornekler/lale-sofrasi/minyatur.json             # seslendirme eksikse üretir → cikti/<kimlik>-9x16.mp4
 ```

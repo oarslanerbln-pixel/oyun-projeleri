@@ -77,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("senaryo")
         p.add_argument("-o", "--cikti")
         if ad == "seslendir":
-            p.add_argument("--saglayici", default="piper"); p.add_argument("--ses")
+            p.add_argument("--saglayici", default="otomatik"); p.add_argument("--ses")
         if ad == "kare":
             p.add_argument("--an", type=float, nargs="+", required=True)
             p.add_argument("--format", default="9x16", choices=sorted(FORMATLAR))
@@ -101,9 +101,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"tamam: {len(s['sayfalar'])} sayfa, {oge} öğe, {len(s['murekkepler'])} mürekkep, {len(zaman.damgalar(s))} damga, {s['sure']} sn")
     elif a.komut == "seslendir":
         import seslendirme
-        satirlar = [{"id": x["id"], "metin": x["metin"]} for x in s["seslendirme"]["satirlar"]]
         try:
-            k = seslendirme.uret(satirlar, cikti / "seslendirme", a.saglayici, {"ses": a.ses})
+            k = seslendirme.senaryodan(s, cikti / "seslendirme", a.saglayici, a.ses)
         except seslendirme.SeslendirmeHatasi as e:
             print(f"HATA: {e}", file=sys.stderr)
             return 2

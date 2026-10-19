@@ -124,8 +124,7 @@ def formatlar_coz(s: dict, arg: str | None) -> list[str]:
 
 def seslendir(s: dict, cikti: Path, saglayici: str, ses: str | None) -> dict:
     import seslendirme
-    satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in s["seslendirme"]["satirlar"]]
-    return seslendirme.uret(satirlar, cikti / "seslendirme", saglayici, {"ses": ses})
+    return seslendirme.senaryodan(s, cikti / "seslendirme", saglayici, ses)
 
 
 def master(gir: Path, ara: Path) -> None:
@@ -170,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("senaryo")
         p.add_argument("-o", "--cikti")
         if ad in ("seslendir", "uret"):
-            p.add_argument("--saglayici", default="piper")
+            p.add_argument("--saglayici", default="otomatik")
             p.add_argument("--ses")
         if ad == "kare":
             p.add_argument("--an", type=float, nargs="+", required=True)

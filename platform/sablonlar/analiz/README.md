@@ -5,7 +5,7 @@ Analiz ve haber anlatımı şablonu (30–90 sn): veri gazeteciliği görünüm�
 ```sh
 A=platform/sablonlar/analiz/analiz.py
 python3 $A denetle   ornekler/fransa-ekim-2026/analiz.json
-python3 $A seslendir ornekler/fransa-ekim-2026/analiz.json          # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $A seslendir ornekler/fransa-ekim-2026/analiz.json          # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $A kare      ornekler/fransa-ekim-2026/analiz.json --an 3 12 --format 9:16   # önizleme PNG
 python3 $A render    ornekler/fransa-ekim-2026/analiz.json          # → cikti/<kimlik>-16x9.mp4
 python3 $A uret      ornekler/fransa-ekim-2026/analiz.json          # seslendirme eksikse üretir, sonra render

@@ -7,7 +7,7 @@ Tek bir `golge-oyunu.json` dosyasından görüntü, efektler, müzik ve seslendi
 ```sh
 G=platform/sablonlar/golge_oyunu/golge_oyunu.py
 python3 $G denetle   ornekler/kucuk-aliskanliklar/golge-oyunu.json
-python3 $G seslendir ornekler/kucuk-aliskanliklar/golge-oyunu.json          # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $G seslendir ornekler/kucuk-aliskanliklar/golge-oyunu.json          # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $G kare      ornekler/kucuk-aliskanliklar/golge-oyunu.json --an 2.5 4.9 --format 16x9   # önizleme PNG
 python3 $G render    ornekler/kucuk-aliskanliklar/golge-oyunu.json          # → cikti/<kimlik>-9x16.mp4 (--format 9x16 16x9 1x1 4x5)
 ```

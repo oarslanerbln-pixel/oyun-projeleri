@@ -4,17 +4,20 @@
     python3 platform/ses/seslendirme.py uret satirlar.json -o cikti/seslendirme --saglayici elevenlabs --ses <voice_id>
     python3 platform/ses/seslendirme.py sesler
     python3 platform/ses/seslendirme.py kullanim          # ElevenLabs'te harcanan karakterler (iş başına)
+    python3 platform/ses/seslendirme.py kredi             # ElevenLabs hesabında kalan kredi ve plan
 
 `satirlar.json`: {"satirlar": [{"id": "v0", "metin": "Her gün, sadece yüzde bir daha iyi ol."}, ...]}
 Her satır `<id>.wav` olur; aynı klasöre süreleri içeren `seslendirme.json` yazılır (kurgu zamanlaması buradan okur).
 
 Sağlayıcılar (`SAGLAYICILAR`):
-  otomatik    varsayılan: piper. İş ElevenLabs isterse (senaryoda `"seslendirme": {"saglayici": "elevenlabs"}`)
-              elevenlabs; anahtar yoksa ya da ElevenLabs'e ulaşılamazsa uyarıp piper'a döner (render durmaz).
-              ElevenLabs her işte değil, seçilen işlerde (müşteri işi, öne çıkan video) kullanılır.
+  otomatik    varsayılan: elevenlabs (Atilla, 2026-10-19: "diğer sesler çok mekanik"). Anahtar yoksa, ElevenLabs'e
+              ulaşılamazsa ya da kalan kredi işe yetmezse bütün iş Piper ile üretilir (render durmaz);
+              `seslendirme.json`'a `yedek` yazılır, kalite raporu bunu uyarı olarak gösterir.
+              Senaryo `"seslendirme": {"saglayici": "piper"}` derse o iş bilerek Piper'la yapılır.
   piper       yerel, ücretsiz. Ses modeli ilk kullanımda GitHub'dan indirilir (huggingface.co kapalı olabilir).
   elevenlabs  ücretli API. ELEVENLABS_API_KEY yoksa açık bir hatayla durur. Her satır önbelleğe yazılır:
               aynı metin + ses + ayar ikinci kez kredi harcamaz. Harcanan karakterler kullanim.jsonl'a yazılır.
+              İş başlamadan önce kalan kredi sorulur; önbellekte olmayan satırlar sığmıyorsa tek kredi harcanmaz.
 Her iki sağlayıcının ham çıktısı aynı "cila" zincirinden geçer: gövde temizliği, varlık, yumuşak
 sıkıştırma, satır başına -16 LUFS ve soxr ile 48 kHz'e çevirme.
 """
@@ -50,7 +53,9 @@ PIPER_SESLERI = {
 PIPER_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-{kod}-{ses}-{kalite}.tar.bz2"
 PIPER_ONBELLEK = Path(os.environ.get("PIPER_SES_DIZINI", Path.home() / ".cache" / "studyo" / "piper"))
 
-ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}?output_format=pcm_44100"
+# Ücretsiz ve Starter planda pcm_44100 yok (403 "only available on the Pro tier"); mp3 indirilip ffmpeg ile açılır.
+ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech/{ses}?output_format=mp3_44100_128"
+ELEVEN_ABONELIK_URL = "https://api.elevenlabs.io/v1/user/subscription"
 ELEVEN_MODEL = "eleven_multilingual_v2"
 # Dil zorlaması (language_code) yalnız bu modellerde var; multilingual_v2 dili metinden anlar, alanı görürse reddeder.
 ELEVEN_DIL_ZORLAYAN = ("eleven_turbo_v2_5", "eleven_flash_v2_5")
@@ -158,14 +163,40 @@ def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int]:
     if e["model"] in ELEVEN_DIL_ZORLAYAN:
         govde["language_code"] = e["dil"]
     istek = urllib.request.Request(ELEVEN_URL.format(ses=e["ses"]), data=json.dumps(govde).encode("utf-8"), method="POST",
-                                   headers={"xi-api-key": anahtar, "Content-Type": "application/json", "Accept": "audio/pcm"})
+                                   headers={"xi-api-key": anahtar, "Content-Type": "application/json", "Accept": "audio/mpeg"})
     try:
-        pcm = (ag or _ac)(istek)
+        mp3 = (ag or _ac)(istek)
     except urllib.error.HTTPError as h:
         raise SeslendirmeHatasi(f"ElevenLabs {h.code}: {h.read()[:300].decode('utf-8', 'replace')}") from h
     except (urllib.error.URLError, OSError) as h:
         raise SeslendirmeHatasi(f"ElevenLabs'e ulaşılamadı ({h}); ağ izni: api.elevenlabs.io") from h
-    return pcm, 44100
+    return mp3_coz(mp3), 44100
+
+
+def mp3_coz(mp3: bytes, sr: int = 44100) -> bytes:
+    """mp3 → mono int16 PCM (ffmpeg)."""
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", "pipe:0", "-f", "s16le", "-ac", "1",
+                        "-ar", str(sr), "pipe:1"], input=mp3, capture_output=True)
+    if r.returncode != 0 or not r.stdout:
+        raise SeslendirmeHatasi(f"ElevenLabs sesi çözülemedi: {r.stderr[:200].decode('utf-8', 'replace')}")
+    return r.stdout
+
+
+def eleven_kredi(ag=None) -> dict:
+    """Hesabın planı ve kalan kredisi. Anahtar yoksa ya da hesap sorulamazsa SeslendirmeHatasi."""
+    anahtar = os.environ.get("ELEVENLABS_API_KEY", "")
+    if not anahtar:
+        raise SeslendirmeHatasi("ELEVENLABS_API_KEY ortam değişkeni yok")
+    istek = urllib.request.Request(ELEVEN_ABONELIK_URL, headers={"xi-api-key": anahtar})
+    try:
+        d = json.loads((ag or _ac)(istek))
+    except urllib.error.HTTPError as h:
+        raise SeslendirmeHatasi(f"ElevenLabs hesabı sorulamadı ({h.code}): {h.read()[:200].decode('utf-8', 'replace')}") from h
+    except (urllib.error.URLError, OSError, ValueError) as h:
+        raise SeslendirmeHatasi(f"ElevenLabs'e ulaşılamadı ({h}); ağ izni: api.elevenlabs.io") from h
+    limit, harcanan = int(d.get("character_limit") or 0), int(d.get("character_count") or 0)
+    return {"plan": d.get("tier"), "limit": limit, "harcanan": harcanan, "kalan": max(0, limit - harcanan),
+            "yenilenme": d.get("next_character_count_reset_unix")}
 
 
 def _ac(istek) -> bytes:
@@ -175,13 +206,32 @@ def _ac(istek) -> bytes:
 
 SAGLAYICILAR = {"piper": piper, "elevenlabs": elevenlabs}
 UCRETLI = {"elevenlabs"}  # satır önbelleği ve karakter kaydı bunlar için
+KREDI = {"elevenlabs": eleven_kredi}  # iş başlamadan kalan kredi sorgusu
+VARSAYILAN = "elevenlabs"
+YEDEK = "piper"
+
+
+class KrediYetersiz(SeslendirmeHatasi):
+    pass
 
 
 def saglayici_coz(saglayici: str | None, ayar: dict | None = None) -> str:
-    """`otomatik` (ya da boş): işin istediği sağlayıcı (`ayar["saglayici"]`, senaryodan gelir), yoksa piper."""
+    """`otomatik` (ya da boş): işin istediği sağlayıcı (`ayar["saglayici"]`, senaryodan gelir), yoksa ElevenLabs."""
     if saglayici in (None, "", "otomatik"):
-        return (ayar or {}).get("saglayici") or "piper"
+        return (ayar or {}).get("saglayici") or VARSAYILAN
     return saglayici
+
+
+def senaryodan(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: str | None = None) -> dict:
+    """Bir senaryonun `seslendirme.satirlar`ını seslendirir; şablonların ortak girişi.
+
+    `okunus` varsa ekrandaki metin yerine o okunur. Ses ve dil komut satırından, yoksa senaryonun
+    `seslendirme.ses` / `seslendirme.dil` (ya da `dil`) alanından; sağlayıcı `seslendirme.saglayici`dan gelir.
+    """
+    sb = s.get("seslendirme") or {}
+    satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in sb.get("satirlar", [])]
+    ayar = {"ses": ses or sb.get("ses"), "dil": sb.get("dil") or s.get("dil"), "saglayici": sb.get("saglayici")}
+    return uret(satirlar, Path(cikti), saglayici, ayar)
 
 
 def _onbellek_anahtari(saglayici: str, metin: str, ayar: dict) -> str:
@@ -190,10 +240,29 @@ def _onbellek_anahtari(saglayici: str, metin: str, ayar: dict) -> str:
     return hashlib.sha256(ham.encode("utf-8")).hexdigest()[:32]
 
 
+def _onbellek_yolu(saglayici: str, metin: str, ayar: dict) -> Path:
+    return _onbellek_koku() / saglayici / f"{_onbellek_anahtari(saglayici, metin, ayar)}.wav"
+
+
+def kredi_kontrol(saglayici: str, satirlar: list[dict], ayar: dict) -> dict | None:
+    """Önbellekte olmayan satırların kredisi hesapta kalandan fazlaysa iş başlamadan durur (1 karakter ≈ 1 kredi).
+
+    Bütün satırlar önbellekteyse hesap sorulmaz. Dönüş: {"gerekli", "kalan", "plan"} ya da None.
+    """
+    gerekli = sum(len(s["metin"]) for s in satirlar if not _onbellek_yolu(saglayici, s["metin"], ayar).exists())
+    if not gerekli or saglayici not in KREDI:
+        return None
+    k = KREDI[saglayici]()
+    if gerekli > k["kalan"]:
+        raise KrediYetersiz(f"{saglayici} kredisi yetmiyor: bu iş {gerekli} kredi istiyor, hesapta {k['kalan']} kaldı "
+                            f"({k['plan']} planı, {k['limit']} kredi/ay)")
+    return {"gerekli": gerekli, "kalan": k["kalan"], "plan": k["plan"]}
+
+
 def _ucretli_uret(saglayici: str, metin: str, ayar: dict, sayac: dict) -> tuple[bytes, int]:
     """Önbellekte varsa oradan okur (kredi harcamaz); yoksa API'den alıp önbelleğe yazar."""
-    kok = _onbellek_koku() / saglayici
-    yol = kok / f"{_onbellek_anahtari(saglayici, metin, ayar)}.wav"
+    yol = _onbellek_yolu(saglayici, metin, ayar)
+    kok = yol.parent
     if yol.exists():
         with wave.open(str(yol), "rb") as w:
             sayac["onbellek"] += 1
@@ -260,13 +329,19 @@ def uret(satirlar: list[dict], cikti: Path, saglayici: str | None = "otomatik", 
     try:
         return _uret(satirlar, cikti, saglayici, ayar)
     except SeslendirmeHatasi as e:
-        if not (otomatik and saglayici != "piper"):
+        if not (otomatik and saglayici != YEDEK):
             raise
-        print(f"UYARI: {saglayici} kullanılamadı ({e}); Piper ile devam ediliyor", file=sys.stderr)
+        print(f"UYARI: {saglayici} kullanılamadı ({e}). Bütün iş {YEDEK.capitalize()} ile seslendiriliyor; "
+              f"kalite raporu bunu uyarı olarak gösterir, teslimden önce {saglayici} ile yeniden seslendirin.",
+              file=sys.stderr)
         p_ayar = dict(ayar)
-        if p_ayar.get("ses") not in PIPER_SESLERI:  # voice_id Piper'da yok: dile göre Piper sesi
-            p_ayar["ses"] = "thorsten" if (ayar.get("dil") or "tr") == "de" else None
-        return _uret(satirlar, cikti, "piper", p_ayar)
+        if p_ayar.get("ses") not in PIPER_SESLERI:  # voice_id Piper'da yok: dile ve cinsiyete göre Piper sesi
+            de = (ayar.get("dil") or "tr") == "de"
+            p_ayar["ses"] = ("kerstin" if ayar.get("cinsiyet") == "kadin" else "thorsten") if de else None
+        kayit = _uret(satirlar, cikti, YEDEK, p_ayar)
+        kayit["yedek"] = {"istenen": saglayici, "neden": str(e)}
+        (cikti / "seslendirme.json").write_text(json.dumps(kayit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return kayit
 
 
 def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict:
@@ -274,6 +349,7 @@ def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict
     ses = eleven_ayar(ayar)["ses"] if saglayici == "elevenlabs" else (ayar.get("ses") or "fahrettin")
     kayit = {"saglayici": saglayici, "ses": ses, "satirlar": []}
     sayac = {"karakter": 0, "api": 0, "onbellek": 0}
+    kredi = kredi_kontrol(saglayici, satirlar, ayar) if saglayici in UCRETLI else None
     with tempfile.TemporaryDirectory() as tmp:
         for s in satirlar:
             ham = Path(tmp) / f"{s['id']}.ham.wav"
@@ -291,8 +367,9 @@ def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict
         kayit["kullanim"] = dict(sayac)
         kullanim_yaz({"zaman": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "saglayici": saglayici, "ses": ses,
                       "is": str(cikti.resolve()), **sayac})
+        kalan = f", hesapta ~{kredi['kalan'] - sayac['karakter']} kredi kaldı" if kredi else ""
         print(f"{saglayici}: {sayac['karakter']} karakter harcandı ({sayac['api']} satır API, "
-              f"{sayac['onbellek']} satır önbellekten)", file=sys.stderr)
+              f"{sayac['onbellek']} satır önbellekten{kalan})", file=sys.stderr)
     (cikti / "seslendirme.json").write_text(json.dumps(kayit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return kayit
 
@@ -320,7 +397,17 @@ def main(argv: list[str] | None = None) -> int:
     u.add_argument("--ticari-degil", action="store_true", help="ticari olmayan lisanslı seslere izin ver")
     alt.add_parser("sesler")
     alt.add_parser("kullanim")
+    alt.add_parser("kredi")
     a = ap.parse_args(argv)
+    if a.komut == "kredi":
+        try:
+            k = eleven_kredi()
+        except SeslendirmeHatasi as e:
+            print(f"HATA: {e}", file=sys.stderr)
+            return 2
+        yenilenme = time.strftime("%Y-%m-%d", time.gmtime(k["yenilenme"])) if k.get("yenilenme") else "?"
+        print(f"ElevenLabs {k['plan']}: {k['harcanan']} / {k['limit']} kredi harcandı, {k['kalan']} kaldı (yenilenme {yenilenme})")
+        return 0
     if a.komut == "kullanim":
         t = kullanim_ozeti()
         print(f"ElevenLabs: {t['karakter']} karakter, {t['is']} iş, {t['api']} satır API, {t['onbellek']} satır önbellekten"
@@ -331,7 +418,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"piper  {ad:10} {b['dil']}  {b['lisans']:16} {'ticari' if b['ticari'] else 'ticari değil'}")
         for c, b in ELEVEN_SESLERI.items():
             print(f"elevenlabs {b['ad']:10} {c:6} varsayılan ({b['id']})")
-        print("elevenlabs  --ses <voice_id>  (ELEVENLABS_API_KEY gerekir; varsayılan değil, işe göre seçilir)")
+        for dil, c in ELEVEN_DIL_SESLERI.items():
+            for cins, b in c.items():
+                print(f"elevenlabs {b['ad']:10} {cins:6} {dil} varsayılanı ({b['id']})")
+        print("elevenlabs  --ses <voice_id>  (varsayılan sağlayıcı; ELEVENLABS_API_KEY yoksa Piper yedeği)")
         return 0
     veri = json.loads(Path(a.satirlar).read_text(encoding="utf-8"))
     try:

@@ -6,7 +6,7 @@ Uzun video için sahne birleştirici: tek bir `kurgu.json`, farklı şablonları
 K=platform/sablonlar/kurgu/kurgu.py
 python3 $K denetle   ornekler/kucuk-aliskanliklar-uzun/kurgu.json   # her sahne kendi şablonunun denetiminden de geçer
 python3 $K onizle    ornekler/kucuk-aliskanliklar-uzun/kurgu.json   # her sahneden 3 kare, tek sayfa (render yok)
-python3 $K seslendir ornekler/kucuk-aliskanliklar-uzun/kurgu.json   # Piper; kurguda seslendirme.saglayici "elevenlabs" ise ElevenLabs
+python3 $K seslendir ornekler/kucuk-aliskanliklar-uzun/kurgu.json   # ElevenLabs (yedek Piper); kurguda seslendirme.saglayici "piper" ise Piper
 python3 $K uret      ornekler/kucuk-aliskanliklar-uzun/kurgu.json   # eksik ses varsa üretir, sonra render + kalite kapısı
 ```
 
@@ -17,7 +17,6 @@ Format sırası: `--format` (`16:9`, `9:16`, `1:1`, `4:5`, `ikisi`), yoksa kurgu
 ```json
 {
   "kimlik": "kucuk-aliskanliklar-uzun", "format": "16:9", "fps": 30, "dil": "tr",
-  "seslendirme": {"saglayici": "piper"},
   "muzik": {"bpm": 100, "akorlar": [[57, 60, 64, 69], [53, 57, 60, 65]], "ses_ustu_db": 8},
   "gecis": {"tur": "erime", "sure": 0.5},
   "sahneler": [

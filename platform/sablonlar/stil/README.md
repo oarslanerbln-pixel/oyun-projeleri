@@ -11,7 +11,7 @@ Kâğıt kesik, izometrik, hamur (claymation) ve piksel (retro oyun) stilleri. [
 
 ```sh
 S=platform/sablonlar/stil/stil.py
-python3 $S seslendir ornekler/kucuk-aliskanliklar/senaryo.json                   # platform/ses (Piper fahrettin), tüm stiller için bir kez
+python3 $S seslendir ornekler/kucuk-aliskanliklar/senaryo.json                   # platform/ses (ElevenLabs; yedek Piper), tüm stiller için bir kez
 python3 $S denetle   ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik
 python3 $S kare      ornekler/kucuk-aliskanliklar/senaryo.json --stil izometrik --an 1.5 4.7 --format 16x9
 python3 $S render    ornekler/kucuk-aliskanliklar/senaryo.json --stil kagit-kesik   # → cikti/<kimlik>-kagit-kesik-9x16.mp4, -kapak.png

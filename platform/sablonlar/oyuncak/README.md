@@ -8,7 +8,7 @@ Tek bir `oyuncak.json` dosyasından görüntü (three.js, başsız Chromium), se
 O=platform/sablonlar/oyuncak/oyuncak.py
 (cd platform/sablonlar/oyuncak && npm install)                       # three + playwright (bir kez)
 python3 $O denetle   ornekler/kucuk-aliskanliklar/oyuncak.json
-python3 $O seslendir ornekler/kucuk-aliskanliklar/oyuncak.json       # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $O seslendir ornekler/kucuk-aliskanliklar/oyuncak.json       # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $O kare      ornekler/kucuk-aliskanliklar/oyuncak.json --an 1.6 4.8 7.5 --format 16x9   # önizleme PNG
 python3 $O render    ornekler/kucuk-aliskanliklar/oyuncak.json --format 9x16 16x9               # → cikti/<kimlik>-<format>.mp4
 ```

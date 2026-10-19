@@ -5,7 +5,7 @@ Kısa sosyal video şablonu (6–15 sn): düz renkli hareketli grafik ve ritme o
 ```sh
 K=platform/sablonlar/kinetik/kinetik.py
 python3 $K denetle   ornekler/kucuk-aliskanliklar/senaryo.json
-python3 $K seslendir ornekler/kucuk-aliskanliklar/senaryo.json          # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $K seslendir ornekler/kucuk-aliskanliklar/senaryo.json          # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $K kare      ornekler/kucuk-aliskanliklar/senaryo.json --an 1.5 4.9 --format 16x9   # önizleme PNG
 python3 $K render    ornekler/kucuk-aliskanliklar/senaryo.json          # → cikti/<kimlik>-9x16.mp4, -16x9.mp4
 ```

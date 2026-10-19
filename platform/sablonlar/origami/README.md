@@ -5,7 +5,7 @@ Kısa marka ve ürün videosu şablonu (6–15 sn): düz renkli kâğıt nesnele
 ```sh
 O=platform/sablonlar/origami/origami.py
 python3 $O denetle   ornekler/tuzak-fiyat-origami/origami.json
-python3 $O seslendir ornekler/tuzak-fiyat-origami/origami.json          # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $O seslendir ornekler/tuzak-fiyat-origami/origami.json          # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $O kare      ornekler/tuzak-fiyat-origami/origami.json --an 1.5 5.6 --format 16x9   # önizleme PNG
 python3 $O render    ornekler/tuzak-fiyat-origami/origami.json          # → cikti/<kimlik>-9x16.mp4 (--format 9x16 16x9 1x1 4x5)
 ```

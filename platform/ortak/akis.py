@@ -28,18 +28,15 @@ def sureler_oku(klasor: Path) -> dict[str, float]:
 
 
 def seslendir(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: str | None = None) -> dict:
-    """Senaryonun satırlarını seslendirir; `okunus` varsa ekrandaki metin yerine o okunur.
+    """Senaryonun satırlarını `cikti/seslendirme`ye seslendirir (bkz. `seslendirme.senaryodan`).
 
-    `otomatik`: Piper; senaryo `seslendirme.saglayici: "elevenlabs"` derse ElevenLabs. Ses ve dil komut
-    satırından, yoksa senaryonun `seslendirme.ses` / `seslendirme.dil` (ya da `dil`) alanından gelir.
+    `otomatik`: ElevenLabs; anahtar, ağ ya da kredi yoksa Piper yedeği (kalite raporunda uyarı). Senaryo
+    `seslendirme.saglayici: "piper"` derse Piper. Ses ve dil komut satırından ya da senaryodan gelir.
     """
     if str(SES) not in sys.path:
         sys.path.insert(0, str(SES))
     import seslendirme
-    sb = s.get("seslendirme", {})
-    satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in sb["satirlar"]]
-    ayar = {"ses": ses or sb.get("ses"), "dil": sb.get("dil") or s.get("dil"), "saglayici": sb.get("saglayici")}
-    return seslendirme.uret(satirlar, Path(cikti) / "seslendirme", saglayici, ayar)
+    return seslendirme.senaryodan(s, Path(cikti) / "seslendirme", saglayici, ses)
 
 
 def eksik_seslendirme(s: dict, bilgi: dict) -> list[str]:

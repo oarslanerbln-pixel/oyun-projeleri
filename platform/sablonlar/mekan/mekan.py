@@ -789,13 +789,10 @@ def seslendir(yol, cikti=None, saglayici='otomatik', ses=None):
     import seslendirme
     with open(yol, encoding='utf-8') as f:
         s = json.load(f)
-    satirlar = [{'id': x['id'], 'metin': x['metin']} for x in s.get('seslendirme', {}).get('satirlar', [])]
-    if not satirlar:
+    if not s.get('seslendirme', {}).get('satirlar'):
         return None
     from pathlib import Path
-    sec = s.get('seslendirme', {}).get('ses') if ses is None else ses
-    return seslendirme.uret(satirlar, Path(_ses_dizini(yol, s, cikti)), saglayici,
-                            {'ses': sec, 'saglayici': s.get('seslendirme', {}).get('saglayici')})
+    return seslendirme.senaryodan(s, Path(_ses_dizini(yol, s, cikti)), saglayici, ses)
 
 
 def calistir(yol, cikti, boyutlar, olcek=1.0):

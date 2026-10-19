@@ -20,7 +20,7 @@ Stüdyoda her videonun aynı yoldan geçmesi için çalışma kuralları. Amaç 
 | 1 | **Brif** | Aşağıdaki şablonla doldurulmuş kısa brif | Eksik bilgi için makul varsayılan seçilir ve yazılır; yalnız geri dönüşü olmayan kararlar sorulur |
 | 2 | **Senaryo + önizleme** | Senaryo metni ve tek önizleme sayfası (`onizleme.py`) | Tam render yok, seslendirme yok. Birden çok stil isteniyorsa her stil için 3 kare, tek sayfada |
 | 3 | **Onay** | Atilla'nın "tamam" ya da düzeltmesi | Onaysız tam render yapılmaz (Atilla "direkt üret" demedikçe) |
-| 4 | **Seslendirme** | `seslendirme/*.wav` | Varsayılan Piper. ElevenLabs yalnız brif isterse; önce tek kısa satırla ses denenir, sonra tam metin bir kez üretilir |
+| 4 | **Seslendirme** | `seslendirme/*.wav` | Varsayılan ElevenLabs (bkz. §8). Yeni bir ses ilk kez kullanılacaksa önce tek kısa satırla denenir, sonra tam metin bir kez üretilir. İş, kalan kredi yetmezse başlamaz |
 | 5 | **Render** | Yalnız brifteki format(lar) | Seçilen stil(ler) için, bir kez |
 | 6 | **Kalite kapısı** | `<ad>.kalite.json`, `<ad>.kontakt.png` | Sonuç `kaldi` ise teslim edilmez, düzeltilir. `uyarili` ise uyarının nedeni teslim mesajında bir cümleyle yazar. Claude yalnız kontakt sayfasına bakar, kareleri tek tek açmaz |
 | 7 | **Teslim ve kapanış** | Teslim klasörü, `DEVIR.md`, maliyet satırı | Teslim mesajı: dosyalar, kalite sonucu, harcanan ses kredisi. `devir.py` ile devir özeti yazılır (kararlar ve Atilla'nın geri bildirimi `--not` ile), maliyet satırı eklenir, thread kapanır |
@@ -42,6 +42,7 @@ python3 platform/ortak/devir.py /mnt/project-files/<müşteri> --not "Atilla tab
 - Kalite kapısı `gecti` ya da gerekçeli `uyarili`: banding yok, ses -14 LUFS ±1, gerçek tepe -1 dBTP altında, ortada siyah ya da donmuş kare yok.
 - Bütün yazı ve hareketli öğeler ekranın içinde; dikey videoda platform arayüzünün kapattığı bölgede (kontakt sayfasında kırmızı) yazı yok.
 - Müzik var (Atilla'nın içerik kuralı); ses ve müzik lisansı teslim klasöründe yazılı.
+- Seslendirme ElevenLabs ile. Kalite raporunda `seslendirme` uyarısı (Piper yedeği) varsa teslim edilmez; kredi ya da anahtar sorunu çözülüp yeniden seslendirilir.
 - Marka renkleri ve logo marka dosyasından; metin yazım ve rakam kontrolünden geçmiş (fiyat, tarih, adres).
 - Yalnız istenen formatlar; dosya adları `<marka>-<konu>-<stil>-<format>.mp4`.
 - Panel, açılış sayfası ya da HTML teslimi: sayfa kapısı (`platform/ortak/sayfa.py`) `gecti` ya da gerekçeli `uyarili`; telefonda yana kayma, ekrandan taşan öğe, okunmaz kontrast ve kırık görsel yok. Claude yalnız `<ad>.sayfa.png` kontakt sayfasına bakar.
@@ -63,7 +64,7 @@ python3 platform/ortak/devir.py /mnt/project-files/<müşteri> --not "Atilla tab
 5. **Kalite kapısı göz yerine.** Claude kareleri tek tek açmaz; `kalite.json` raporunu ve tek kontakt sayfasını okur. Önizlemede de yalnız `onizleme.png` açılır. Bir görüntü dosyası, aynı bilgiyi taşıyan birkaç kareden çok daha az token tutar.
 6. **Devir dosyası hafıza yerine.** Bir işe dönülürken thread geçmişi değil `DEVIR.md` okunur.
 7. **Aynı anda en fazla 3 iş thread'i.** Fazlası sıraya girer; haftalık kullanım limiti bir günde dolmasın.
-8. **Ses:** Piper varsayılan; ElevenLabs işe göre, önbellekten, önce kısa deneme.
+8. **Ses:** ElevenLabs varsayılan; satırlar önbellekten tekrar kullanılır, kredi boşa harcanmaz (bkz. §8).
 
 ## 6. Ölçüm
 
@@ -83,8 +84,30 @@ Tür: üretim | revizyon (önceki teslim: <klasör>)
 Amaç ve hedef kitle: <bir cümle>
 Stil(ler): <ad>  (birden çoksa: önce önizleme, sonra seçilen 1–2'si)
 Format: 9:16 | 16:9 | 1:1 | 4:5   Süre: <sn>   Dil: tr | de
-Ses: yok | Piper <ses> | ElevenLabs <ses>   Müzik: <ruh hâli>
+Ses: ElevenLabs <ses> (varsayılan) | yok | Piper (yalnız bilerek)   Müzik: <ruh hâli>
 Metin: <ekrandaki kısa metinler; fiyat, tarih, adres aynen>
 Marka: <marka.json yolu ya da renk + logo>
 Teslim: <proje klasörü yolu>   Son tarih: <tarih>
 ```
+
+## 8. Seslendirme
+
+Atilla, 2026-10-19: "ses kullanımını ElevenLabs'ten yapalım, diğer sesler çok mekanik."
+
+- **Sağlayıcı:** `otomatik` (bütün şablonların varsayılanı) ElevenLabs demektir (`eleven_multilingual_v2`, Türkçe ve Almanca). Bütün şablonlar sesi tek yerden alır: `platform/ses/seslendirme.py` (`senaryodan`).
+- **Piper yalnız yedek:** anahtar yoksa, `api.elevenlabs.io`'ya ulaşılamazsa ya da kalan kredi işe yetmezse bütün iş Piper ile (Türkçe `fahrettin`, Almanca `thorsten`/`kerstin`) üretilir, render durmaz. `seslendirme.json`'a `yedek` yazılır ve kalite raporu `seslendirme` uyarısı verir; bu video teslim edilmez. Senaryoda `"seslendirme": {"saglayici": "piper"}` yalnız bilerek seçilen durumlar içindir (deneme, iç önizleme).
+- **Kredi koruması:** iş başlamadan hesapta kalan kredi sorulur. Önbellekte olmayan satırların toplamı kalandan fazlaysa tek satır bile üretilmez (yarım ElevenLabs, yarım Piper iş olmaz). `--saglayici elevenlabs` açıkça verilmişse iş hatayla durur.
+- **Önbellek:** aynı metin + ses + ayar ikinci kez kredi harcamaz (`/mnt/project-files/.onbellek/ses`). Revizyonda yalnız değişen satır yeniden üretilir.
+- **Ses seçimi:** senaryoda `seslendirme.ses`: havuzdan bir ad ya da bir voice_id; yoksa `ELEVENLABS_VOICE_ID_TR` / `_DE`, o da yoksa dilin varsayılanı. Liste: `seslendirme.py sesler`.
+
+  | Ad (`seslendirme.ses`) | Ses | Ne zaman |
+  | --- | --- | --- |
+  | `george` | erkek, sıcak anlatıcı | **Türkçe anlatım varsayılanı** (Atilla, 2026-10-19 denemesinde seçti) |
+  | `turk-haber` | erkek, İstanbul aksanlı haber sesi | anadil tınısı istenen Türkçe işler, haber/analiz |
+  | `bella` | kadın, parlak ve sıcak | kadın anlatıcı; Almanca reklamlar (Lezzet Dünyası) |
+  | `matilda` | kadın, bilgilendirici | kadın varsayılanı |
+  | `liam` | erkek, enerjik | sosyal medya, hızlı kurgular |
+
+  Denemeler: `/mnt/project-files/elevenlabs-ses/turkce-deneme/`. Yeni ses havuza `ELEVEN_ADLI_SESLER`'e eklenir (yalnız ücretsiz planda çalışan, kısa satırla denenmiş sesler).
+- **Takip:** `seslendirme.py kredi` hesapta kalanı, `seslendirme.py kullanim` iş başına harcamayı gösterir. Teslim mesajı harcanan karakteri, maliyet satırı `elevenlabs_karakter`'i yazar.
+- **Plan ve lisans:** hesap ücretsiz planda (10.000 kredi/ay, ticari kullanım yok, mp3 indirme). Aylık hedef (5 uzun + 15 kısa video) yaklaşık 26.000 kredi ister; müşteri işi ve satılan ürünler için ticari lisans gerekir. Starter (~5–6 $/ay, ~30.000 kredi, ticari) hedefi az payla karşılar; denemeler ve revizyonlarla birlikte rahat çalışmak için Creator (~22 $/ay, ≥100.000 kredi). Fiyatlar 2026-10'da üçüncü taraf kaynaklardan; satın almadan önce ElevenLabs sayfasında doğrulanır.

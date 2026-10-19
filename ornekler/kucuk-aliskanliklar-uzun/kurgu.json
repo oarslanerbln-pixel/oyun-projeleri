@@ -3,7 +3,6 @@
   "format": "16:9",
   "fps": 30,
   "dil": "tr",
-  "seslendirme": {"saglayici": "piper"},
   "muzik": {"bpm": 100, "akorlar": [[57, 60, 64, 69], [53, 57, 60, 65], [48, 52, 55, 60], [55, 59, 62, 67]]},
   "gecis": {"tur": "erime", "sure": 0.5},
   "sahneler": [

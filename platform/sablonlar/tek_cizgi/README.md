@@ -5,7 +5,7 @@ Kısa marka videosu şablonu (6–15 sn): düz zemin üstünde **hiç kopmayan t
 ```sh
 T=platform/sablonlar/tek_cizgi/tek_cizgi.py
 python3 $T denetle   ornekler/hamurkar-firin/tek-cizgi.json
-python3 $T seslendir ornekler/hamurkar-firin/tek-cizgi.json          # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $T seslendir ornekler/hamurkar-firin/tek-cizgi.json          # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $T kare      ornekler/hamurkar-firin/tek-cizgi.json --an 1.0 4.5 --format 16x9   # önizleme PNG
 python3 $T render    ornekler/hamurkar-firin/tek-cizgi.json          # → cikti/<kimlik>-9x16.mp4 + <kimlik>-kapak.png
 ```

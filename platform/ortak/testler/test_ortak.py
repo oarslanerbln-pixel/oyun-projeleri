@@ -117,6 +117,24 @@ class Kalite(unittest.TestCase):
         self.assertIn("KALDI", r.stdout)
 
 
+class SeslendirmeKaynagi(unittest.TestCase):
+    def test_piper_yedegi_uyari(self):
+        import kalite
+        with tempfile.TemporaryDirectory() as tmp:
+            video = Path(tmp) / "video.mp4"
+            self.assertEqual(kalite.seslendirme_kontrol(video), ([], None))
+            (Path(tmp) / "seslendirme").mkdir()
+            k = Path(tmp) / "seslendirme" / "seslendirme.json"
+            k.write_text(json.dumps({"saglayici": "elevenlabs", "ses": "x", "satirlar": []}), encoding="utf-8")
+            self.assertEqual(kalite.seslendirme_kontrol(video)[0], [])
+            k.write_text(json.dumps({"saglayici": "piper", "ses": "fahrettin", "satirlar": [],
+                                     "yedek": {"istenen": "elevenlabs", "neden": "kredi yetmiyor"}}), encoding="utf-8")
+            bulgu, bilgi = kalite.seslendirme_kontrol(video)
+            self.assertEqual((bulgu[0]["seviye"], bulgu[0]["kontrol"]), ("uyari", "seslendirme"))
+            self.assertIn("kredi yetmiyor", bulgu[0]["mesaj"])
+            self.assertEqual(bilgi["saglayici"], "piper")
+
+
 @unittest.skipUnless(NUMPY, "numpy yok")
 class BandingBirim(unittest.TestCase):
     def test_duz_dolgu_ve_doku(self):

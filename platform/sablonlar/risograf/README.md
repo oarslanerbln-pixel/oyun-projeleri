@@ -6,7 +6,7 @@ Kısa video şablonu (6–15 sn): **risograf baskı**. En çok dört spot mürek
 T=platform/sablonlar/risograf/risograf.py
 python3 $T fontlar                                                 # Archivo Black (SIL OFL) → ~/.cache/studyo/fonts
 python3 $T denetle   ornekler/kucuk-aliskanliklar/risograf.json
-python3 $T seslendir ornekler/kucuk-aliskanliklar/risograf.json    # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $T seslendir ornekler/kucuk-aliskanliklar/risograf.json    # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $T kare      ornekler/kucuk-aliskanliklar/risograf.json --an 1.8 4.9 --format 16x9
 python3 $T render    ornekler/kucuk-aliskanliklar/risograf.json    # → cikti/<kimlik>-9x16.mp4 + <kimlik>-kapak.png
 ```

@@ -6,7 +6,7 @@ Kısa video şablonu (6–15 sn): **dikey bir çizgi roman sayfası** (webtoon).
 T=platform/sablonlar/cizgi_roman/cizgi_roman.py
 python3 $T fontlar                                                    # Bangers (SIL OFL) → ~/.cache/studyo/fonts
 python3 $T denetle   ornekler/kucuk-aliskanliklar/cizgi-roman.json
-python3 $T seslendir ornekler/kucuk-aliskanliklar/cizgi-roman.json    # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $T seslendir ornekler/kucuk-aliskanliklar/cizgi-roman.json    # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $T kare      ornekler/kucuk-aliskanliklar/cizgi-roman.json --an 1.6 4.9 --format 16x9   # önizleme PNG
 python3 $T render    ornekler/kucuk-aliskanliklar/cizgi-roman.json    # → cikti/<kimlik>-9x16.mp4 + <kimlik>-kapak.png
 ```

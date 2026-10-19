@@ -89,8 +89,7 @@ def _node(s: dict, W: int, H: int, is_: Path, *arglar: str) -> None:
 
 def seslendir(s: dict, cikti: Path, saglayici: str, ses: str | None) -> dict:
     import seslendirme
-    satirlar = [{"id": x["id"], "metin": x["metin"]} for x in s["seslendirme"]["satirlar"]]
-    return seslendirme.uret(satirlar, cikti / "seslendirme", saglayici, {"ses": ses})
+    return seslendirme.senaryodan(s, cikti / "seslendirme", saglayici, ses)
 
 
 def master(gir: Path, ara: Path) -> None:
@@ -141,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("senaryo")
         p.add_argument("-o", "--cikti")
         if ad == "seslendir":
-            p.add_argument("--saglayici", default="piper"); p.add_argument("--ses")
+            p.add_argument("--saglayici", default="otomatik"); p.add_argument("--ses")
         if ad == "kare":
             p.add_argument("--an", type=float, nargs="+", required=True)
             p.add_argument("--format", default="9x16", choices=sorted(FORMATLAR))

@@ -31,7 +31,7 @@ python3 platform/sablonlar/mekan/mekan.py render senaryo.json --olcek 0.25   # d
 }
 ```
 
-Yollar senaryonun klasörüne, sonra depo köküne göre çözülür. `odak` fotoğrafta kadrajda kalacak nokta (0–1). `logo: [x, y, h]` (marka sahnesi) logoyu fotoğrafa oranla o noktaya çizer ve fotoğrafla birlikte hareket ettirir: düşük çözünürlüklü bir marka görselinde logo silinip yerine keskin logo konur. `dil` büyük harf kuralını seçer (`tr`: i → İ; diğerleri: ß → SS); varsayılan `tr`. Reel seslendirmesi `"seslendirme": {"ses": "thorsten", "satirlar": [{"id", "t", "metin"}]}` ile verilir; Almanca için Piper `thorsten` (CC0).
+Yollar senaryonun klasörüne, sonra depo köküne göre çözülür. `odak` fotoğrafta kadrajda kalacak nokta (0–1). `logo: [x, y, h]` (marka sahnesi) logoyu fotoğrafa oranla o noktaya çizer ve fotoğrafla birlikte hareket ettirir: düşük çözünürlüklü bir marka görselinde logo silinip yerine keskin logo konur. `dil` büyük harf kuralını seçer (`tr`: i → İ; diğerleri: ß → SS); varsayılan `tr`. Reel seslendirmesi `"seslendirme": {"ses": "thorsten", "satirlar": [{"id", "t", "metin"}]}` ile verilir. Varsayılan ElevenLabs: `ses` bir voice_id ya da Piper adı olabilir; Piper adı (`thorsten`, `kerstin`) dili ve cinsiyeti seçer ve ElevenLabs yoksa yedek ses olur.
 
 | Sahne (`tur`) | TV | Reel |
 | --- | --- | --- |

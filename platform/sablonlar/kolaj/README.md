@@ -6,7 +6,7 @@ Dergi kesiği kolaj şablonu (6–15 sn reklam): kraft pano üstünde yırtık g
 K=platform/sablonlar/kolaj/kolaj.py
 python3 $K fontlar                                                   # bir kez: OFL yazı tipleri → ~/.cache/studyo/fonts
 python3 $K denetle   platform/sablonlar/kolaj/ornek/senaryo.json
-python3 $K seslendir platform/sablonlar/kolaj/ornek/senaryo.json      # platform/ses (Piper fahrettin); --saglayici elevenlabs --ses <id>
+python3 $K seslendir platform/sablonlar/kolaj/ornek/senaryo.json      # platform/ses (ElevenLabs; anahtar/kredi yoksa Piper yedeği); --ses <voice_id>
 python3 $K kare      platform/sablonlar/kolaj/ornek/senaryo.json --an 2.7 6.9 --format 16x9   # önizleme PNG
 python3 $K render    platform/sablonlar/kolaj/ornek/senaryo.json      # → cikti/<kimlik>-9x16.mp4
 ```

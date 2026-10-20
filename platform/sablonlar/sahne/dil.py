@@ -33,14 +33,17 @@ TIPLER: dict[str, dict] = {
     # veri sahnesi: veri = CSV dosyası (etiket, değer) ya da [["Ocak", 12], ...]; birim "%{}" / "{} ₺" / "kg"
     "grafik": {"alan": {"baslik": (False, 28), "tur": (False, None), "birim": (False, 8), "kaynak": (False, 30)},
                "en_kisa": 3.0},
+    # harita ve rota: duraklar = şehir adları ya da {"ad", "konum": [boylam, enlem]}; rota durak durak çizilir
+    "harita": {"alan": {"baslik": (False, 28)}, "en_kisa": 3.5},
 }
+DURAK = (2, 8, 16)  # harita: en az, en çok durak, durak adı karakter
 GRAFIK = {"cubuk": (2, 8), "cizgi": (3, 12), "pasta": (2, 6)}  # tür -> (en az, en çok satır)
 ETIKET = 12  # grafik etiketi en çok karakter
 KANCA = ("soru", "rakam", "sok")
 MADDE = (2, 5, 28)  # liste: en az, en çok madde, madde başına karakter
 ORTAK_ALANLAR = {"tip", "seslendirme", "okunus", "sure", "not", "stiller", "kanca", "stil", "donustur"}
 ENERJI = {"baslik": 1, "liste": 1, "sayi": 2, "alinti": 0, "karsilastirma": 2, "urun": 1, "cta": 2, "gecis": 0,
-          "grafik": 1}
+          "grafik": 1, "harita": 1}
 
 
 class SenaryoHatasi(ValueError):
@@ -94,7 +97,7 @@ def denetle(s: dict) -> list[str]:
         ad = f"{ad} ({tip})"
         alan = TIPLER[tip]["alan"]
         for k in sh:
-            ek = {"liste": ["maddeler"], "grafik": ["veri"]}.get(tip, [])
+            ek = {"liste": ["maddeler"], "grafik": ["veri"], "harita": ["duraklar", "ulkeler", "mesafe"]}.get(tip, [])
             if k not in alan and k not in ORTAK_ALANLAR and k not in ek:
                 h.append(f"{ad}: bilinmeyen alan {k} ({', '.join(list(alan) + ek)})")
         for k, (zorunlu, azami) in alan.items():
@@ -115,6 +118,8 @@ def denetle(s: dict) -> list[str]:
                 for j, x in enumerate(m):
                     if not isinstance(x, str) or not x.strip() or len(x) > MADDE[2]:
                         h.append(f"{ad}: madde {j + 1} boş olmamalı ve en çok {MADDE[2]} karakter olmalı")
+        if tip == "harita":
+            h += [f"{ad}: {x}" for x in harita_denetle(sh)]
         if tip == "grafik":
             if sh.get("tur", "cubuk") not in GRAFIK:
                 h.append(f"{ad}: tur {', '.join(GRAFIK)} olmalı")
@@ -155,6 +160,37 @@ def sayi_oku(x) -> float:
     elif re.fullmatch(r"-?\d{1,3}(\.\d{3})+", ham):
         ham = ham.replace(".", "")
     return float(ham)
+
+
+def harita_anlari(sh: dict, d: float) -> list[float]:
+    """harita sahnesinde rotanın her durağa vardığı an (senkron yoksa); kaplama.ciz_harita ile aynı"""
+    n = len(sh["duraklar"])
+    aralik = min(1.2, max(0.35, (d - 1.5) / max(1, n - 1)))
+    return [0.45 + j * aralik for j in range(n)]
+
+
+def harita_denetle(sh: dict) -> list[str]:
+    import sys
+    sys.path.append(str(Path(__file__).resolve().parents[2] / "ortak"))
+    import harita
+    d = sh.get("duraklar")
+    if not isinstance(d, list) or not DURAK[0] <= len(d) <= DURAK[1]:
+        return [f"duraklar {DURAK[0]}–{DURAK[1]} durak olmalı (şehir adı ya da {{\"ad\", \"konum\": [boylam, enlem]}})"]
+    h = []
+    try:
+        for x in harita.duraklar(d):
+            if len(x["ad"]) > DURAK[2]:
+                h.append(f"durak \"{x['ad']}\" en çok {DURAK[2]} karakter (\"etiket\" ile kısaltın)")
+    except (harita.HaritaHatasi, KeyError, TypeError, ValueError) as e:
+        h.append(str(e) if isinstance(e, harita.HaritaHatasi) else f"durak biçimi hatalı: {e}")
+    for u in sh.get("ulkeler") or []:
+        try:
+            harita.ulke(u)
+        except harita.HaritaHatasi as e:
+            h.append(str(e))
+    if "mesafe" in sh and not isinstance(sh["mesafe"], bool):
+        h.append("mesafe true/false olmalı")
+    return h
 
 
 def veri_oku(sh: dict, klasor: str | Path = ".") -> list[tuple[str, float]]:

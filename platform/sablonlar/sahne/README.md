@@ -42,6 +42,7 @@ python3 $S kare      ornekler/demli-kahve/sahne.json --stil origami --an 2.0 8.5
 | `cta` | `metin`* 22, `alt` 32 | düğme kartı; `marka.logo` varsa üstte logo, `alt` yoksa marka adı |
 | `gecis` | `metin` 20 | kısa ara kart (0,8 sn), seslendirme almaz |
 | `grafik` | `veri`* (CSV dosyası ya da `[["Ocak", 120], ...]`, etiket ≤ 12), `tur` `cubuk`/`cizgi`/`pasta`, `baslik` 28, `birim` 8 (`"%{}"`, `"{} ₺"`, `" adet"`), `kaynak` 30 | veri sahnesi: çubuklar büyür ve sayar, çizgi soldan sağa çizilir, pasta dilim dilim dolar; en büyük değer vurgulu. Dikey videoda yatay çubuk. Çubuk 2–8, çizgi 3–12, pasta 2–6 satır. Çeviricili stillerde en büyük değer başlık olur |
+| `harita` | `duraklar`* 2–8 (şehir adı ya da `{"ad": "Válor", "konum": [-3.085, 36.995]}`, ad ≤ 16, `"etiket"` ile kısaltılır), `baslik` 28, `ulkeler` (vurgulanacak ülkeler: `["İspanya"]`), `mesafe` true | harita ve rota: kadraj duraklara oturur, rota durak durak çizilir ve her durağa adı söylendiği an varır; `mesafe` kuş uçuşu toplam km'yi sayar. Yer adları Türkçe/Almanca da olur (Kurtuba, München); aynı adlı şehirde rotaya yakın olan seçilir. Çeviricili stillerde rota yazıyla. Arama: `platform/ortak/harita.py bul Sevilla` |
 
 CSV: ilk iki sütun (etiket, değer), `;` ya da `,` ayraç, başlık satırı kendiliğinden atlanır, `1.200,5` gibi Türkçe/Almanca sayılar okunur. Çubuk/dilim etiketi söylendiği an girer (senkron).
 

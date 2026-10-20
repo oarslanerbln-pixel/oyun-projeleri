@@ -13,7 +13,7 @@ DESEN = ("vitray", "linol", "cini", "teknik-cizim")
 EKRAN = ("kalkis-tabelasi", "vhs", "akis-alani")
 STILLER = DESEN + EKRAN
 MOTIF = {"baslik": "gunes", "liste": "yaprak", "sayi": "ampul", "alinti": "kalp", "karsilastirma": "dag",
-         "urun": "fincan", "cta": "yildiz", "grafik": "dag"}
+         "urun": "fincan", "cta": "yildiz", "grafik": "dag", "harita": "dag"}
 
 
 def _vurgu(metin: str) -> str:
@@ -49,6 +49,11 @@ def _yazilar(sh: dict) -> tuple[str, str, str]:
         e, v = max(veri_oku(sh, sh.get("_klasor", ".")), key=lambda r: r[1])
         deger = bicim(v, sh.get("birim", ""))
         return deger, f"{e} · {sh['baslik']}" if sh.get("baslik") else e, f"*{deger}* {e}"
+    if t == "harita":  # desen/ekran stilleri harita çizmez: rota yazıyla, ilk ve son durak başlıkta
+        ad = [d if isinstance(d, str) else d.get("etiket", d["ad"]) for d in sh["duraklar"]]
+        ad = [x.split(",")[0].strip() for x in ad]
+        bas = sh.get("baslik") or f"{ad[0]} → {ad[-1]}"
+        return bas, " · ".join(ad), f"*{ad[0]}* → {ad[-1]}"
     return sh.get("metin", ""), "", sh.get("metin", "")
 
 

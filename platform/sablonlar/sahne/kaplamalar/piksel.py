@@ -8,6 +8,7 @@ import numpy as np
 import skia
 
 import dil
+import harita
 import piksel as px
 from kaplama import GUVENLI, Kaplama, clamp, out_back, out_cubic, prog, say
 
@@ -224,9 +225,63 @@ class Piksel(Kaplama):
                 self._blok(buf, s2, cx, cy + h // 2 + 8, px.SARI, k2, u, 0.6)
         elif tip == "grafik":
             self._grafik(buf, sh, u, d, A)
+        elif tip == "harita":
+            self._harita(buf, sh, u, d, A)
         elif tip == "gecis" and sh.get("metin"):
             sat, k = self._sar(sh["metin"], gen, 3, 2)
             self._blok(buf, sat, cx, cy - len(sat) * L * k // 2, px.SARI, k, u, 0.05, hiz=30)
+
+    def _harita(self, buf, sh, u, d, A):
+        """Harita: kara ve rota piksel tamponuna keskin (yumuşatmasız) çizilir, duraklar kare, adlar piksel yazı."""
+        x0, y0, x1, y1 = A
+        cx, L = (x0 + x1) // 2, px.SATIR
+        y = y0 + 2
+        if sh.get("baslik"):
+            sat, k = self._sar(sh["baslik"], x1 - x0, 3, 2)
+            y += self._blok(buf, sat, cx, y, px.SARI, k, u, 0.0) + 6
+        alt = y1 - (L + 6 if sh.get("mesafe") else 0)
+        P = skia.Rect.MakeLTRB(x0, y, x1, alt)
+        kam, dd, kara, vurgulu, yol, oran = self.harita_hazirla(sh, P)
+        h, w = buf.shape
+        if prog(u, 0.12, 0.3) <= 0:
+            return
+
+        def maske(ciz):
+            s = skia.Surface(w, h)
+            with s as c:
+                c.clear(0)
+                c.clipRect(P)
+                ciz(c)
+            return np.asarray(s.makeImageSnapshot())[..., 3] > 127
+
+        dolu = skia.Paint(Color=0xFFFFFFFF)
+        buf[maske(lambda c: c.drawRect(P, dolu))] = 8  # deniz
+        for ulke, yol_ in kara:
+            buf[maske(lambda c, y_=yol_: c.drawPath(y_, dolu))] = 3 if ulke["iso"] in vurgulu else 14
+        anlar = self.harita_anlari(sh, d)
+        k = self.rota_ilerleme(anlar, oran, u)
+        if k > 0:
+            cizgi = skia.Paint(Color=0xFFFFFFFF, Style=skia.Paint.kStroke_Style, StrokeWidth=2)
+            buf[maske(lambda c: c.drawPath(harita.kirp(yol, k), cizgi))] = px.SARI
+        etiketler: list = []
+        for j, x in enumerate(dd):
+            if u < anlar[j] - (0.25 if j == 0 else 0.05):
+                continue
+            dx, dy = (int(round(v)) for v in kam.xy(*x["konum"]))
+            px.kutu(buf, dx - 2, dy - 2, 5, 5, px.SIYAH)
+            px.kutu(buf, dx - 1, dy - 1, 3, 3, px.BEYAZ)
+            ad = px.ekran(self.duzelt(_harf_sade(x["ad"])))
+            gen = px.metin_gen(ad, 1)
+            for lx, ly in ((dx, dy - L - 4), (dx, dy + 5), (dx + gen // 2 + 5, dy - L // 2), (dx - gen // 2 - 5, dy - L // 2)):
+                lx = min(max(lx, x0 + gen // 2 + 1), x1 - gen // 2 - 1)
+                kutu = (lx - gen // 2 - 1, ly - 1, lx + gen // 2 + 1, ly + L + 1)
+                if ly > y and not any(a[0] < kutu[2] and kutu[0] < a[2] and a[1] < kutu[3] and kutu[1] < a[3] for a in etiketler):
+                    break
+            etiketler.append(kutu)
+            self._yaz(buf, ad, lx, ly, px.BEYAZ, 1, prog(u, anlar[j], 0.3))
+        if sh.get("mesafe"):
+            deger = f"{harita.mesafe([x['konum'] for x in dd]):,.0f} KM".replace(",", ".")
+            self._yaz(buf, px.ekran(say(deger, k)), cx, alt + 4, px.SARI, 1, prog(u, anlar[0], 0.3))
 
     def _grafik(self, buf, sh, u, d, A):
         """Veri sahnesi: çubuk ve çizgi yatay piksel çubukları, pasta piksel daire + renkli lejant."""
@@ -322,6 +377,14 @@ class Piksel(Kaplama):
             cv.save(); cv.scale(u, u)
             self.altyazi_ciz(cv, W / u, H / u, t, fmt)
             cv.restore()
+
+
+
+def _harf_sade(s: str) -> str:
+    """piksel yazı tipinde olmayan aksanlar (Málaga, Córdoba) sadeleşir; Türkçe harfler kalır"""
+    import unicodedata
+    return "".join(c if c in "çğıöşüÇĞİÖŞÜ" else "".join(x for x in unicodedata.normalize("NFKD", c)
+                   if not unicodedata.combining(x)) for c in s)
 
 
 KAPLAMA = Piksel

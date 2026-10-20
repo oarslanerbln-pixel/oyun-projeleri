@@ -36,6 +36,7 @@ sys.path.insert(0, str(BURADA.parent / "stil"))
 sys.path.append(str(BURADA.parents[1] / "ortak"))
 import altyazi  # noqa: E402
 import dil  # noqa: E402
+import harita  # noqa: E402  (ortak/harita.py: geometri ve yer adları)
 import motor  # noqa: E402  (Inter yazı tipi, Türkçe büyük/küçük harf)
 
 # (sol, sağ, üst, alt) sınırı, ekran oranı. 9:16: Reels arayüzü üst %10, alt %22, sağ %13 (beğen/yorum sütunu).
@@ -606,6 +607,116 @@ class Kaplama:
                 v = dil.bicim(vs[j], birim)
                 b = self.sigdir(v, boy * 1.25, (x1 - x0) / 2)
                 self.yazi(cv, v, x, y - b * 1.1, b, self.p["vurgu"] if j == enb else self.p["murekkep"], p=pj, kimlik=80 + j, t=t)
+
+    # ---------- harita ve rota ----------
+    def harita_renkleri(self):
+        """deniz, kara, sınır, vurgulu ülke, rota; kaplama paletinden (ezilebilir)"""
+        y, m = self.p["yuzey"], self.p["murekkep"]
+        return {"deniz": y, "kara": karis(y, m, 0.13), "sinir": karis(y, m, 0.32), "vurgulu": karis(y, self.p["vurgu"], 0.38),
+                "rota": self.p["vurgu"], "durak": m, "yazi": m}
+
+    def harita_hazirla(self, sh, P):
+        """(kamera, duraklar, kara yolları, rota yolu, durak oranları); sahne başına bir kez"""
+        anahtar = (id(sh), round(P.left()), round(P.top()), round(P.width()), round(P.height()))
+        onb = self.__dict__.setdefault("_harita_onbellek", {})
+        if anahtar not in onb:
+            dd = harita.duraklar(sh["duraklar"])
+            konum = [x["konum"] for x in dd]
+            ulkeler = [harita.ulke(x) for x in sh.get("ulkeler") or []]
+            # kadraj duraklara göre; vurgulu ülkeler yalnız boyanır (rota küçük kalmasın)
+            kam = harita.Kamera.sigdir(konum, P.left(), P.top(), P.right(), P.bottom())
+            kara = harita.kara(kam, kam.kutu(P.left() - 50, P.top() - 50, P.right() + 50, P.bottom() + 50))
+            yol, oran = harita.rota(kam, konum)
+            onb[anahtar] = (kam, dd, kara, {u["iso"] for u in ulkeler}, yol, oran)
+        return onb[anahtar]
+
+    def harita_anlari(self, sh, d):
+        varsayilan = dil.harita_anlari(sh, d)
+        anlar = [self.an(sh, f"durak{j}", v) for j, v in enumerate(varsayilan)]
+        for j in range(1, len(anlar)):  # rota geri gitmez
+            anlar[j] = max(anlar[j], anlar[j - 1] + 0.25)
+        return anlar
+
+    @staticmethod
+    def rota_ilerleme(anlar, oran, u):
+        """rotanın çizilmiş oranı: duraklar arasında, her durağa kendi anında varır"""
+        k = 0.0
+        for j in range(1, len(anlar)):
+            if u >= anlar[j]:
+                k = oran[j]
+            elif u > anlar[j - 1]:
+                return oran[j - 1] + (oran[j] - oran[j - 1]) * in_out((u - anlar[j - 1]) / (anlar[j] - anlar[j - 1]))
+        return k
+
+    def ciz_harita(self, cv, sh, u, d, A, t):
+        gen = A.width() * 0.92
+        ust = A.top()
+        if sh.get("baslik"):
+            sat, b = self.sar(self.harf(sh["baslik"]), 100, gen, 2)
+            h = len(sat) * b * 1.1
+            self.satirlar(cv, sat, A.centerX(), ust + h / 2, b, self.p["vurgu"], u=u, aralik=1.1, buyuk=True, t=t)
+            ust += h + 36
+        alt = A.bottom()
+        anlar = self.harita_anlari(sh, d)
+        if sh.get("mesafe"):
+            b = 58
+            alt -= b * 1.5
+        P = skia.Rect.MakeLTRB(A.left(), ust, A.right(), alt)
+        self.panel(cv, P, self.p["yuzey"], prog(u, 0.0, 0.4), kimlik=70, t=t)
+        P = P.makeInset(min(28, P.width() * 0.03), min(28, P.height() * 0.03))
+        kam, dd, kara, vurgulu, yol, oran = self.harita_hazirla(sh, P)
+        r = self.harita_renkleri()
+        g = prog(u, 0.12, 0.45)  # harita belirir
+        cv.save()
+        cv.clipRRect(skia.RRect.MakeRectXY(P, 16, 16), skia.ClipOp.kIntersect, True)
+        cv.drawRect(P, skia.Paint(AntiAlias=True, Color=alfa(r["deniz"], g)))
+        for ulke, p in kara:
+            renk_ = r["vurgulu"] if ulke["iso"] in vurgulu else r["kara"]
+            cv.drawPath(p, skia.Paint(AntiAlias=True, Color=alfa(renk_, g)))
+            cv.drawPath(p, skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=1.6,
+                                      StrokeJoin=skia.Paint.kRound_Join, Color=alfa(r["sinir"], g)))
+        k = self.rota_ilerleme(anlar, oran, u)
+        cizgi = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeCap=skia.Paint.kRound_Cap,
+                           StrokeJoin=skia.Paint.kRound_Join)
+        if k > 0:
+            cizgi.setStrokeWidth(15); cizgi.setColor(alfa(r["deniz"], 0.8))
+            cv.drawPath(harita.kirp(yol, k), cizgi)
+            cizgi.setStrokeWidth(8); cizgi.setColor(r["rota"])
+            cv.drawPath(harita.kirp(yol, k), cizgi)
+        # duraklar ve adları
+        boy = min(40, max(28, P.width() / 22))
+        dolu: list = []  # etiketler üst üste binmesin: üst, alt, sağ, sol denenir
+        for j, x in enumerate(dd):
+            px_, py_ = kam.xy(*x["konum"])
+            pp = prog(u, anlar[j] - (0.25 if j == 0 else 0.05), 0.3)
+            if pp <= 0:
+                continue
+            s = out_back(pp)
+            cv.drawCircle(px_, py_, 15 * s, skia.Paint(AntiAlias=True, Color=r["deniz"]))
+            cv.drawCircle(px_, py_, 10 * s, skia.Paint(AntiAlias=True, Color=r["durak"] if j else r["rota"]))
+            w = self.olc(x["ad"], boy, 700)
+            secenek = [(px_, py_ - boy * 1.25), (px_, py_ + boy * 1.25), (px_ + w / 2 + 34, py_), (px_ - w / 2 - 34, py_),
+                       (px_, py_ - boy * 2.6), (px_, py_ + boy * 2.6)]
+            if j % 2:
+                secenek[0], secenek[1] = secenek[1], secenek[0]
+            for lx, ly in secenek + [secenek[0]]:
+                lx = min(max(lx, P.left() + w / 2 + 14), P.right() - w / 2 - 14)
+                ly = min(max(ly, P.top() + boy), P.bottom() - boy)
+                hap = skia.Rect.MakeXYWH(lx - w / 2 - 12, ly - boy * 0.7, w + 24, boy * 1.4)
+                if not any(skia.Rect.Intersects(hap, o) for o in dolu):
+                    break
+            dolu.append(hap)
+            cv.drawRoundRect(hap, boy * 0.35, boy * 0.35, skia.Paint(AntiAlias=True, Color=alfa(r["deniz"], 0.88 * clamp(pp * 1.5))))
+            self.yazi(cv, x["ad"], lx, ly, boy, r["yazi"], agirlik=700, p=pp, kimlik=j, t=t)
+        if 0 < k < 1:  # rotanın ucunda ilerleyen nokta
+            x, y = harita.uc(yol, k)
+            cv.drawCircle(x, y, 13, skia.Paint(AntiAlias=True, Color=r["deniz"]))
+            cv.drawCircle(x, y, 8, skia.Paint(AntiAlias=True, Color=r["rota"]))
+        cv.restore()
+        if sh.get("mesafe"):
+            deger = f"{harita.mesafe([x['konum'] for x in dd]):,.0f} km".replace(",", ".")  # rota ilerledikçe sayar
+            self.yazi(cv, say(deger, k), A.centerX(), A.bottom() - 58 * 0.75, 58, self.p["vurgu"], agirlik=800,
+                      p=prog(u, anlar[0], 0.35), t=t)
 
     def _grafik_pasta(self, cv, veri, anlar, birim, P, u, d, t):
         n = len(veri)

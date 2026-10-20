@@ -35,9 +35,18 @@ class Origami(Kaplama):
 
     def fon(self, cv, VW, VH, t, i):
         cv.drawColor(self.p["zemin"])
-        for k, (x, y, s, c) in enumerate(((0.1, 0.06, 70, 0xFFE9DCC6), (0.88, 0.05, 54, 0xFFEBD3C4), (0.92, 0.9, 90, 0xFFDCE6E0),
-                                          (0.07, 0.93, 60, 0xFFEDE0B9))):
-            cv.save(); cv.translate(VW * x, VH * y); cv.rotate(t * 6 * (1 if k % 2 else -1) + k * 40)
+        simetrik = self.s.get("yerlesim") == "simetrik"
+        ucgenler = ((0.1, 0.06, 64, 0xFFE9DCC6), (0.9, 0.06, 64, 0xFFE9DCC6), (0.9, 0.93, 76, 0xFFDCE6E0),
+                    (0.1, 0.93, 76, 0xFFDCE6E0)) if simetrik else \
+                   ((0.1, 0.06, 70, 0xFFE9DCC6), (0.88, 0.05, 54, 0xFFEBD3C4), (0.92, 0.9, 90, 0xFFDCE6E0),
+                    (0.07, 0.93, 60, 0xFFEDE0B9))
+        for k, (x, y, s, c) in enumerate(ucgenler):
+            cv.save(); cv.translate(VW * x, VH * y)
+            if simetrik:  # sol-sağ ayna: aynı açı, ters yön
+                yon = 1 if x < 0.5 else -1
+                cv.scale(yon, 1); cv.rotate(t * 6 + 20 + (k // 2) * 40)
+            else:
+                cv.rotate(t * 6 * (1 if k % 2 else -1) + k * 40)
             cv.drawPath(_cokgen([(-s, s * 0.6), (s, s * 0.6), (0, -s)]), skia.Paint(AntiAlias=True, Color=c))
             cv.drawPath(_cokgen([(0, s * 0.6), (s, s * 0.6), (0, -s)]), skia.Paint(AntiAlias=True, Color=karis(c, 0xFF22304A, 0.06)))
             cv.restore()

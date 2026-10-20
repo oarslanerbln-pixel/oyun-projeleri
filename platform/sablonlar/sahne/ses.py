@@ -154,7 +154,7 @@ def _oku(yol: Path) -> np.ndarray:
 
 
 def miksle(s: dict, prof: dict, sfx_tur: str, is_: Path, ses_dizini: Path) -> dict:
-    """Seslendirme + müzik (konuşmanın ~9 dB altında, konuşurken ek 4 dB kısma) + efektler → is_/ses.wav"""
+    """Seslendirme + müzik (konuşmanın ~9 dB altında, konuşurken ek 4 dB kısma; `"muzik": false` ise yok) + efektler → is_/ses.wav"""
     import soundfile as sf
     is_.mkdir(parents=True, exist_ok=True)
     n = int(s["sure"] * SR)
@@ -168,9 +168,12 @@ def miksle(s: dict, prof: dict, sfx_tur: str, is_: Path, ses_dizini: Path) -> di
         vo[i:i + len(a)] += a; maske[i:i + len(a)] = 1.0
         bulunan.append(x["id"])
     m, e = muzik(s, prof, sfx_tur)
+    if s.get("muzik") is False:  # `"muzik": false`: müzik yatağı yok, yalnız ses + efektler
+        m[:] = 0
     rms = lambda a: math.sqrt(float(np.mean(a ** 2)) + 1e-12)  # noqa: E731
     ref = rms(vo[maske > 0]) if bulunan else 0.08
-    m *= ref * 10 ** (-9 / 20) / rms(m)
+    if np.any(m):
+        m *= ref * 10 ** (-9 / 20) / rms(m)
     k = int(0.15 * SR)
     duk = 1 - (1 - 10 ** (-4 / 20)) * np.clip(np.convolve(maske, np.ones(k) / k, "same"), 0, 1)
     m *= duk[:, None]

@@ -47,6 +47,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `lezzet-dunyasi/` | Müşteri, bitti: kinetik/kolaj/minyatür/origami (+ `-ses`) 9:16 |
 | `le-mariage/` | Müşteri düğün salonu: reel, karusel (`onizleme/`), `animasyon/` neon, `sunum/le-mariage-praesentation.pdf`; DEVIR |
 | `markalasma-nedir/` | Kendi kanal: güncel finaller `tek-cizgi-20sn-logo/` (TR) ve `tek-cizgi-20sn-de-logo/` (DE); her alt klasörde DEVIR. `30sn/` eski karalama |
+| `origami-girisimci/` | Kendi kanal: origami hikâye "Elif'in turnası" (girişimcilik/markalaşma, 9:16, 36,7 sn, George enerjik); `teslim/` final + DEVIR, `kaynak/` özel hikâye kodu (hikaye.py görüntü, ses.py tonal müzik/SFX), `onizleme/` senaryo |
 | `atilla-ebook/` | E-kitap tanıtımı: `FINAL-roadmap-tek-cizgi-9x16.mp4`, `roadmap-*-george.mp4`; DEVIR |
 | `al-andalus/` | Almanca sunum (minyatür): `STORYBOARD.md`, `klipler/`, deste kaynakları; DEVIR |
 | `uzun-video/kucuk-aliskanliklar/` | Uzun video örneği (kurgu); DEVIR; `ses-paketi/` sahne efektli + vuruşa oturan sürüm |

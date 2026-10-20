@@ -306,5 +306,34 @@ class Kaplamalar(unittest.TestCase):
             self.assertTrue((kok / "cikti" / "kucuk-aliskanliklar-sahne-piksel.srt").exists())
 
 
+class Revizyon(unittest.TestCase):
+    """`"muzik": false` ve `"yerlesim": "simetrik"`: varsayılan kapalı, açılınca müzik yok / alan ortada"""
+
+    def test_simetrik_alan_ortada(self):
+        try:
+            import skia  # noqa: F401
+        except ImportError:
+            raise unittest.SkipTest("skia yok")
+        import kaplama
+        z = dil.zamanla(ornek(), {})
+        kap = kaplama.kaplamalar()["origami"]
+        eski = kap(z).alan(1080, 1920, "9x16")
+        self.assertLess(eski.centerX(), 540)
+        yeni = kap({**z, "yerlesim": "simetrik"}).alan(1080, 1920, "9x16")
+        self.assertAlmostEqual(yeni.centerX(), 540, places=3)
+
+    def test_muzik_kapali(self):
+        import ses
+        z = dil.zamanla(ornek(), {})
+        z["seslendirme"] = {"satirlar": []}
+        with tempfile.TemporaryDirectory() as d:
+            import soundfile as sf
+            import kaplama
+            ses.miksle({**z, "muzik": False}, kaplama.Kaplama.MUZIK, "katla", Path(d), Path(d))
+            x, _ = sf.read(str(Path(d) / "ses.wav"))
+            sessiz = np.abs(x).max(axis=1) < 1e-4
+            self.assertGreater(sessiz.mean(), 0.5)  # yalnız sahne efektleri: çoğu an sessiz
+
+
 if __name__ == "__main__":
     unittest.main()

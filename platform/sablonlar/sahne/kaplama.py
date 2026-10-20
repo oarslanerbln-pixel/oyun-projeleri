@@ -242,9 +242,16 @@ class Kaplama:
         pass
 
     # ---------- yerleşim ----------
+    def guvenli(self, fmt):
+        """(sol, sağ, üst, alt); `"yerlesim": "simetrik"` iki yanı geniş olana eşitler, her şey kadrajın tam ortasında"""
+        sol, sag, ust, alt = GUVENLI.get(fmt, GUVENLI["1x1"])
+        if self.s.get("yerlesim") == "simetrik":
+            sol = sag = max(sol, sag)
+        return sol, sag, ust, alt
+
     def alan(self, VW, VH, fmt):
         """sahnenin güvenli alanı; altyazı açıksa alttaki bant ayrılır (sahne yazısı altyazının altında kalmaz)"""
-        sol, sag, ust, alt = GUVENLI.get(fmt, GUVENLI["1x1"])
+        sol, sag, ust, alt = self.guvenli(fmt)
         bant = self.altyazi_bandi(fmt)[0] if self.altyazi else 0
         return skia.Rect.MakeLTRB(VW * sol, VH * ust, VW * (1 - sag), VH * alt - bant)
 
@@ -260,7 +267,7 @@ class Kaplama:
         g, i, kp = altyazi.etkin(self.altyazi or [], t)
         if not g:
             return
-        sol, sag, _, alt = GUVENLI.get(fmt, GUVENLI["1x1"])
+        sol, sag, _, alt = self.guvenli(fmt)
         bant, boy = self.altyazi_bandi(fmt)
         x0, x1, y1 = VW * sol, VW * (1 - sag), VH * alt
         gen = (x1 - x0) - 2 * 30

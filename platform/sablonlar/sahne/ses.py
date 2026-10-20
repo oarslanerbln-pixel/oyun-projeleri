@@ -18,7 +18,7 @@ BURADA = Path(__file__).resolve().parent
 sys.path.append(str(BURADA.parents[1] / "ortak"))
 import sfx as fx  # noqa: E402
 
-from dil import ENERJI  # noqa: E402
+from dil import ENERJI, harita_anlari  # noqa: E402
 
 _sp = importlib.util.spec_from_file_location("desen_sentez", BURADA.parent / "desen" / "sentez.py")
 _ds = importlib.util.module_from_spec(_sp); _sp.loader.exec_module(_ds)  # noqa: E702  (can, mizrap, marimba, sinus, ped)
@@ -122,6 +122,9 @@ def muzik(s: dict, prof: dict, sfx_tur: str) -> tuple[np.ndarray, np.ndarray]:
             aralik = min(0.55, max(0.25, (u - 1.0) / (len(sh["maddeler"]) + 1)))
             for j in range(len(sh["maddeler"])):  # madde söylendiği an girer (senkron.py); efekt onunla
                 ekle(e, sh["bas"] + an.get(f"madde{j}", 0.35 + j * aralik), _efekt("pop" if sfx_tur != "blip" else "blip", rng), 0.16)
+        elif sh["tip"] == "harita" and isinstance(sh.get("duraklar"), list):
+            for j in range(1, len(sh["duraklar"])):  # rota durağa vardığı an
+                ekle(e, sh["bas"] + an.get(f"durak{j}", harita_anlari(sh, u)[j]), _efekt("pop" if sfx_tur != "blip" else "blip", rng), 0.12)
         elif sh["tip"] == "grafik" and isinstance(sh.get("veri"), list) and sh.get("tur", "cubuk") != "cizgi":
             aralik = min(0.45, max(0.15, (u - 1.4) / (len(sh["veri"]) + 1)))
             for j in range(len(sh["veri"])):  # çubuk/dilim girdiği an
@@ -178,3 +181,4 @@ def miksle(s: dict, prof: dict, sfx_tur: str, is_: Path, ses_dizini: Path) -> di
     f = int(0.3 * SR); karisim[-f:] *= np.linspace(1, 0, f)[:, None]
     sf.write(str(is_ / "ses.wav"), (karisim / max(1e-9, np.abs(karisim).max()) * 0.9).astype(np.float32), SR)
     return {"seslendirme": bulunan}
+

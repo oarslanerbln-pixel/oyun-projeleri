@@ -4,6 +4,7 @@
 
 | Modül | Ne yapar |
 | --- | --- |
+| `harita.py` | Harita ve rota geometrisi (Al-Andalus harita kodunun genel hali): yer adı arama (`bul`; Türkçe/Almanca adlar, aynı adlı şehirde rotaya yakını), kuş uçuşu mesafe (`mesafe`), kadraja sığdıran kamera, ülke yolları, kavisli rota, kırpma. Veri `veri/dunya-50m.json.gz` (Natural Earth, kamu malı: 242 ülke, 7.342 şehir; `veri-yenile`). Sahne dilinde `harita` sahnesi bunu kullanır. |
 | `mastering.py` | EBU R128 ölçümü ve sosyal video mastering'i: 16 kHz alçak geçiren, -14 LUFS, tepe sınırlayıcı, 48 kHz. Çıktının gerçek tepesi -2 dBTP'yi aşarsa sınırı indirip yeniden yazar; böylece AAC'den sonra teslim dosyası -1 dBTP altında kalır. |
 | `formatlar.py` | Tek format tablosu (9x16, 16x9, 1x1, 4x5). `9:16` ve `9x16` yazımlarının ikisini de kabul eder; `coz()` komut satırı → senaryo `format` alanı → varsayılan sırasıyla seçer, `ikisi` 9x16 + 16x9 demektir. |
 | `akis.py` | Çıktı klasörü, seslendirme (varsayılan Piper; senaryo `seslendirme.saglayici: "elevenlabs"` derse ElevenLabs), ses + görüntü birleştirme. Birleştirme sonunda kalite kapısını çalıştırır. |

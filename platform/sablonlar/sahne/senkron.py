@@ -35,6 +35,9 @@ def _anahtarlar(sh: dict) -> list[tuple[str, str]]:
         return [("ozellik", sh.get("ozellik", "")), ("fiyat", sh.get("fiyat", ""))]
     if t == "cta":
         return [("alt", sh.get("alt", ""))]
+    if t == "harita" and isinstance(sh.get("duraklar"), list):  # her durak adı söylendiğinde rota oraya varır
+        return [(f"durak{j}", d if isinstance(d, str) else d.get("etiket", d.get("ad", "")))
+                for j, d in enumerate(sh["duraklar"])]
     if t == "grafik" and isinstance(sh.get("veri"), list):  # CSV'li veri: çizim sabit zamanı kullanır
         return [(f"veri{j}", str(r[0])) for j, r in enumerate(sh["veri"]) if isinstance(r, (list, tuple)) and r]
     return []

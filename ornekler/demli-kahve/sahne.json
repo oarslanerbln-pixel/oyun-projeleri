@@ -87,6 +87,17 @@
    "birim": " fincan"
   },
   {
+   "tip": "harita",
+   "baslik": "Kahvenin yolculuğu",
+   "duraklar": [
+    "Addis Ababa",
+    "Sanaa",
+    "İstanbul"
+   ],
+   "mesafe": true,
+   "seslendirme": "Kahve Addis Ababa'dan Sana'ya, oradan İstanbul'a uzanan bir yolculuk yaptı."
+  },
+  {
    "tip": "cta",
    "metin": "Gel, bir fincan iç.",
    "alt": "Moda · her gün 08–20",

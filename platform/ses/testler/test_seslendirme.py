@@ -89,6 +89,29 @@ class ElevenLabs(unittest.TestCase):
             seslendirme.elevenlabs("Heute.", {"ses": "abc", "model": "eleven_flash_v2_5", "dil": "de"}, ag=ag)
         self.assertEqual(yakalanan["govde"]["language_code"], "de")
 
+    def test_ton_ve_komsu_satirlar(self):
+        yakalanan = {}
+
+        def ag(istek):
+            yakalanan["govde"] = json.loads(istek.data)
+            return b"mp3"
+
+        a = seslendirme.satir_ayarlari([{"id": "s0", "metin": "Bir."}, {"id": "s1", "metin": "İki.", "ton": "duygusal"},
+                                        {"id": "s2", "metin": "Üç."}], {"ses": "abc"})
+        self.assertEqual((a[1]["onceki"], a[1]["sonraki"], a[0]["onceki"]), ("Bir.", "Üç.", None))
+        with mock.patch.dict(os.environ, {"ELEVENLABS_API_KEY": "gizli"}, clear=True), \
+                mock.patch.object(seslendirme, "mp3_coz", lambda b: b"\x00\x00"):
+            seslendirme.elevenlabs("İki.", a[1], ag=ag)
+        g = yakalanan["govde"]
+        self.assertEqual((g["previous_text"], g["next_text"]), ("Bir.", "Üç."))
+        self.assertEqual(g["voice_settings"]["stability"], seslendirme.ELEVEN_TONLAR["duygusal"]["stability"])
+        # tonsuz iş eski önbellek anahtarını korur (kredi boşa gitmez)
+        self.assertEqual(seslendirme.satir_ayarlari([{"id": "s0", "metin": "Bir."}], {"ses": "abc"}), [{"ses": "abc"}])
+        self.assertEqual(seslendirme.eleven_ayar({"ses": "abc", "voice_settings": {"stability": 0.2}, "ton": "sakin"})
+                         ["voice_settings"]["stability"], 0.2)
+        with self.assertRaisesRegex(seslendirme.SeslendirmeHatasi, "bilinmeyen ton"):
+            seslendirme.eleven_ayar({"ses": "abc", "ton": "uzgun"})
+
     def test_harf_zamanlari(self):
         cevap = json.dumps({"audio_base64": base64.b64encode(b"mp3").decode(),
                             "alignment": {"characters": ["B", "u"], "character_start_times_seconds": [0.1, 0.2],

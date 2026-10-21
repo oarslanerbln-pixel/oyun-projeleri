@@ -41,7 +41,8 @@ GRAFIK = {"cubuk": (2, 8), "cizgi": (3, 12), "pasta": (2, 6)}  # tür -> (en az,
 ETIKET = 12  # grafik etiketi en çok karakter
 KANCA = ("soru", "rakam", "sok")
 MADDE = (2, 5, 28)  # liste: en az, en çok madde, madde başına karakter
-ORTAK_ALANLAR = {"tip", "seslendirme", "okunus", "sure", "not", "stiller", "kanca", "stil", "donustur"}
+ORTAK_ALANLAR = {"tip", "seslendirme", "okunus", "ton", "sure", "not", "stiller", "kanca", "stil", "donustur"}
+TONLAR = ("notr", "sakin", "duygusal", "vurgulu", "enerjik")  # seslendirme tonu, platform/ses ELEVEN_TONLAR
 ENERJI = {"baslik": 1, "liste": 1, "sayi": 2, "alinti": 0, "karsilastirma": 2, "urun": 1, "cta": 2, "gecis": 0,
           "grafik": 1, "harita": 1}
 
@@ -95,6 +96,8 @@ def denetle(s: dict) -> list[str]:
             continue
         tip = sh["tip"]
         ad = f"{ad} ({tip})"
+        if sh.get("ton") is not None and sh["ton"] not in TONLAR:
+            h.append(f"{ad}: ton {', '.join(TONLAR)} olmalı")
         alan = TIPLER[tip]["alan"]
         for k in sh:
             ek = {"liste": ["maddeler"], "grafik": ["veri"], "harita": ["duraklar", "ulkeler", "mesafe"]}.get(tip, [])
@@ -262,8 +265,9 @@ def zamanla(s: dict, sureler: dict[str, float] | None = None) -> dict:
             sid = f"s{i}"
             ses = sureler.get(sid, tahmini_sure(sh.get("okunus") or metin))
             satir = {"id": sid, "t": round(t + ON, 3), "metin": metin}
-            if sh.get("okunus"):
-                satir["okunus"] = sh["okunus"]
+            for k in ("okunus", "ton"):
+                if sh.get(k):
+                    satir[k] = sh[k]
             satirlar.append(satir)
             sh["_ses"] = (t + ON, t + ON + ses)
             d = max(d, ON + ses + ARKA)

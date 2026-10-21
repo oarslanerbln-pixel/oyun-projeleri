@@ -65,6 +65,16 @@ ELEVEN_MODEL = "eleven_multilingual_v2"
 # Dil zorlaması (language_code) yalnız bu modellerde var; multilingual_v2 dili metinden anlar, alanı görürse reddeder.
 ELEVEN_DIL_ZORLAYAN = ("eleven_turbo_v2_5", "eleven_flash_v2_5")
 ELEVEN_AYAR = {"stability": 0.45, "similarity_boost": 0.8, "style": 0.3, "use_speaker_boost": True}
+# Satır tonu (senaryoda satır ya da sahne başına `ton`): bütün satırlar aynı ayarla okununca anlatım tekdüze
+# kalır. Düşük stability + yüksek style daha duygulu, speed (0.7–1.2) temposu. Ton verilen işte her satır
+# komşu satırları previous_text/next_text olarak da gönderir; ElevenLabs cümleyi akışın içinde tonlar.
+ELEVEN_TONLAR = {
+    "notr": {},
+    "sakin": {"stability": 0.55, "style": 0.15, "speed": 0.93},
+    "duygusal": {"stability": 0.3, "style": 0.55, "speed": 0.88},
+    "vurgulu": {"stability": 0.35, "style": 0.6, "speed": 0.95},
+    "enerjik": {"stability": 0.3, "style": 0.65, "speed": 1.06},
+}
 # Varsayılan sesler: ElevenLabs'in hazır, çok dilli sesleri (multilingual_v2 ile Türkçe ve Almanca okur).
 # Dile özel seçim (ör. e-kitap testinde beğenilen Almanca ses) ELEVEN_DIL_SESLERI'ne, kanal ya da müşteri
 # sesi senaryonun `seslendirme.ses` alanına (voice_id) yazılır. Ortam: ELEVENLABS_VOICE_ID[_TR|_DE].
@@ -170,7 +180,15 @@ def eleven_ayar(ayar: dict) -> dict:
         ses = (os.environ.get(f"ELEVENLABS_VOICE_ID_{dil.upper()}") or os.environ.get("ELEVENLABS_VOICE_ID")
                or ELEVEN_DIL_SESLERI.get(dil, {}).get(cinsiyet, {}).get("id") or ELEVEN_SESLERI[cinsiyet]["id"])
     model = ayar.get("model") or ELEVEN_MODEL
-    return {"ses": ses, "model": model, "dil": dil, "voice_settings": dict(ELEVEN_AYAR, **(ayar.get("voice_settings") or {}))}
+    ton = ayar.get("ton")
+    if ton and ton not in ELEVEN_TONLAR:
+        raise SeslendirmeHatasi(f"bilinmeyen ton: {ton} ({', '.join(ELEVEN_TONLAR)})")
+    e = {"ses": ses, "model": model, "dil": dil,
+         "voice_settings": {**ELEVEN_AYAR, **ELEVEN_TONLAR.get(ton or "notr", {}), **(ayar.get("voice_settings") or {})}}
+    for k in ("onceki", "sonraki"):  # yalnız varsa: tonsuz işlerin önbellek anahtarı değişmez
+        if ayar.get(k):
+            e[k] = ayar[k]
+    return e
 
 
 def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int, dict | None]:
@@ -179,6 +197,10 @@ def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int, dict | None
         raise SeslendirmeHatasi("ELEVENLABS_API_KEY ortam değişkeni yok; anahtar eklenene kadar --saglayici piper kullanın")
     e = eleven_ayar(ayar)
     govde = {"text": metin, "model_id": e["model"], "voice_settings": e["voice_settings"]}
+    if e.get("onceki"):
+        govde["previous_text"] = e["onceki"]
+    if e.get("sonraki"):
+        govde["next_text"] = e["sonraki"]
     if e["model"] in ELEVEN_DIL_ZORLAYAN:
         govde["language_code"] = e["dil"]
     istek = urllib.request.Request(ELEVEN_URL.format(ses=e["ses"]), data=json.dumps(govde).encode("utf-8"), method="POST",
@@ -256,7 +278,8 @@ def senaryodan(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: st
     `seslendirme.ses` / `seslendirme.dil` (ya da `dil`) alanından; sağlayıcı `seslendirme.saglayici`dan gelir.
     """
     sb = s.get("seslendirme") or {}
-    satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"])} for x in sb.get("satirlar", [])]
+    satirlar = [{"id": x["id"], "metin": x.get("okunus", x["metin"]), **({"ton": x["ton"]} if x.get("ton") else {})}
+                for x in sb.get("satirlar", [])]
     dil = sb.get("dil") or (s.get("dil") if s.get("dil") != "sahne" else None)  # ortak sahne dilinde "dil" biçimdir
     ayar = {"ses": ses or sb.get("ses"), "dil": dil, "saglayici": sb.get("saglayici"),
             "telaffuz": sb.get("telaffuz"), "klasor": s.get("_klasor")}
@@ -273,12 +296,26 @@ def _onbellek_yolu(saglayici: str, metin: str, ayar: dict) -> Path:
     return _onbellek_koku() / saglayici / f"{_onbellek_anahtari(saglayici, metin, ayar)}.wav"
 
 
-def kredi_kontrol(saglayici: str, satirlar: list[dict], ayar: dict) -> dict | None:
+def satir_ayarlari(satirlar: list[dict], ayar: dict) -> list[dict]:
+    """Satır başına ayar: işte bir satırın `ton`u varsa her satır kendi tonunu ve komşu satırları alır."""
+    if not any(s.get("ton") for s in satirlar):
+        return [ayar] * len(satirlar)
+    out = []
+    for i, s in enumerate(satirlar):
+        a = dict(ayar, ton=s.get("ton") or ayar.get("ton"))
+        a["onceki"] = satirlar[i - 1]["metin"] if i else None
+        a["sonraki"] = satirlar[i + 1]["metin"] if i + 1 < len(satirlar) else None
+        out.append(a)
+    return out
+
+
+def kredi_kontrol(saglayici: str, satirlar: list[dict], ayar: dict | list[dict]) -> dict | None:
     """Önbellekte olmayan satırların kredisi hesapta kalandan fazlaysa iş başlamadan durur (1 karakter ≈ 1 kredi).
 
     Bütün satırlar önbellekteyse hesap sorulmaz. Dönüş: {"gerekli", "kalan", "plan"} ya da None.
     """
-    gerekli = sum(len(s["metin"]) for s in satirlar if not _onbellek_yolu(saglayici, s["metin"], ayar).exists())
+    ayarlar = ayar if isinstance(ayar, list) else [ayar] * len(satirlar)
+    gerekli = sum(len(s["metin"]) for s, a in zip(satirlar, ayarlar) if not _onbellek_yolu(saglayici, s["metin"], a).exists())
     if not gerekli or saglayici not in KREDI:
         return None
     k = KREDI[saglayici]()
@@ -407,14 +444,15 @@ def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict
     ses = eleven_ayar(ayar)["ses"] if saglayici == "elevenlabs" else (ayar.get("ses") or "fahrettin")
     kayit = {"saglayici": saglayici, "ses": ses, "satirlar": []}
     sayac = {"karakter": 0, "api": 0, "onbellek": 0}
-    kredi = kredi_kontrol(saglayici, satirlar, ayar) if saglayici in UCRETLI else None
+    satir_ayar = satir_ayarlari(satirlar, ayar) if saglayici == "elevenlabs" else [ayar] * len(satirlar)
+    kredi = kredi_kontrol(saglayici, satirlar, satir_ayar) if saglayici in UCRETLI else None
     with tempfile.TemporaryDirectory() as tmp:
-        for s in satirlar:
+        for s, s_ayar in zip(satirlar, satir_ayar):
             ham = Path(tmp) / f"{s['id']}.ham.wav"
             ara = Path(tmp) / f"{s['id']}.ara.wav"
             son = cikti / f"{s['id']}.wav"
             if saglayici in UCRETLI:
-                pcm, sr, hizalama = _ucretli_uret(saglayici, s["metin"], ayar, sayac)
+                pcm, sr, hizalama = _ucretli_uret(saglayici, s["metin"], s_ayar, sayac)
             else:
                 pcm, sr, *ek = SAGLAYICILAR[saglayici](s["metin"], ayar)
                 hizalama = ek[0] if ek else None

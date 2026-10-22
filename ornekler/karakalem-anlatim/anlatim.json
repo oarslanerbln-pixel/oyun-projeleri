@@ -1,0 +1,28 @@
+{
+  "kimlik": "dalga-almanya-karakalem", "fps": 30, "format": ["16x9"],
+  "palet": {"kagit": "#F7F4EC", "grafit": "#34343A", "vurgu": "#D9541E"},
+  "muzik": {"bpm": 84},
+  "seslendirme": {"satirlar": [
+    {"id": "v1", "t": 0.6, "metin": "Fransa'daki dalga Almanya'ya mı geliyor?"},
+    {"id": "v2", "t": 6.4, "metin": "Önce haritaya bakalım: Paris'ten Berlin'e uzanan bir hat."},
+    {"id": "v3", "t": 13.0, "metin": "Peki bu dalga gerçekten buraya ulaşır mı?"}
+  ]},
+  "sahneler": [
+    {"tip": "baslik", "sure": 5.5, "ust": "Bölüm 1", "metin": "Dalga Almanya'ya mı geliyor?", "alt": "31 Ekim çağrılarını adım adım okuyoruz"},
+    {"tip": "harita", "sure": 6.5, "baslik": "Fransa'dan Almanya'ya", "odak": "bati-avrupa", "vurgulu": ["FR", "DE"],
+     "sehirler": ["Paris", "Lyon", "Berlin", "Hamburg", "Köln", "München"],
+     "oklar": [{"den": "Paris", "ye": "Berlin", "etiket": "dalga?"}]},
+    {"tip": "karakter", "sure": 6.0, "poz": "dusun", "ifade": "normal", "metin": "Peki bu dalga gerçekten buraya ulaşır mı?",
+     "notlar": ["Kim çağırıyor?", "Kaç kişi katılır?"]},
+    {"tip": "belge", "sure": 6.0, "ust": "Sosyal medyada paylaşılan çağrı", "baslik": "Çağrı metni",
+     "satirlar": ["Tarih: 31 Ekim", "Yer: birçok şehir", "Çağıran: belirsiz hesaplar", "Talep: henüz net değil"],
+     "vurgu": 2, "damga": "Doğrulanmadı", "kaynak": "Örnek belge, gerçek metin değildir"},
+    {"tip": "kalabalik", "sure": 6.0, "metin": "Sokaklar dolar mı?", "pankartlar": ["Frieden", "Zukunft?", "Wir sind hier"], "yogunluk": "orta"},
+    {"tip": "sayac", "sure": 5.0, "ust": "Bu videoda", "deger": "3", "etiket": "olası senaryo"},
+    {"tip": "terazi", "sure": 6.0, "soru": "Dalga sıçrar mı?", "sol": "Yayılır", "sag": "Söner", "egim": 0.45,
+     "sol_deger": "%?", "sag_deger": "%?"},
+    {"tip": "takvim", "sure": 6.0, "baslik": "Zaman çizelgesi",
+     "olaylar": [{"tarih": "Eylül", "metin": "Fransa'da eylemler"}, {"tarih": "Ekim başı", "metin": "Çağrılar yayılıyor"},
+                 {"tarih": "31 Ekim", "metin": "Almanya'da çağrı günü"}, {"tarih": "Sonrası", "metin": "Ne değişir?"}], "vurgu": 2}
+  ]
+}

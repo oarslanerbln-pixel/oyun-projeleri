@@ -1,0 +1,7 @@
+{
+  "hazirlik": [["{python}", "{modul}/anlatim.py", "fontlar"]],
+  "denetle": [
+    {"dosyalar": ["ornekler/*/anlatim.json"],
+     "komut": ["{python}", "{modul}/anlatim.py", "denetle", "{dosya}", "-o", "{gecici}/anlatim"]}
+  ]
+}

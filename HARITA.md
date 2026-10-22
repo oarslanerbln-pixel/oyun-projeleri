@@ -33,6 +33,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `kinetik`, `bumper`, `mekan`, `vitrin` (ürün vitrini 3D), `analiz` | kinetik yazı, kısa bumper, mekan tanıtımı, .glb ürün, veri/haber |
 | `stil/` (motor) | kağıt kesik (serbest süre), izometrik, hamur, piksel |
 | `karakalem`, `tek_cizgi`, `origami`, `kolaj`, `minyatur`, `golge_oyunu`, `oyuncak` (3D oyuncak), `cizgi_roman`, `risograf` | adıyla aynı |
+| `karakalem_anlatim/` | uzun video için serbest karakalem sahneleri: bölüm kartı, harita, anlatıcı karakter, belge, kalabalık, sayaç, terazi, takvim (`anlatim.py kontakt`; kurguda `"stil": "karakalem_anlatim"`) |
 | `karakter/` | ortak karakter iskeleti + görünümler (`gorunumler/cizgisel.py`) |
 | `ekran/` | kalkış tabelası, VHS, akış alanı |
 | `desen/` | vitray, linol, çini, teknik çizim |

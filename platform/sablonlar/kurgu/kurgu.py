@@ -40,6 +40,7 @@ STILLER = {
     "kinetik": {"klasor": "kinetik", "yukle": "zaman", "komut": "kinetik.py"},
     "analiz": {"klasor": "analiz", "yukle": "analiz", "komut": "analiz.py", "iki_nokta": True, "ses": "muzik"},
     "karakalem": {"klasor": "karakalem", "yukle": "zaman", "komut": "karakalem.py"},
+    "karakalem_anlatim": {"klasor": "karakalem_anlatim", "yukle": "zaman", "komut": "anlatim.py"},  # serbest karakalem sahneleri
     "tek_cizgi": {"klasor": "tek_cizgi", "yukle": "zaman", "komut": "tek_cizgi.py"},
     "kolaj": {"klasor": "kolaj", "yukle": "zaman", "komut": "kolaj.py"},
     "golge_oyunu": {"klasor": "golge_oyunu", "yukle": "zaman", "komut": "golge_oyunu.py"},
@@ -103,6 +104,8 @@ def yukle(yol: str | Path) -> dict:
             sh["_s"] = {}
             sh["_yukleme_hatasi"] = str(e)
         sure = sh["_s"].get("sure")
+        if sure is None and sh["_s"].get("sahneler"):  # karakalem_anlatim: süre sahnelerin toplamı
+            sure = sum(x.get("sure", 0) for x in sh["_s"]["sahneler"] if isinstance(x.get("sure"), (int, float)))
         # kare sayısına yuvarlanır: birleştirmede sahneler kare kare art arda gelir
         sh["_sure"] = round(sure * k["fps"]) / k["fps"] if isinstance(sure, (int, float)) and sure > 0 else 0.0
         g = sh.get("gecis", vg) if i else {"tur": "kesme", "sure": 0}

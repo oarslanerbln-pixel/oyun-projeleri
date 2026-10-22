@@ -114,6 +114,13 @@ class Cizici:
             p.setAlphaf(p.getAlphaf() * alfa)
         cv.drawString(metin, x + dx, y + dy, f, p)
 
+    def halo(self, cv, metin, x, y, punto, alfa=1.0, ad="el"):
+        """yazının arkasına kâğıt renginde kalın kontur: çizgilerin üstünde okunur"""
+        sk = self.skia
+        p = sk.Paint(AntiAlias=True, Color=renk(self.pal["kagit"], 0.92 * alfa))
+        p.setStyle(sk.Paint.kStroke_Style); p.setStrokeWidth(punto * 0.22); p.setStrokeJoin(sk.Paint.kRound_Join)
+        cv.drawString(metin, x, y, self._font(self._ad(metin, ad), punto), p)
+
     def yaz(self, cv, metin, x, y, punto, rgb, p, ad="el", ortala=False, kalem=True):
         """el yazısı: soldan sağa açılır, kalem ucu yazının ucunda"""
         if p <= 0:
@@ -222,7 +229,7 @@ class Cizici:
                     dl = [(x - 30 + v * 4, y + j * 14 + math.sin(v * 0.9) * 4) for v in range(16)]
                     k.cizgi(cv, dl, renk(self.ink, 0.35 * clamp(p_kiyi * 2)), lw=2.4, seed=200 + i * 3 + j, amp=0.8)
         ulkeler = harita_verisi()
-        etiket = []
+        etiket = {}
         for iso, ul in ulkeler.items():
             for j, ring in enumerate(ul["p"]):
                 pts = [P(a, b) for a, b in ring]
@@ -242,12 +249,12 @@ class Cizici:
                 q = zaman.kismi(pts + [pts[0]], p_kiyi)
                 if len(q) > 1:
                     k.cizgi(cv, q, renk(self.ink, 0.9 if iso in vurgulu else 0.7), lw=3.6 if iso in vurgulu else 2.6, seed=seed, adim=10, amp=1.0)
-                if j == 0:
-                    alan = 0.5 * abs(sum(pts[i][0] * pts[i - 1][1] - pts[i - 1][0] * pts[i][1] for i in range(len(pts))))
-                    etiket.append((iso, alan, sum(xs) / len(xs), sum(ys) / len(ys)))
+                alan = 0.5 * abs(sum(pts[i][0] * pts[i - 1][1] - pts[i - 1][0] * pts[i][1] for i in range(len(pts))))
+                if alan > etiket.get(iso, (0,))[0]:  # ad en büyük parçanın ortasına
+                    etiket[iso] = (alan, sum(xs) / len(xs), sum(ys) / len(ys))
         # ülke adları: vurgulular ve istenenler
         istenen = set(sh.get("etiketler", [])) | vurgulu
-        for iso, alan, x, y in etiket:
+        for iso, (alan, x, y) in etiket.items():
             if iso in istenen and bx0 + 60 < x < bx1 - 60:
                 ad = ulkeler[iso]["ad"].upper()
                 if iso in sh.get("adlar", {}):
@@ -266,7 +273,10 @@ class Cizici:
         if sh.get("baslik"):
             self.yaz(cv, sh["baslik"], bx0, by0 - 28, self.sigdir(sh["baslik"], 64, 1000), renk(self.ink), zaman.asama(u, 0.1, D * 0.5))
         # şehirler
-        sehir = {}
+        sehir, kutular, adlar = {}, [], []
+        for c in sh.get("sehirler", []):  # önce bütün noktalar: adlar noktaların üstüne binmesin
+            ad, (lon, lat) = (c, zaman.SEHIRLER[c]) if isinstance(c, str) else (c["ad"], (c["boylam"], c["enlem"]))
+            x, y = P(lon, lat); kutular.append((x - 12, y - 12, x + 12, y + 12))
         for i, c in enumerate(sh.get("sehirler", [])):
             ad, (lon, lat) = (c, zaman.SEHIRLER[c]) if isinstance(c, str) else (c["ad"], (c["boylam"], c["enlem"]))
             x, y = P(lon, lat); sehir[ad] = (x, y)
@@ -276,8 +286,14 @@ class Cizici:
             r = 9 * out_back(a)
             k.daire(cv, x, y, r, renk(self.ink))
             k.elips(cv, x, y, r + 7, r + 7, lw=2.5, seed=90 + i, ikinci=False)
-            sag = x < bx1 - 220
-            self.metin(cv, ad, x + (20 if sag else -20 - self.olc(ad, 40)), y - 14, 40, renk(self.ink, a))
+            w = self.olc(ad, 40)
+            aday = [(x + 20, y - 14), (x - 20 - w, y - 14), (x - w / 2, y + 50), (x - w / 2, y - 32)]
+            if x > bx1 - 220:
+                aday = aday[1:] + aday[:1]
+            dolu = lambda q: any(q[0] < b[2] and q[0] + w > b[0] and q[1] - 34 < b[3] and q[1] + 6 > b[1] for b in kutular)
+            lx, ly = next((q for q in aday if not dolu(q)), aday[0])
+            kutular.append((lx, ly - 34, lx + w, ly + 6))
+            adlar.append((ad, lx, ly, a))
         # oklar: kavisli, vurgu renginde; çizildikten sonra üstünden bir dalga geçer
         for i, o in enumerate(sh.get("oklar", [])):
             a, b = sehir[o["den"]], sehir[o["ye"]]
@@ -302,6 +318,9 @@ class Cizici:
                          dolgu=BEYAZ, kontur=self.vur, lw=3.5, seed=140 + i, alfa=aa, ikinci=False)
                 self.metin(cv, o["etiket"], 0, 0, pu, renk(self.vur), "damga", ortala=True, alfa=aa)
                 cv.restore()
+        for ad, lx, ly, a in adlar:  # şehir adları okların üstünde
+            self.halo(cv, ad, lx, ly, 40, a)
+            self.metin(cv, ad, lx, ly, 40, renk(self.ink, a))
 
     # ---------- 3. karakter (anlatıcı) ----------
     def _agiz(self, t, varsayilan):

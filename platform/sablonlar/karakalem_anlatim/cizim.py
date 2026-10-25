@@ -51,6 +51,8 @@ class Cizici:
         self.ink, self.vur = self.pal["grafit"], self.pal["vurgu"]
         self.acik = karistir(self.vur, self.pal["kagit"], 0.78)
         self.k = Kalem(self.ink)
+        ti = s.get("titreme") or {}  # {"fps": 4, "genlik": 0.35}: çizgi kaynaması daha yavaş ve küçük
+        self.k.fps, self.k.carpan = ti.get("fps", self.k.fps), ti.get("genlik", self.k.carpan)
         self.olcek = min(W / SW, H / SH)
         self.ox, self.oy = (W - SW * self.olcek) / 2, (H - SH * self.olcek) / 2
         self.yazi = {a: skia.Typeface.MakeFromFile(fontlar.bul(a)) for a in ("el", "damga")}
@@ -106,7 +108,7 @@ class Cizici:
     def metin(self, cv, metin, x, y, punto, rgb, ad="el", ortala=False, alfa=1.0):
         f = self._font(self._ad(metin, ad), punto)
         j = len(metin) * 13 + punto  # yazı da hafifçe kaynar
-        dx, dy = math.sin(j + self.k.kaynama * 1.7) * 0.7, math.cos(j * 1.3 + self.k.kaynama * 2.1) * 0.7
+        dx, dy = math.sin(j + self.k.kaynama * 1.7) * 0.7 * self.k.carpan, math.cos(j * 1.3 + self.k.kaynama * 2.1) * 0.7 * self.k.carpan
         if ortala:
             x -= f.measureText(metin) / 2
         p = self.skia.Paint(AntiAlias=True, Color=rgb)

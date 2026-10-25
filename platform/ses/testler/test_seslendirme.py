@@ -221,15 +221,18 @@ class Uret(unittest.TestCase):
                 k = seslendirme.uret(satirlar, Path(tmp) / "c2")  # otomatik: bütün iş Piper'a
                 self.assertEqual(k["saglayici"], "piper")
                 self.assertIn("kredisi yetmiyor", k["yedek"]["neden"])
+            # yönetmen kapalı: satır ayarı komşulardan bağımsız, tek satırlık iş ikili işle aynı önbelleği kullanır
+            # (yönetmen açıkken satırın rolü ve komşuları anahtara girer; aynı iş tekrarlanınca yine önbellekten gelir)
+            tek = {"yonetmen": False}
             with mock.patch.dict(seslendirme.KREDI, kredi(100)):
-                seslendirme.uret(satirlar[:1], Path(tmp) / "c3", "elevenlabs")
+                seslendirme.uret(satirlar[:1], Path(tmp) / "c3", "elevenlabs", tek)
             # önbellekteki satır kredi istemez: kalan 30, gereken yalnız ikinci satır (30)
             with mock.patch.dict(seslendirme.KREDI, kredi(30)):
-                k = seslendirme.uret(satirlar, Path(tmp) / "c4", "elevenlabs")
+                k = seslendirme.uret(satirlar, Path(tmp) / "c4", "elevenlabs", tek)
                 self.assertEqual((k["kullanim"]["onbellek"], k["kullanim"]["karakter"]), (1, 30))
             # hepsi önbellekteyse hesap hiç sorulmaz
             with mock.patch.dict(seslendirme.KREDI, {"elevenlabs": lambda: self.fail("hesap soruldu")}):
-                seslendirme.uret(satirlar, Path(tmp) / "c5", "elevenlabs")
+                seslendirme.uret(satirlar, Path(tmp) / "c5", "elevenlabs", tek)
 
     def test_senaryodan(self):
         yakalanan = {}

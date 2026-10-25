@@ -393,13 +393,19 @@ def seslendirme_kontrol(yol: Path) -> tuple[list[dict], dict | None]:
     except (OSError, ValueError):
         return [], None
     bilgi = {"saglayici": j.get("saglayici"), "ses": j.get("ses"), "yedek": j.get("yedek")}
+    # ses yönetmeni (platform/ses/yonetmen.py): tarzın temposu dışında ya da uzun duraklı okunan satırlar
+    yon = [_bul("uyari", "seslendirme", f"{u['id']} satırı {u['sorun']} okundu ({u['tempo']}; beklenen "
+                f"{u['aralik'][0]}–{u['aralik'][1]}); satırı kısaltın ya da `ton`/`okunus` ile düzeltin")
+           for u in (j.get("yonetmen") or {}).get("uyarilar", [])]
+    if j.get("yonetmen"):
+        bilgi["tarz"] = j["yonetmen"].get("tarz")
     if j.get("yedek"):
         y = j["yedek"]
         return [_bul("uyari", "seslendirme", f"{y.get('istenen', 'elevenlabs')} yerine {j.get('saglayici')} yedeğiyle "
-                     f"seslendirildi ({y.get('neden', '?')}); teslimden önce yeniden seslendirin")], bilgi
+                     f"seslendirildi ({y.get('neden', '?')}); teslimden önce yeniden seslendirin")] + yon, bilgi
     if j.get("saglayici") == "piper":
         return [_bul("bilgi", "seslendirme", "seslendirme bilerek Piper ile (senaryo ya da komut satırı)")], bilgi
-    return [], bilgi
+    return yon, bilgi
 
 
 # ---------------------------------------------------------------- ana akış

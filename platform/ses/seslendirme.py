@@ -42,6 +42,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import telaffuz  # noqa: E402
+import yonetmen  # noqa: E402
 
 ORNEKLEME = 48000
 HEDEF_LUFS = -16.0
@@ -93,6 +94,9 @@ ELEVEN_ADLI_SESLER = {
     "bella": {"id": "hpp4J3VqNfWAUOO0d1Us", "cinsiyet": "kadin", "not": "parlak, sıcak; Almanca reklamlarda kullanıldı"},
     "matilda": {"id": "XrExE9yKIg1WjnnlVkGX", "cinsiyet": "kadin", "not": "bilgilendirici; kadın varsayılanı"},
     "liam": {"id": "TX3LPaxmHKxFdv7VOQHJ", "cinsiyet": "erkek", "not": "enerjik, sosyal medya"},
+    "eric": {"id": "cjVigY5qzO86Huf0OWal", "cinsiyet": "erkek", "not": "olgun, net; Almanya analiz videosunun sesi"},
+    "daniel": {"id": "onwK4e9ZLuTAKqWW03F9", "cinsiyet": "erkek", "not": "haber spikeri, ciddi"},
+    "brian": {"id": "nPczCjzI2devNBz1zQrb", "cinsiyet": "erkek", "not": "derin anlatıcı"},
 }
 
 
@@ -282,7 +286,8 @@ def senaryodan(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: st
                 for x in sb.get("satirlar", [])]
     dil = sb.get("dil") or (s.get("dil") if s.get("dil") != "sahne" else None)  # ortak sahne dilinde "dil" biçimdir
     ayar = {"ses": ses or sb.get("ses"), "dil": dil, "saglayici": sb.get("saglayici"),
-            "telaffuz": sb.get("telaffuz"), "klasor": s.get("_klasor")}
+            "telaffuz": sb.get("telaffuz"), "klasor": s.get("_klasor"),
+            "tarz": sb.get("tarz"), "yonetmen": sb.get("yonetmen", True), "model": sb.get("model")}
     return uret(satirlar, Path(cikti), saglayici, ayar)
 
 
@@ -307,6 +312,24 @@ def satir_ayarlari(satirlar: list[dict], ayar: dict) -> list[dict]:
         a["sonraki"] = satirlar[i + 1]["metin"] if i + 1 < len(satirlar) else None
         out.append(a)
     return out
+
+
+def yonetmen_ayarlari(satirlar: list[dict], ayar: dict) -> tuple[list[dict], list[dict], dict]:
+    """Ses yönetmeni (yonetmen.py): sese giden metin, satır başına ayar ve seslendirme.json'a yazılan plan.
+
+    Senaryodaki açık `voice_settings` yönetmenin ayarını ezer.
+    """
+    e = eleven_ayar(ayar)
+    try:
+        plan = yonetmen.yonet(satirlar, ayar.get("tarz"), e["ses"], e["dil"])
+    except ValueError as h:
+        raise SeslendirmeHatasi(str(h)) from h
+    yeni = [dict(s, metin=p["metin"]) for s, p in zip(satirlar, plan)]
+    ayarlar = [dict(ayar, ton=None, onceki=p["onceki"], sonraki=p["sonraki"],
+                    voice_settings={**p["voice_settings"], **(ayar.get("voice_settings") or {})}) for p in plan]
+    ozet = {"tarz": ayar.get("tarz") or yonetmen.VARSAYILAN_TARZ,
+            "satirlar": [{k: p[k] for k in ("id", "rol", "ton", "neden", "voice_settings")} for p in plan]}
+    return yeni, ayarlar, ozet
 
 
 def kredi_kontrol(saglayici: str, satirlar: list[dict], ayar: dict | list[dict]) -> dict | None:
@@ -444,7 +467,11 @@ def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict
     ses = eleven_ayar(ayar)["ses"] if saglayici == "elevenlabs" else (ayar.get("ses") or "fahrettin")
     kayit = {"saglayici": saglayici, "ses": ses, "satirlar": []}
     sayac = {"karakter": 0, "api": 0, "onbellek": 0}
-    satir_ayar = satir_ayarlari(satirlar, ayar) if saglayici == "elevenlabs" else [ayar] * len(satirlar)
+    yon = None
+    if saglayici == "elevenlabs" and ayar.get("yonetmen", True) is not False:
+        satirlar, satir_ayar, yon = yonetmen_ayarlari(satirlar, ayar)
+    else:
+        satir_ayar = satir_ayarlari(satirlar, ayar) if saglayici == "elevenlabs" else [ayar] * len(satirlar)
     kredi = kredi_kontrol(saglayici, satirlar, satir_ayar) if saglayici in UCRETLI else None
     with tempfile.TemporaryDirectory() as tmp:
         for s, s_ayar in zip(satirlar, satir_ayar):
@@ -466,7 +493,19 @@ def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict
                 satir["hizalama"] = hiz_yol.name
             elif hiz_yol.exists():
                 hiz_yol.unlink()  # eski bir üretimden kalan zamanlar bu sese ait değil
+            if yon:  # ses yönetmeni: cümle arası uzun beklemeleri kısaltır (harf zamanları da kayar)
+                kesik = yonetmen.duraklari_kisalt(son, yonetmen.EN_UZUN_DURAK.get(yon["tarz"], 0.55),
+                                                  hiz_yol if hizalama else None)
+                if kesik:
+                    satir["sure"], satir["kisaltilan_durak"] = round(sure(son), 3), kesik
             kayit["satirlar"].append(satir)
+    if yon:
+        yon["uyarilar"] = yonetmen.denetle(kayit["satirlar"], yon["tarz"], cikti, eleven_ayar(ayar)["dil"])
+        kayit["yonetmen"] = yon
+        for u in yon["uyarilar"]:
+            birim = "sn" if u["sorun"] == "uzun durak" else "harf/sn"
+            print(f"UYARI: {u['id']} satırı: {u['sorun']} ({u['tempo']} {birim}, beklenen {u['aralik'][0]}–"
+                  f"{u['aralik'][1]})", file=sys.stderr)
     if saglayici in UCRETLI:
         kayit["kullanim"] = dict(sayac)
         kullanim_yaz({"zaman": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "saglayici": saglayici, "ses": ses,
@@ -498,6 +537,8 @@ def main(argv: list[str] | None = None) -> int:
     u.add_argument("--saglayici", default="otomatik", choices=["otomatik", *sorted(SAGLAYICILAR)])
     u.add_argument("--ses"); u.add_argument("--dil", help="tr, de, ... (ElevenLabs varsayılan sesi için)")
     u.add_argument("--hiz", type=float, default=1.0)
+    u.add_argument("--tarz", help=f"ses yönetmeninin anlatım tarzı ({', '.join(yonetmen.TARZLAR)})")
+    u.add_argument("--yonetmensiz", action="store_true", help="ses yönetmenini kapat (tek ayar, eski önbellek)")
     u.add_argument("--ticari-degil", action="store_true", help="ticari olmayan lisanslı seslere izin ver")
     alt.add_parser("sesler")
     alt.add_parser("kullanim")
@@ -532,7 +573,8 @@ def main(argv: list[str] | None = None) -> int:
     veri = json.loads(Path(a.satirlar).read_text(encoding="utf-8"))
     try:
         k = uret(veri["satirlar"], Path(a.cikti), a.saglayici, {"ses": a.ses, "dil": a.dil, "hiz": a.hiz, "ticari": not a.ticari_degil,
-                                                            "saglayici": veri.get("saglayici")})
+                                                            "saglayici": veri.get("saglayici"), "tarz": a.tarz or veri.get("tarz"),
+                                                            "yonetmen": not a.yonetmensiz and veri.get("yonetmen", True)})
     except SeslendirmeHatasi as e:
         print(f"HATA: {e}", file=sys.stderr)
         return 2

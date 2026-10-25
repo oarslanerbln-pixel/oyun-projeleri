@@ -12,7 +12,7 @@ python3 $A seslendir ornekler/karakalem-anlatim/anlatim.json   # ElevenLabs (yed
 python3 $A render    ornekler/karakalem-anlatim/anlatim.json   # varsayılan 16x9
 ```
 
-Sahneler 1600×900'lük sanal sayfada kurulur; 16:9 tam dolar, diğer formatlarda sayfa ortalanır (dikey video için henüz ayrı yerleşim yok). Her sahne önce kalemle çizilir ve yazılır (en çok 2,4 sn, kısa sahnede sürenin %55'i), sonra çizgiler saniyede 12 kez kaynar, kamera yavaşça yaklaşır, oklar ve sayaçlar yaşamaya devam eder. Kâğıt düz renk + bindirme doku; radyal gradyan ve parlama yok. Altyazı alt bantta, söylendikçe kelime kelime koyulaşır (`"altyazi": false` kapatır).
+Sahneler 1600×900'lük sanal sayfada kurulur; 16:9 tam dolar, diğer formatlarda sayfa ortalanır (dikey video için henüz ayrı yerleşim yok). Her sahne önce kalemle çizilir ve yazılır (en çok 2,4 sn, kısa sahnede sürenin %55'i), sonra çizgiler saniyede 12 kez kaynar, kamera yavaşça yaklaşır, oklar ve sayaçlar yaşamaya devam eder. Kâğıt düz renk + bindirme doku; radyal gradyan ve parlama yok. Altyazı alt bantta, söylendikçe kelime kelime koyulaşır (`"altyazi": false` kapatır). Titreme `"titreme": {"fps": 4, "genlik": 0.35}` ile yavaşlar ve küçülür (varsayılan 12 fps, genlik 1); `"efekt": false` kalem ve kâğıt seslerini kapatır.
 
 ## Sahne tipleri
 

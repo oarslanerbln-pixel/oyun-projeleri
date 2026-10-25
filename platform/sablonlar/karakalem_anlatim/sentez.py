@@ -39,10 +39,11 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         buf[i:i + len(x), 0] += x * kaz * l * 1.414
         buf[i:i + len(x), 1] += x * kaz * r * 1.414
 
-    for i, (t, d) in enumerate(zaman.cizim_olaylari(s)):
+    efekt = s.get("efekt", True)  # `"efekt": false`: kalem ve kâğıt sesleri yok, yalnız ses + müzik
+    for i, (t, d) in enumerate(zaman.cizim_olaylari(s) if efekt else []):
         x = kk.kutuphane.kayit("kalem", rng, sure=d, yedek=lambda: kk.kalem_cizgisi(d, rng))
         ekle(sfx, t, x, 0.6, (i * 0.37) % 1 * 0.6 - 0.3)
-    for sh in s["sahneler"][1:]:  # sahne girişinde kâğıt hışırtısı
+    for sh in s["sahneler"][1:] if efekt else []:  # sahne girişinde kâğıt hışırtısı
         ekle(sfx, max(0.0, sh["_bas"] - 0.1), kk.hava(0.35, 900, 2600, rng), 0.35)
     vurus = 60 / s["muzik"].get("bpm", 84); olcu = 4 * vurus
     akor = s["muzik"].get("akorlar", AKORLAR)

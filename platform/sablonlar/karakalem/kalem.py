@@ -70,13 +70,14 @@ class Kalem:
         self.skia = skia
         self.murekkep = murekkep
         self.kaynama = 0
+        self.fps, self.carpan = KAYNAMA_FPS, 1.0  # titreme hızı ve genliği (anlatım senaryosu `titreme` ile azaltır)
 
     def kaynat(self, t: float) -> None:
-        self.kaynama = math.floor(t * KAYNAMA_FPS)
+        self.kaynama = math.floor(t * self.fps)
 
     # ---------- noktalar ----------
     def titret(self, pts, seed, amp=1.8):
-        b = self.kaynama
+        b, amp = self.kaynama, amp * self.carpan
         return [(p[0] + (karma(seed, i, b) - 0.5) * 2 * amp, p[1] + (karma(seed, i + 7919, b) - 0.5) * 2 * amp) for i, p in enumerate(pts)]
 
     def yol(self, p, kapali=True):
@@ -118,6 +119,7 @@ class Kalem:
         R = math.hypot(x1 - x0, y1 - y0) / 2 + 4
         ca, sa = math.cos(aci), math.sin(aci)
         y = self.skia.Path(); d, k = -R, 0
+        oynama *= self.carpan
         while d <= R:
             j1 = (karma(seed, k, self.kaynama) - 0.5) * oynama * 2
             j2 = (karma(seed + 1, k, self.kaynama) - 0.5) * oynama * 2

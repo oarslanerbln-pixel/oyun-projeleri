@@ -23,6 +23,29 @@ SR = kk.SR
 AKORLAR = [[57, 60, 64, 67], [53, 57, 60, 64], [48, 52, 55, 60], [55, 59, 62, 67]]  # Am7 – Fmaj7 – C – G
 
 
+# anlatım cilası: gürültü/uğultu kesilir, oda tınısı (250–400 Hz) azaltılır, netlik bandı açılır, sesler eşitlenir,
+# kelime aralarındaki oda kuyruğu hafifçe bastırılır. Gecikmesiz süzgeçler: zamanlama ve dudak senkronu değişmez.
+CILA = ("highpass=f=85:poles=2,equalizer=f=320:t=q:w=1.2:g=-3,equalizer=f=4200:t=q:w=1.4:g=2,"
+        "deesser=i=0.35,acompressor=threshold=-22dB:ratio=3:attack=6:release=90:makeup=2,"
+        "agate=threshold=0.012:ratio=1.6:range=0.35:attack=4:release=140")
+
+
+def ses_cilala(vo: np.ndarray) -> np.ndarray:
+    import subprocess, tempfile
+    import soundfile as sf
+    with tempfile.TemporaryDirectory() as d:
+        g, c = Path(d) / "g.wav", Path(d) / "c.wav"
+        sf.write(str(g), vo.astype(np.float32), SR)
+        try:
+            subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(g), "-af", CILA, "-c:a", "pcm_f32le", str(c)],
+                           check=True)
+        except (OSError, subprocess.CalledProcessError):
+            return vo
+        y, _ = sf.read(str(c))
+    y = y.mean(1) if y.ndim > 1 else y
+    return np.pad(y, (0, max(0, len(vo) - len(y))))[: len(vo)]
+
+
 def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db: float = 8.0) -> dict:
     import soundfile as sf
     sure = s["sure"]
@@ -77,7 +100,10 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
     dolu = np.abs(sfx).sum(1) > 1e-6
     if dolu.any():
         sfx *= ref * 10 ** (-14 / 20) / max(rms(sfx[dolu]), 1e-9)
-    miks = vo[:, None] + kk.yanki(vo, 0.6, rng, 3500) * 0.12 + muzik + sfx
+    if s.get("ses_cilasi", True) and bulunan:
+        vo = ses_cilala(vo)
+    yanki = float(s.get("yanki", 0))  # Atilla 2026-10-25: anlatımdaki oda yankısı iyi gelmiyor; varsayılan kuru ses
+    miks = vo[:, None] + (kk.yanki(vo, 0.6, rng, 3500) * yanki if yanki else 0) + muzik + sfx
     miks -= kk.alcak_stereo(miks, 25)
     f = int(0.02 * SR); miks[:f] *= np.linspace(0, 1, f)[:, None]
     f = min(n, int(0.9 * SR)); miks[-f:] *= np.linspace(1, 0, f)[:, None] ** 1.5

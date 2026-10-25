@@ -29,6 +29,8 @@ Sahneler 1600×900'lük sanal sayfada kurulur; 16:9 tam dolar, diğer formatlard
 
 Senaryoda `"dil": "de"` (ya da `en`) şablonun kendi yazdığı sözcükleri çevirir: pusuladaki K → N, "Kaynak:" → "Quelle:", vurgulu ülke adları (Almanca tablo `cizim.SOZLUK`; tek sahnede başka ad için `"adlar": {"DE": "..."}`).
 
+Ses: anlatım varsayılan olarak kuru ve cilalıdır (uğultu kesme, oda tınısını azaltma, netlik, kompresör, de-esser; gecikmesiz, zamanlama değişmez). Eski oda yankısı için senaryoda `"yanki": 0.12`, cilasız ham ses için `"ses_cilasi": false`.
+
 Permanent Marker'da Türkçe ğ/ş/İ yok; bu harfleri taşıyan damga yazıları kendiliğinden el yazısıyla (Caveat) yazılır.
 
 ## Senaryo

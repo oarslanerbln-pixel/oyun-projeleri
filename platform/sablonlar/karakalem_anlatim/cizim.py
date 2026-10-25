@@ -43,12 +43,22 @@ def harita_verisi() -> dict:
     return _HARITA
 
 
+# şablonun kendi yazdığı sözcükler; senaryoda `"dil"` (ülke adları için harita sahnesinde `"adlar"`)
+SOZLUK = {"tr": {"kuzey": "K", "kaynak": "Kaynak"},
+          "de": {"kuzey": "N", "kaynak": "Quelle", "ulkeler": {
+              "DE": "Deutschland", "FR": "Frankreich", "RU": "Russland", "BE": "Belgien", "NL": "Niederlande",
+              "AT": "Österreich", "CH": "Schweiz", "PL": "Polen", "IT": "Italien", "ES": "Spanien", "GB": "Großbritannien",
+              "TR": "Türkei", "UA": "Ukraine", "CZ": "Tschechien", "DK": "Dänemark", "GR": "Griechenland"}},
+          "en": {"kuzey": "N", "kaynak": "Source"}}
+
+
 class Cizici:
     def __init__(self, s: dict, W: int, H: int):
         import skia
         self.skia, self.s, self.W, self.H = skia, s, W, H
         self.pal = s["palet"]
         self.ink, self.vur = self.pal["grafit"], self.pal["vurgu"]
+        self.sozluk = SOZLUK.get(s.get("dil", "tr"), SOZLUK["tr"])
         self.acik = karistir(self.vur, self.pal["kagit"], 0.78)
         self.k = Kalem(self.ink)
         ti = s.get("titreme") or {}  # {"fps": 4, "genlik": 0.35}: çizgi kaynaması daha yavaş ve küçük
@@ -258,7 +268,7 @@ class Cizici:
         istenen = set(sh.get("etiketler", [])) | vurgulu
         for iso, (alan, x, y) in etiket.items():
             if iso in istenen and bx0 + 60 < x < bx1 - 60:
-                ad = ulkeler[iso]["ad"].upper()
+                ad = self.sozluk.get("ulkeler", {}).get(iso, ulkeler[iso]["ad"]).upper()
                 if iso in sh.get("adlar", {}):
                     ad = sh["adlar"][iso]
                 self.metin(cv, ad, x, y + 50, 34, renk(self.vur if iso in vurgulu else self.ink, 0.85 * zaman.asama(u, D * 0.6, 0.4)),
@@ -271,7 +281,7 @@ class Cizici:
         self.yol_ciz(cv, [(cx_, cy_ + 34), (cx_, cy_ - 34)], pp, lw=3.5, seed=70, kalem=False)
         if pp >= 1:
             self.ok_ucu(cv, (cx_, cy_ + 34), (cx_, cy_ - 34), self.ink, boy=14, lw=3.5)
-            self.metin(cv, "K", cx_, cy_ - 46, 34, renk(self.ink), ortala=True)
+            self.metin(cv, self.sozluk["kuzey"], cx_, cy_ - 46, 34, renk(self.ink), ortala=True)
         if sh.get("baslik"):
             self.yaz(cv, sh["baslik"], bx0, by0 - 28, self.sigdir(sh["baslik"], 64, 1000), renk(self.ink), zaman.asama(u, 0.1, D * 0.5))
         # şehirler
@@ -579,7 +589,8 @@ class Cizici:
             self.yaz(cv, sh["etiket"], 800, cy + ry + 110, self.sigdir(sh["etiket"], 76, 1300), renk(self.ink),
                      zaman.asama(u, D * 0.6, D * 0.45), ortala=True)
         if sh.get("kaynak"):
-            self.metin(cv, "Kaynak: " + sh["kaynak"], 1480 - self.olc("Kaynak: " + sh["kaynak"], 30), 770, 30,
+            k = f'{self.sozluk["kaynak"]}: {sh["kaynak"]}'
+            self.metin(cv, k, 1480 - self.olc(k, 30), 770, 30,
                        renk(self.ink, 0.6 * zaman.asama(u, D, 0.3)))
 
     # ---------- 7. terazi / olasılık ----------

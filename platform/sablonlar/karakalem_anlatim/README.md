@@ -27,6 +27,8 @@ Sahneler 1600×900'lük sanal sayfada kurulur; 16:9 tam dolar, diğer formatlard
 | `terazi` | `sol`*, `sag`* 18, `egim` (-1 sol ağır … 1 sağ ağır), `soru` 40, `sol_deger`, `sag_deger` 8 | olasılık terazisi: kol sönümlü salınımla eğilir, ağır kefe vurgulu |
 | `takvim` | `olaylar`* 2–6 × `{"tarih" ≤12, "metin" ≤22}`, `vurgu` (olay sırası), `baslik` 40 | zaman çizgisi; vurgulu tarih çevrilir, üstünde takvim yaprağı |
 
+Senaryoda `"dil": "de"` (ya da `en`) şablonun kendi yazdığı sözcükleri çevirir: pusuladaki K → N, "Kaynak:" → "Quelle:", vurgulu ülke adları (Almanca tablo `cizim.SOZLUK`; tek sahnede başka ad için `"adlar": {"DE": "..."}`).
+
 Permanent Marker'da Türkçe ğ/ş/İ yok; bu harfleri taşıyan damga yazıları kendiliğinden el yazısıyla (Caveat) yazılır.
 
 ## Senaryo

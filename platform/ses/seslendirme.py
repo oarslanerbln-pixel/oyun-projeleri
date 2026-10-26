@@ -15,6 +15,10 @@ Sağlayıcılar (`SAGLAYICILAR`):
               `seslendirme.json`'a `yedek` yazılır, kalite raporu bunu uyarı olarak gösterir.
               Senaryo `"seslendirme": {"saglayici": "piper"}` derse o iş bilerek Piper'la yapılır.
   piper       yerel, ücretsiz. Ses modeli ilk kullanımda GitHub'dan indirilir (huggingface.co kapalı olabilir).
+  google      Google Cloud Text-to-Speech (GOOGLE_TTS_API_KEY). Varsayılan model Chirp 3 HD: ayda 1M karakter
+              ücretsiz, ticari kullanım serbest; `model: "gemini-2.5-flash-tts"` Gemini-TTS'i (yönergeyle tonlama,
+              kuruşluk ücretli) seçer. Önbellek ve karakter kaydı ElevenLabs'le aynı; aylık ücretsiz kota dolacaksa
+              iş başlamaz (bkz. google_kredi).
   elevenlabs  ücretli API. ELEVENLABS_API_KEY yoksa açık bir hatayla durur. Her satır önbelleğe yazılır:
               aynı metin + ses + ayar ikinci kez kredi harcamaz. Harcanan karakterler kullanim.jsonl'a yazılır.
               İş başlamadan önce kalan kredi sorulur; önbellekte olmayan satırlar sığmıyorsa tek kredi harcanmaz.
@@ -97,6 +101,26 @@ ELEVEN_ADLI_SESLER = {
     "eric": {"id": "cjVigY5qzO86Huf0OWal", "cinsiyet": "erkek", "not": "olgun, net; Almanya analiz videosunun sesi"},
     "daniel": {"id": "onwK4e9ZLuTAKqWW03F9", "cinsiyet": "erkek", "not": "haber spikeri, ciddi"},
     "brian": {"id": "nPczCjzI2devNBz1zQrb", "cinsiyet": "erkek", "not": "derin anlatıcı"},
+}
+
+# Google Cloud Text-to-Speech. Chirp 3 HD ve Gemini-TTS aynı hazır ses adlarını taşır (Charon, Kore...).
+# Chirp 3 HD: "<dil>-Chirp3-HD-<Ses>"; Gemini-TTS: ses adı + modelName, `input.prompt` ile okuma yönergesi.
+GOOGLE_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
+GOOGLE_DILLER = {"tr": "tr-TR", "de": "de-DE", "en": "en-US", "fr": "fr-FR"}
+GOOGLE_SESLERI = {"erkek": "Charon", "kadin": "Kore"}
+GOOGLE_ADLI_SESLER = ("Charon", "Orus", "Fenrir", "Puck", "Iapetus", "Algenib", "Kore", "Aoede", "Leda", "Zephyr",
+                      "Sulafat", "Despina")
+GOOGLE_CHIRP = "chirp3-hd"
+GOOGLE_AYLIK_UCRETSIZ = 1_000_000  # Chirp 3 HD ücretsiz kotası (karakter/ay)
+GOOGLE_TON_HIZ = {"notr": 1.0, "sakin": 0.95, "duygusal": 0.92, "vurgulu": 0.97, "enerjik": 1.05}
+# Gemini-TTS yönergesi: Atilla'nın şikâyetleri (mekanik tonlama, soru/cümle sonu belirsiz, uzun duraklar).
+GOOGLE_YONERGE = ("Doğal, sıcak ve akıcı bir anlatıcı gibi oku; robot gibi tekdüze olma. Soru cümlelerinin sonunda "
+                  "sesi belirgin yükselt, düz cümlelerde indir. Cümle içinde durma, cümle aralarında kısa nefes ver.")
+GOOGLE_TARZ_YONERGE = {
+    "ciddi-analiz": "Ciddi, güven veren bir haber analisti tonu; sakin ama canlı.",
+    "belgesel": "Belgesel anlatıcısı; ölçülü, sıcak, merak uyandıran.",
+    "sicak-reklam": "Sıcak, samimi reklam sesi; gülümseyerek konuşur gibi.",
+    "enerjik-sosyal": "Enerjik, hızlı, sosyal medya anlatıcısı.",
 }
 
 
@@ -226,6 +250,70 @@ def elevenlabs(metin: str, ayar: dict, ag=None) -> tuple[bytes, int, dict | None
     return mp3_coz(mp3), 44100, hizalama
 
 
+def google_ayar(ayar: dict) -> dict:
+    """Ayarı Google isteğine çözer. `ses` Google hazır ses adıysa (charon, kore...) o; değilse dile ve cinsiyete
+    (Piper adından da) göre varsayılan. Ton konuşma hızını, tarz ve ton Gemini-TTS yönergesini belirler."""
+    ses = (ayar.get("ses") or "").strip()
+    piper_bilgi = PIPER_SESLERI.get(ses)
+    dil = ayar.get("dil") or (piper_bilgi or {}).get("dil") or "tr"
+    adlar = {a.lower(): a for a in GOOGLE_ADLI_SESLER}
+    if ses.lower() in adlar:
+        ses = adlar[ses.lower()]
+    else:
+        ses = GOOGLE_SESLERI[ayar.get("cinsiyet") or (piper_bilgi or {}).get("cinsiyet") or "erkek"]
+    model = ayar.get("model") if (ayar.get("model") or "").startswith("gemini") else GOOGLE_CHIRP
+    ton = ayar.get("ton") or "notr"
+    if ton not in GOOGLE_TON_HIZ:
+        raise SeslendirmeHatasi(f"bilinmeyen ton: {ton} ({', '.join(GOOGLE_TON_HIZ)})")
+    g = {"ses": ses, "dil": dil, "model": model, "hiz": round(GOOGLE_TON_HIZ[ton] * float(ayar.get("hiz") or 1.0), 3)}
+    if model != GOOGLE_CHIRP:
+        g["yonerge"] = " ".join(x for x in (GOOGLE_YONERGE, GOOGLE_TARZ_YONERGE.get(ayar.get("tarz") or ""),
+                                            f"Bu satırın tonu: {ton}." if ton != "notr" else "") if x)
+    return g
+
+
+def google(metin: str, ayar: dict, ag=None) -> tuple[bytes, int]:
+    anahtar = os.environ.get("GOOGLE_TTS_API_KEY", "")
+    if not anahtar:
+        raise SeslendirmeHatasi("GOOGLE_TTS_API_KEY ortam değişkeni yok; Google Cloud'da Text-to-Speech API anahtarı "
+                                "ortama eklenene kadar başka sağlayıcı kullanın")
+    g = google_ayar(ayar)
+    dil = GOOGLE_DILLER.get(g["dil"], g["dil"])
+    if g["model"] == GOOGLE_CHIRP:
+        ses, girdi = {"languageCode": dil, "name": f"{dil}-Chirp3-HD-{g['ses']}"}, {"text": metin}
+    else:
+        ses, girdi = {"languageCode": dil, "name": g["ses"], "modelName": g["model"]}, {"text": metin, "prompt": g["yonerge"]}
+    govde = {"input": girdi, "voice": ses,
+             "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": 24000, "speakingRate": g["hiz"]}}
+    istek = urllib.request.Request(GOOGLE_URL, data=json.dumps(govde).encode("utf-8"), method="POST",
+                                   headers={"X-Goog-Api-Key": anahtar, "Content-Type": "application/json"})
+    try:
+        d = json.loads((ag or _ac)(istek))
+    except urllib.error.HTTPError as h:
+        raise SeslendirmeHatasi(f"Google TTS {h.code}: {h.read()[:300].decode('utf-8', 'replace')}") from h
+    except (urllib.error.URLError, OSError, ValueError) as h:
+        raise SeslendirmeHatasi(f"Google TTS'e ulaşılamadı ({h}); ağ izni: texttospeech.googleapis.com") from h
+    ham = base64.b64decode(d.get("audioContent") or "")
+    if ham[:4] != b"RIFF":
+        raise SeslendirmeHatasi("Google TTS beklenen WAV sesini döndürmedi")
+    with wave.open(io.BytesIO(ham), "rb") as w:
+        return w.readframes(w.getnframes()), w.getframerate()
+
+
+def google_kredi(ag=None) -> dict:
+    """Chirp 3 HD'nin aylık ücretsiz kotasından bu ay kalan (kullanim.jsonl'daki google kayıtlarından)."""
+    ay = time.strftime("%Y-%m")
+    yol = _onbellek_koku() / "kullanim.jsonl"
+    harcanan = 0
+    if yol.exists():
+        for satir in yol.read_text(encoding="utf-8").splitlines():
+            k = json.loads(satir)
+            if k.get("saglayici") == "google" and str(k.get("zaman", "")).startswith(ay):
+                harcanan += k.get("karakter", 0)
+    return {"plan": "Chirp 3 HD ücretsiz kota", "limit": GOOGLE_AYLIK_UCRETSIZ, "harcanan": harcanan,
+            "kalan": max(0, GOOGLE_AYLIK_UCRETSIZ - harcanan), "yenilenme": None}
+
+
 def mp3_coz(mp3: bytes, sr: int = 44100) -> bytes:
     """mp3 → mono int16 PCM (ffmpeg)."""
     r = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", "pipe:0", "-f", "s16le", "-ac", "1",
@@ -257,10 +345,11 @@ def _ac(istek) -> bytes:
         return r.read()
 
 
-SAGLAYICILAR = {"piper": piper, "elevenlabs": elevenlabs}
-UCRETLI = {"elevenlabs"}  # satır önbelleği ve karakter kaydı bunlar için
-KREDI = {"elevenlabs": eleven_kredi}  # iş başlamadan kalan kredi sorgusu
-VARSAYILAN = "elevenlabs"
+SAGLAYICILAR = {"piper": piper, "elevenlabs": elevenlabs, "google": google}
+UCRETLI = {"elevenlabs", "google"}  # satır önbelleği ve karakter kaydı bunlar için
+KREDI = {"elevenlabs": eleven_kredi, "google": google_kredi}  # iş başlamadan kalan kredi sorgusu
+# STUDYO_SES_SAGLAYICI=google: ElevenLabs kredisi bittiğinde bütün işler Google ile (kod değişmeden).
+VARSAYILAN = os.environ.get("STUDYO_SES_SAGLAYICI") or "elevenlabs"
 YEDEK = "piper"
 
 
@@ -292,7 +381,7 @@ def senaryodan(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: st
 
 
 def _onbellek_anahtari(saglayici: str, metin: str, ayar: dict) -> str:
-    cozulmus = eleven_ayar(ayar) if saglayici == "elevenlabs" else ayar
+    cozulmus = {"elevenlabs": eleven_ayar, "google": google_ayar}.get(saglayici, dict)(ayar)
     ham = json.dumps({"s": saglayici, "m": metin, "a": cozulmus}, ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(ham.encode("utf-8")).hexdigest()[:32]
 
@@ -464,14 +553,15 @@ def uret(satirlar: list[dict], cikti: Path, saglayici: str | None = "otomatik", 
 
 def _uret(satirlar: list[dict], cikti: Path, saglayici: str, ayar: dict) -> dict:
     cikti.mkdir(parents=True, exist_ok=True)
-    ses = eleven_ayar(ayar)["ses"] if saglayici == "elevenlabs" else (ayar.get("ses") or "fahrettin")
+    ses = {"elevenlabs": lambda: eleven_ayar(ayar)["ses"], "google": lambda: google_ayar(ayar)["ses"]}.get(
+        saglayici, lambda: ayar.get("ses") or "fahrettin")()
     kayit = {"saglayici": saglayici, "ses": ses, "satirlar": []}
     sayac = {"karakter": 0, "api": 0, "onbellek": 0}
     yon = None
     if saglayici == "elevenlabs" and ayar.get("yonetmen", True) is not False:
         satirlar, satir_ayar, yon = yonetmen_ayarlari(satirlar, ayar)
     else:
-        satir_ayar = satir_ayarlari(satirlar, ayar) if saglayici == "elevenlabs" else [ayar] * len(satirlar)
+        satir_ayar = satir_ayarlari(satirlar, ayar) if saglayici in UCRETLI else [ayar] * len(satirlar)
     kredi = kredi_kontrol(saglayici, satirlar, satir_ayar) if saglayici in UCRETLI else None
     with tempfile.TemporaryDirectory() as tmp:
         for s, s_ayar in zip(satirlar, satir_ayar):
@@ -568,6 +658,8 @@ def main(argv: list[str] | None = None) -> int:
         for dil, c in ELEVEN_DIL_SESLERI.items():
             for cins, b in c.items():
                 print(f"elevenlabs {b['ad']:10} {cins:6} {dil} varsayılanı ({b['id']})")
+        print(f"google --ses {'|'.join(a.lower() for a in GOOGLE_ADLI_SESLER)}  (Chirp 3 HD; senaryoda "
+              f"model: gemini-2.5-flash-tts → Gemini-TTS)")
         print("elevenlabs  --ses <ad ya da voice_id>  (varsayılan sağlayıcı; ELEVENLABS_API_KEY yoksa Piper yedeği)")
         return 0
     veri = json.loads(Path(a.satirlar).read_text(encoding="utf-8"))

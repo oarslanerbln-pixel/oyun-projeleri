@@ -29,7 +29,7 @@ Sahneler 1600×900'lük sanal sayfada kurulur; 16:9 tam dolar, diğer formatlard
 
 Senaryoda `"dil": "de"` (ya da `en`) şablonun kendi yazdığı sözcükleri çevirir: pusuladaki K → N, "Kaynak:" → "Quelle:", vurgulu ülke adları (Almanca tablo `cizim.SOZLUK`; tek sahnede başka ad için `"adlar": {"DE": "..."}`).
 
-Ses: anlatım varsayılan olarak kuru ve cilalıdır (uğultu kesme, oda tınısını azaltma, netlik, kompresör, de-esser; gecikmesiz, zamanlama değişmez). Eski oda yankısı için senaryoda `"yanki": 0.12`, cilasız ham ses için `"ses_cilasi": false`.
+Ses: anlatım varsayılan olarak kuru ve cilalıdır (uğultu kesme, oda tınısını azaltma, netlik, kompresör, de-esser; gecikmesiz, zamanlama değişmez). Eski oda yankısı için senaryoda `"yanki": 0.12`, cilasız ham ses için `"ses_cilasi": false`. Müzik konuşmanın 16 dB altındadır ve konuşurken 6 dB daha kısılır; e-piano vuruşları konuşma sırasında ve kelime bitiminden 0,4 sn sonrasına kadar 10 dB daha kısıktır (yankı gibi duyulmasın). Ayar: `"muzik": {"alti_db": 16, "kisma_db": 6}`.
 
 Permanent Marker'da Türkçe ğ/ş/İ yok; bu harfleri taşıyan damga yazıları kendiliğinden el yazısıyla (Caveat) yazılır.
 

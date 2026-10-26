@@ -127,6 +127,55 @@ class ElevenLabs(unittest.TestCase):
             self.assertEqual(json.loads(yol.read_text())["bas"], [0.0, 0.1])
 
 
+
+class Google(unittest.TestCase):
+    def _wav(self):
+        import io, wave
+        b = io.BytesIO()
+        with wave.open(b, "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(b"\x01\x00" * 2400)
+        return json.dumps({"audioContent": base64.b64encode(b.getvalue()).decode()}).encode()
+
+    def test_anahtar_yoksa_acik_hata(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(seslendirme.SeslendirmeHatasi, "GOOGLE_TTS_API_KEY"):
+                seslendirme.google("merhaba", {})
+
+    def test_chirp_istegi(self):
+        istekler = []
+        ag = lambda r: istekler.append(r) or self._wav()
+        with mock.patch.dict(os.environ, {"GOOGLE_TTS_API_KEY": "k"}, clear=True):
+            pcm, sr = seslendirme.google("Hallo?", {"dil": "de", "ses": "kore", "ton": "sakin"}, ag=ag)
+        self.assertEqual((sr, len(pcm)), (24000, 4800))
+        g = json.loads(istekler[0].data)
+        self.assertEqual(g["voice"], {"languageCode": "de-DE", "name": "de-DE-Chirp3-HD-Kore"})
+        self.assertEqual(g["audioConfig"]["speakingRate"], 0.95)
+        self.assertNotIn("prompt", g["input"])
+        self.assertEqual(istekler[0].get_header("X-goog-api-key"), "k")
+
+    def test_gemini_yonergesi_ve_varsayilan_ses(self):
+        istekler = []
+        ag = lambda r: istekler.append(r) or self._wav()
+        with mock.patch.dict(os.environ, {"GOOGLE_TTS_API_KEY": "k"}, clear=True):
+            seslendirme.google("Neden?", {"ses": "fahrettin", "model": "gemini-2.5-flash-tts", "tarz": "ciddi-analiz"}, ag=ag)
+        g = json.loads(istekler[0].data)
+        self.assertEqual(g["voice"], {"languageCode": "tr-TR", "name": "Charon", "modelName": "gemini-2.5-flash-tts"})
+        self.assertIn("Soru cümlelerinin", g["input"]["prompt"])
+        self.assertIn("haber analisti", g["input"]["prompt"])
+
+    def test_aylik_ucretsiz_kota(self):
+        with tempfile.TemporaryDirectory() as d, mock.patch.dict(os.environ, {"STUDYO_SES_ONBELLEK": d}):
+            ay = seslendirme.time.strftime("%Y-%m")
+            Path(d, "kullanim.jsonl").write_text("\n".join(json.dumps(x) for x in [
+                {"zaman": f"{ay}-01T00:00:00", "saglayici": "google", "karakter": 1000},
+                {"zaman": "2000-01-01T00:00:00", "saglayici": "google", "karakter": 5},
+                {"zaman": f"{ay}-02T00:00:00", "saglayici": "elevenlabs", "karakter": 7}]))
+            self.assertEqual(seslendirme.google_kredi()["kalan"], seslendirme.GOOGLE_AYLIK_UCRETSIZ - 1000)
+
+    def test_bilinmeyen_ton(self):
+        with self.assertRaisesRegex(seslendirme.SeslendirmeHatasi, "ton"):
+            seslendirme.google_ayar({"ton": "kizgin"})
+
 class Piper(unittest.TestCase):
     def test_lisans_kapisi(self):
         with self.assertRaisesRegex(seslendirme.SeslendirmeHatasi, "ticari işte kullanılamaz"):

@@ -1,0 +1,212 @@
+<title>Kırk Oda</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+/* Layout: tek sütunlu masal kitabı; karanlıkta tek sıcak ışık (kor), kenarlarda soğuk kök mavisi. */
+:root {
+  --bg: #12151b;        /* is karası */
+  --surface: #1a1f28;
+  --fg: #e9e3d8;
+  --muted: #a3a9b6;
+  --ember: #e8893a;     /* kor turuncusu */
+  --root: #6f93c4;      /* kök mavisi */
+  --line: #2b3240;
+  --display: "Alegreya", Georgia, "Times New Roman", serif;
+  --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f3f1ec; --surface: #e8e5de; --fg: #1d2129; --muted: #5a6170;
+    --ember: #b5571a; --root: #3c5f8f; --line: #d3cfc5; color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f3f1ec; --surface: #e8e5de; --fg: #1d2129; --muted: #5a6170;
+  --ember: #b5571a; --root: #3c5f8f; --line: #d3cfc5; color-scheme: light;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 1.125rem/1.65 var(--body);
+}
+.page {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding-block: 3.5rem 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 3rem;
+}
+h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; margin: 0; line-height: 1.15; }
+p { margin: 0; }
+.stack { display: grid; gap: 1rem; }
+.eyebrow {
+  font-size: .78rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--root); font-weight: 700;
+}
+header { display: grid; gap: 1.1rem; }
+h1 { font-size: clamp(3rem, 11vw, 5rem); letter-spacing: -.01em; }
+h1 .en { display: block; font-size: .32em; font-weight: 500; font-style: italic; color: var(--muted); letter-spacing: .02em; margin-top: .35rem; }
+.logline {
+  font-family: var(--display); font-style: italic; font-weight: 500;
+  font-size: clamp(1.3rem, 3.6vw, 1.6rem); line-height: 1.4;
+}
+.logline em { font-style: normal; color: var(--ember); }
+.facts { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; margin: 0; list-style: none; }
+.facts li {
+  font-size: .9rem; padding: .25rem .7rem; border: 1px solid var(--line);
+  border-radius: 999px; color: var(--muted);
+}
+h2 { font-size: 1.75rem; }
+h2 .k { color: var(--ember); }
+h3 { font-size: 1.2rem; }
+.verse {
+  margin: 0; padding: 1.25rem 0 1.25rem 1.25rem;
+  border-left: 2px solid var(--ember);
+  font-family: var(--display); font-style: italic; font-size: 1.15rem; line-height: 1.55;
+}
+.verse p + p { margin-top: .9rem; }
+.mech { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+.mech div { display: grid; gap: .3rem; align-content: start; min-width: 0; }
+.mech b { font-family: var(--display); font-size: 1.15rem; color: var(--ember); }
+.rings { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.rings li {
+  display: grid; grid-template-columns: 2rem 7.5rem 1fr; gap: .75rem;
+  padding: .7rem 0; border-bottom: 1px solid var(--line); align-items: baseline;
+}
+.rings .n { font-variant-numeric: tabular-nums; color: var(--root); font-weight: 700; }
+.rings .r { font-family: var(--display); font-weight: 700; }
+.rings .d { color: var(--muted); min-width: 0; }
+@media (max-width: 30rem) {
+  .rings li { grid-template-columns: 1.6rem 1fr; }
+  .rings .d { grid-column: 2; }
+}
+.spoiler {
+  display: flex; align-items: center; gap: .75rem;
+  color: var(--ember); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700;
+}
+.spoiler::before, .spoiler::after { content: ""; flex: 1; height: 1px; background: var(--ember); opacity: .5; }
+.act { display: grid; gap: .4rem; }
+.act h3 span { color: var(--muted); font-weight: 500; font-family: var(--body); font-size: .95rem; margin-left: .4rem; }
+.endings { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; }
+.endings div {
+  background: var(--surface); border-radius: 6px; padding: 1.1rem 1.2rem;
+  display: grid; gap: .4rem; align-content: start; min-width: 0;
+}
+.endings b { font-family: var(--display); font-size: 1.25rem; }
+.endings .cond { font-size: .88rem; color: var(--root); }
+.endings p:last-child { font-size: 1rem; }
+.why { margin: 0; padding-left: 1.2rem; display: grid; gap: .55rem; }
+.why li::marker { color: var(--ember); }
+footer { color: var(--muted); font-size: .9rem; border-top: 1px solid var(--line); padding-top: 1.25rem; }
+</style>
+
+<main class="page">
+
+  <header>
+    <span class="eyebrow">Anlatı ve bulmaca oyunu · tanıtım özeti</span>
+    <h1>Kırk Oda<span class="en">Forty Rooms</span></h1>
+    <p class="logline">Toros eteklerinde bir kasabanın saat kulesi bir kış gecesi durur. Kulenin altında kırk oda vardır ve her odanın <em>kendi zamanı</em> işler. Saatçi kuleyi yeniden kurmak için aşağı iner, ama her dönüşünde kasaba onu biraz daha yaşlanmış bekler.</p>
+    <ul class="facts">
+      <li>5–6 saat</li>
+      <li>Tek oyunculu, PC / Steam</li>
+      <li>Türkçe ve İngilizce</li>
+      <li>Savaş yok, ölüm yok</li>
+      <li>Üç son</li>
+    </ul>
+  </header>
+
+  <section class="stack">
+    <span class="eyebrow">Açılış efsanesi</span>
+    <blockquote class="verse">
+      <p>Bu dağda bir zaman vakit yok imiş,<br>Ne ekin bitermiş, ne kar erirmiş,<br>Bir yabancı gelmiş, bir kule kurmuş,<br>İçine taş koymuş, zaman yürümüş.</p>
+    </blockquote>
+    <p>Oyun, kasabanın kendi anlattığı bu masalla açılır. Anlatıcı söyler, doğrulamaz. Olanların bir mucize mi, bir rüya mı, yoksa yorgun bir adamın algısı mı olduğuna oyuncu karar verir.</p>
+  </section>
+
+  <section class="stack">
+    <h2>Kahraman ve dünya</h2>
+    <p><strong>Saatçi.</strong> Kırk yaşında, yalnız. Adı hiç geçmez, kasaba ona “usta” der. Kuleyi babasından devralmıştır; babası kuleyi kurarken ortadan kaybolmuş, ne olduğu hiç bilinmemiştir. Saatçinin tek yeteneği dinlemektir: çarkın sesinden arızayı, bir odanın sesinden zamanın nasıl aktığını anlar.</p>
+    <p><strong>Köpek.</strong> Çoban köpeği onunla birlikte iner. Köpek hiç değişmez, ama fenerin duvara düşürdüğü gölgesi her halkada biraz daha kurda benzer.</p>
+    <p><strong>Kasaba.</strong> Kırk hane, bir değirmen, bir kahve, bir mezarlık. Yedi kasabalının her birinin bir derdi vardır: uyumayan değirmenci, istemeden nişanlanmış kızı, otuz yıldır birini bekleyen kahveci, çırak seçemeyen ebe, sürüsünü sayıp sayıyı tutturamayan çoban, günleri tahminle yazan muhtar. Bir de kule durunca meydana değnek dikip vakti gölgeden bulan imam.</p>
+    <p><strong>Kırk oda.</strong> Yedi halkaya dizilmiştir ve dışarıdan içeriye daralır. Kasabada zaman yalnız ileri akar; aşağıda her halkanın kendi kuralı vardır.</p>
+  </section>
+
+  <section class="stack">
+    <h2>Yedi halka</h2>
+    <ol class="rings">
+      <li><span class="n">1</span><span class="r">Toprak</span><span class="d">İçeride bir saat, dışarıda bir gün. Bekleyerek çözülür.</span></li>
+      <li><span class="n">2</span><span class="r">Su</span><span class="d">Zaman gelgit gibi ileri akar, sonra geri sarar.</span></li>
+      <li><span class="n">3</span><span class="r">Nefes</span><span class="d">Nefesini tutunca dünya durur, yalnız saatçi hareket eder.</span></li>
+      <li><span class="n">4</span><span class="r">Gölge</span><span class="d">Işıkta ileri, gölgede geri. Saatçi kendi başka yaşlarıyla karşılaşır.</span></li>
+      <li><span class="n">5</span><span class="r">Ayna</span><span class="d">Odada yapılan, kasabanın kayıtlarını değiştirir: mezar taşları, fotoğraflar.</span></li>
+      <li><span class="n">6</span><span class="r">Sessizlik</span><span class="d">Hiçbir şey duyulmaz. Tek bir hamleyle kırk yıl geçer.</span></li>
+      <li><span class="n">7</span><span class="r">Ân</span><span class="d">Zaman yok. Kırkıncı oda; yalnız saatçi ve taş.</span></li>
+    </ol>
+  </section>
+
+  <section class="stack">
+    <h2>Nasıl oynanır</h2>
+    <div class="mech">
+      <div><b>Dinlemek</b><p>Saatçi dinlerken kıpırdayamaz, ama sesler ince ışık çizgileri olarak görünür. Bulmacanın anahtarı metinde değil, seste.</p></div>
+      <div><b>Kor</b><p>Her odanın sonunda avuç içi kadar bir ışık. Kuleye takıldıkça kule döner, kasabada zaman düzelir.</p></div>
+      <div><b>Sır</b><p>Her halkadan bir kasabalıya ait tek cümlelik bir sır gelir. Söylersen onun derdi çözülür ama kule bir katını kaybeder. Saklarsan kule yanar, insan derdiyle kalır.</p></div>
+      <div><b>Taş</b><p>Kulenin sarkaç taşı. Tek ilerleme göstergesi: saklanan sırla sesi yükselir, söylenenle alçalır. Menü yok, sayı yok.</p></div>
+    </div>
+    <p>Asıl bedel zamandır. Kasabaya her halkanın sonunda çıkılır ve ne kadar derine inilirse kasaba o kadar hızlı yaşlanır: önce günler, sonra aylar, mevsimler, yıllar. Kırk yıllık atlamayı bir ara sahne değil, oyuncunun kendi eli yapar.</p>
+  </section>
+
+  <div class="spoiler" role="separator">Buradan sonrası hikâyeyi açar</div>
+
+  <section class="stack">
+    <h2>Hikâye, üç perdede</h2>
+    <div class="act">
+      <h3>Birinci perde: Borç <span>Toprak ve Su</span></h3>
+      <p>Saatçi ilk korları getirir, kule kısmen çalışır ve kasaba onu kahraman gibi karşılar. Oyuncu ilk sırrı öğrenir ve ilk kez birine söyleyip söylememeyi seçer. Su halkasının sonunda saatçi bir şeyi anlar: babası da aynı kapaktan inmiş ve hiç geri çıkmamıştır.</p>
+    </div>
+    <div class="act">
+      <h3>Kırılma</h3>
+      <p>Saatçi döndüğünde bir yıla yakın geçmiştir. Muhtar kapağı taşla örttürmek ister. Oyuncu ya kasabayı ikna eder ya gece gizlice iner; kasabanın ona bakışı buna göre değişir.</p>
+    </div>
+    <div class="act">
+      <h3>İkinci perde: Bedel <span>Nefes, Gölge, Ayna</span></h3>
+      <p>Ölmüş ihtiyarlar saatçiden bir öfkesini, kendi gölgeleri bir korkusunu ister. Gölge halkasında babasının sesini bir kez duyar. Ayna halkasında kasabanın kayıtlarını aşağıdan değiştirebilir, ama her değişiklik kulenin kitabesinden, babasının adından, bir harf siler. Sessizlik'in eşiğinde fener titrer, köpek ilk kez ilerlemeyi reddeder. Saatçi tek hamleyi yapar ve kırk yıl geçer.</p>
+    </div>
+    <div class="act">
+      <h3>İkinci kırılma</h3>
+      <p>Tanıdığı herkes ya ölmüş ya yaşlanmıştır. Bir zamanlar nişanlı olan değirmencinin kızı artık kasabanın ebesidir ve kapağın başında onu bekler. Ona babasının adını söyler; kitabe boştur, saatçi adı unutmuştur.</p>
+    </div>
+    <div class="act">
+      <h3>Üçüncü perde: Vazgeçiş <span>Sessizlik ve Ân</span></h3>
+      <p>Sessizlik halkasında bütün oyunu duyarak çözen saatçi hiçbir şey duymaz. İlk odanın bekçisi bir isim ister: babasının adını verirse kule tam çalışır, ama baba kasabanın hiçbir çağında bir daha anılmaz. Sonra kasaba terk edilmiştir. Kırkıncı odada zaman da, bekçi de yoktur; yalnız taş. Saatçi hareket edemez, yalnız niyet eder.</p>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>Üç son</h2>
+    <p>Sonu kırkıncı odada taşla ne yapıldığı belirler. Hangi seçeneğin açık olduğunu ise oyun boyunca saklanan ve söylenen sırlar ile verilen ya da verilmeyen ad belirler. Hiçbiri “doğru” son değildir ve üçünde de yağmur yağar, yalnız başka bir yere.</p>
+    <div class="endings">
+      <div><b>Dönüş</b><span class="cond">Ad verildiyse ve sırların çoğu saklandıysa</span><p>Taşı yukarı taşır. Kule tam çalışır, meydana yağmur yağar. Kasaba onu tanımaz; saatçi yeni bir çırak yetiştirmeye başlar.</p></div>
+      <div><b>Kalış</b><span class="cond">Her zaman açık</span><p>Taşla aşağıda kalır. Kule çalışır ama akrep hiç ilerlemez; kimse yaşlanmaz. Yağmur kapalı kapağın üstüne yağar.</p></div>
+      <div><b>Dağıtış</b><span class="cond">Sırların çoğu söylendiyse</span><p>Taşı gömer. Kule bir daha çalışmaz, ama yedi kasabalı dertlerinden kurtulmuştur. Yağmur gömülen taşın üstüne yağar.</p></div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>Neden farklı</h2>
+    <ul class="why">
+      <li>Oyuncu güçlenmez, farklı görmeye başlar. Seviye, puan ve yetenek ağacı yok; vazgeçmek ilerlemenin kendisi.</li>
+      <li>Her seçimin bir bedeli var ve bedeli kasabanın yüzlerinde görürsün: bir sırrı söylemek birine iyilik, kuleye kayıptır.</li>
+      <li>Ses üzerine kurulu bir bulmaca dili. Her ses ipucunun görsel ve dokunsal bir karşılığı da var, işitme engelli oyuncular da oynayabilir.</li>
+      <li>Anadolu masallarının ve Türk mitolojisinin izlerini taşır ama hiçbir inancı ya da topluluğu anlatmaz; hiçbir şeyi kesinleştirmez.</li>
+      <li>Karanlıkta tek bir sıcak ışık: kor turuncusu fener ve onun ulaşamadığı her yerde soğuk bir mavi.</li>
+    </ul>
+  </section>
+
+  <footer>Kırk Oda · Ön üretim, Ekim 2026 · Hedef çıkış: 2028 başı, Steam</footer>
+
+</main>

@@ -38,7 +38,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `ekran/` | kalkış tabelası, VHS, akış alanı |
 | `desen/` | vitray, linol, çini, teknik çizim |
 | `karusel/`, `neon/` | Instagram karusel, neon animasyon |
-| `dunya/` | dünya haritası motion graphic: dönen küre + kamera, 8 kaplama (atlas, kure, nokta, karakalem, parsomen, neon, kagit, izometrik), d3-geo + Chromium; `dunya.py kontakt` |
+| `dunya/` | dünya haritası motion graphic: dönen küre + kamera, 8 kaplama (atlas, kure, nokta, karakalem, parsomen, neon, kagit, izometrik), d3-geo + Chromium; `dunya.py kontakt`. **`dunya/sinema/`**: three.js sinematik küre (perspektif kamera uçuşu, gerçek arazi, bulut, gece ışıkları, atmosfer, post FX; ülke rolleri, ok, cephe, menzil, NATO birlik sembolleri, marka yazı sistemi), 4 ışık modu; `sinema.py kontakt/kare/video`, örnekler `ornekler/dunya-sinema/`, kurallar `platform/docs/harita-tasarim-dili.md` |
 | `animasyon/` | AI çekimli proje iskeleti |
 
 ## Ortak klasör (`/mnt/project-files/`)

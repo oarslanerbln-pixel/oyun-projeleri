@@ -1,0 +1,42 @@
+{
+  "_not": "Harita marka sistemi (tasarım dili: platform/docs/harita-tasarim-dili.md). Yazı boyları kısa kenara oran.",
+  "varsayilan": {
+    "uzay": "#03060c",
+    "atmosfer": "#4f8fe6",
+    "sehirIsigi": "#ffb35a",
+    "soluk": "#0a1322",
+    "sinir": "rgba(235,242,255,0.38)",
+    "sinirKalin": 0.9,
+    "etiket": "rgba(244,247,252,0.94)",
+    "etiketVurgu": "#ffffff",
+    "deniz": "rgba(168,200,236,0.85)",
+    "metin": "#f6f3ec",
+    "metin2": "rgba(232,236,244,0.78)",
+    "cipZemin": "rgba(6,12,22,0.72)",
+    "bloom": [0.45, 0.4, 0.88],
+    "vinyet": 0.34,
+    "gren": 0.016,
+    "atmGuc": 1.0,
+    "guvenli": {"yatay": [0.06, 0.08, 0.08], "dikey": [0.07, 0.11, 0.23]},
+    "roller": {
+      "ana":        {"dolgu": "#f2a33a", "kontur": "#ffc061", "alfa": 0.3},
+      "karsi":      {"dolgu": "#d8433b", "kontur": "#ff6a5c", "alfa": 0.3},
+      "dost":       {"dolgu": "#2f7fd6", "kontur": "#6fb2ff", "alfa": 0.3},
+      "notr":       {"dolgu": "#8a96a8", "kontur": "#c9d2de", "alfa": 0.35},
+      "tartismali": {"dolgu": "#e8d27a", "kontur": "#f3e3a0", "alfa": 0.28},
+      "ittifak":    {"dolgu": "#3fa38a", "kontur": "#78dcc0", "alfa": 0.3}
+    },
+    "yazi": {
+      "ust":    {"aile": "Inter Tight", "agirlik": 700, "boy": 0.021, "aralik": 0.22},
+      "baslik": {"aile": "Barlow Condensed", "agirlik": 700, "boy": 0.092, "aralik": 0.01},
+      "alt":    {"aile": "Inter Tight", "agirlik": 500, "boy": 0.03, "aralik": 0},
+      "ulke":   {"aile": "Barlow Condensed", "agirlik": 600, "aralik": 0.24},
+      "sehir":  {"aile": "Inter Tight", "agirlik": 600, "boy": 0.021},
+      "deniz":  {"aile": "Source Serif 4", "agirlik": 400, "boy": 0.024, "aralik": 0.16},
+      "tarih":  {"aile": "Barlow Condensed", "agirlik": 600, "boy": 0.056, "aralik": 0.04},
+      "cip":    {"aile": "Inter Tight", "agirlik": 700, "boy": 0.019, "aralik": 0.16},
+      "lejant": {"aile": "Inter Tight", "agirlik": 500, "boy": 0.019},
+      "kaynak": {"aile": "Inter Tight", "agirlik": 400, "boy": 0.0135}
+    }
+  }
+}

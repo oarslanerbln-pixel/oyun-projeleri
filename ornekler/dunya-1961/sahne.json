@@ -1,0 +1,14 @@
+{
+  "stil": "dunya",
+  "kaplama": "kure",
+  "sure": 12,
+  "dil": "tr",
+  "ust": "30 EKİM 1961 · İŞGÜCÜ ANLAŞMASI",
+  "baslik": "1961",
+  "altbaslik": "İstanbul'dan Münih'e",
+  "rota": ["İstanbul", "Münih"],
+  "vurgu": ["Türkiye", "Almanya"],
+  "noktalar": ["Köln", "Berlin", "Frankfurt", "Stuttgart"],
+  "sayacNot": "KUŞ UÇUŞU MESAFE",
+  "veriNot": "SÜTUN = ŞEHİR NÜFUSU (NATURAL EARTH)"
+}

@@ -38,6 +38,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `ekran/` | kalkış tabelası, VHS, akış alanı |
 | `desen/` | vitray, linol, çini, teknik çizim |
 | `karusel/`, `neon/` | Instagram karusel, neon animasyon |
+| `dunya/` | dünya haritası motion graphic: dönen küre + kamera, 8 kaplama (atlas, kure, nokta, karakalem, parsomen, neon, kagit, izometrik), d3-geo + Chromium; `dunya.py kontakt` |
 | `animasyon/` | AI çekimli proje iskeleti |
 
 ## Ortak klasör (`/mnt/project-files/`)

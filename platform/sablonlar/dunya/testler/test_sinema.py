@@ -31,3 +31,25 @@ class SinemaSahne(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GrafikStilleri(unittest.TestCase):
+    def test_her_stil_markada_ve_grafik_js_te(self):
+        import json
+        import sinema
+        mj = json.loads((KOK / "sinema" / "marka.json").read_text())
+        js = (KOK / "sinema" / "grafik.js").read_text()
+        for ad in sinema.GRAFIKLER:
+            self.assertIn(ad, mj["grafikler"], ad)
+            if ad != "belgesel":
+                self.assertIn(f"\n    {ad}: {{", js, ad)
+            m = sinema._birlestir(mj["varsayilan"], mj["grafikler"][ad])
+            for rol in ("ana", "karsi", "dost", "notr"):
+                self.assertTrue(m["roller"][rol]["dolgu"].startswith("#"))
+            for k, y in m["yazi"].items():  # her yazı ailesi gömülü olmalı
+                self.assertIn(y["aile"], sinema.AILE.values(), f"{ad}.{k}")
+
+    def test_birlestir_derin(self):
+        import sinema
+        m = sinema._birlestir({"a": {"x": 1, "y": 2}, "b": 1}, {"a": {"y": 3}})
+        self.assertEqual(m, {"a": {"x": 1, "y": 3}, "b": 1})

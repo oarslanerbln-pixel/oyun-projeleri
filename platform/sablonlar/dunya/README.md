@@ -61,6 +61,8 @@ NATO tipi birlik, başlık, tarih damgası, konum çipi, lejant, künye). Tasar�
 python3 platform/sablonlar/dunya/sinema/sinema.py doku                      # dokuları üret (~2 dk, ~/.cache/studyo/kure)
 python3 platform/sablonlar/dunya/sinema/sinema.py kontakt ornekler/dunya-sinema/*.json --formatlar 16x9 9x16 -o sayfa.jpg
 python3 platform/sablonlar/dunya/sinema/sinema.py kare  ornekler/dunya-sinema/karadeniz.json --an 1 6 10 --format 9x16 -o cikti/
+python3 platform/sablonlar/dunya/sinema/sinema.py grafik-kontakt ornekler/dunya-sinema/karadeniz.json:16x9:9 ornekler/dunya-sinema/barbarossa-1941.json:9x16:10 -o stiller.jpg
+python3 platform/sablonlar/dunya/sinema/sinema.py video ornekler/dunya-sinema/karadeniz.json --grafik gravur --format 16x9 -o film.mp4
 python3 platform/sablonlar/dunya/sinema/sinema.py video ornekler/dunya-sinema/karadeniz.json --format 16x9 -o film.mp4
 python3 platform/sablonlar/dunya/sinema/sinema.py video ... --ss 1 --olcek 0.5   # onay öncesi küçük animatik
 ```

@@ -7,6 +7,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { grafikKur } from "./grafik.js";
 
 const V = window.__VERI, S = V.sahne, M = V.marka, SS = S.ss;
 const W = S.W, H = S.H, PW = Math.round(W * SS), PH = Math.round(H * SS);
@@ -336,14 +337,18 @@ function katmanCiz(c, kutu, t, olcek, dunya, hareketli = true) {
       if (merkez && acil < 1) { const kb = d3.geoBounds(f), c1 = xy([kb[0][0], kb[0][1]]), c2 = xy([kb[1][0], kb[1][1]]);
         const R = Math.max(...[c1, c2, [c1[0], c2[1]], [c2[0], c1[1]]].map((q) => Math.hypot(q[0] - merkez[0], q[1] - merkez[1]))) * 1.05;
         g.beginPath(); g.arc(merkez[0], merkez[1], Math.max(1, R * acil), 0, 7); g.clip(); }
-      g.beginPath(); yol(f);
-      if (k.desen === "tarama") { g.fillStyle = hex(r.dolgu, 0.18); g.fill(); g.fillStyle = desen(g, hex(r.dolgu, 0.85), 45, Math.max(6, px(9)), Math.max(1.5, px(2.2))); g.fill(); }
+      const stilDolgu = G.ulkeDolgu && k.desen !== "tarama"; // tarama (tartışmalı alan) her stilde aynı anlamı taşır
+      if (stilDolgu) G.ulkeDolgu(g, yol, f, r, px); else { g.beginPath(); yol(f); }
+      if (stilDolgu) { /* stil çizdi */ }
+      else if (k.desen === "tarama") { g.fillStyle = hex(r.dolgu, 0.18); g.fill(); g.fillStyle = desen(g, hex(r.dolgu, 0.85), 45, Math.max(6, px(9)), Math.max(1.5, px(2.2))); g.fill(); }
       else { g.fillStyle = hex(r.dolgu, k.yogunluk ?? r.alfa ?? 0.32); g.fill();
         g.save(); g.clip(); for (const [w_, al] of [[18, 0.12], [11, 0.16], [5, 0.22]]) { g.strokeStyle = hex(r.kontur, al); g.lineWidth = px(w_); g.stroke(); } g.restore(); }
       g.restore(); g.save(); g.globalAlpha = a; g.beginPath(); yol(f);
       if (iz < 1) { const L = d3.geoLength(f) * c.width / (dunya ? 2 * Math.PI : (kutu[2] - kutu[0]) * D2R) * 1.3; g.setLineDash([L * iz, L * 2]); }
-      g.lineJoin = g.lineCap = "round"; g.strokeStyle = hex(r.kontur, 0.35 * a); g.lineWidth = px(6); g.stroke();
-      g.strokeStyle = hex(r.kontur, 0.95); g.lineWidth = px(1.6); g.stroke(); g.restore();
+      if (G.ulkeKontur) G.ulkeKontur(g, yol, f, r, px);
+      else { g.lineJoin = g.lineCap = "round"; g.strokeStyle = hex(r.kontur, 0.35 * a); g.lineWidth = px(6); g.stroke();
+        g.strokeStyle = hex(r.kontur, 0.95); g.lineWidth = px(1.6); g.stroke(); }
+      g.restore();
     }
   }
   // tüm sınırlar (ince)
@@ -357,10 +362,12 @@ function katmanCiz(c, kutu, t, olcek, dunya, hareketli = true) {
     const A = ds[i], B = ds[Math.min(i + 1, ds.length - 1)], f = B === A ? 0 : eio(ara(t, A.t, B.t));
     const pa = yeniden(yumusak(A.yol.map(xy), 12), 200), pb = yeniden(yumusak(B.yol.map(xy), 12), 200);
     const y = pa.map((q, j) => [q[0] + (pb[j][0] - q[0]) * f, q[1] + (pb[j][1] - q[1]) * f]);
-    const ci = eio(ara(t, k.t?.[0] ?? 0, (k.t?.[0] ?? 0) + 1.6)); g.save(); g.globalAlpha = a; cepheCiz(g, ci < 1 ? kirpYol(y, ci) : y, px(3.2), renk(k.rol || "karsi").kontur, k.taraf || 1); g.restore(); }
+    const ci = eio(ara(t, k.t?.[0] ?? 0, (k.t?.[0] ?? 0) + 1.6)); g.save(); g.globalAlpha = a; const yc = ci < 1 ? kirpYol(y, ci) : y;
+    if (G.cephe) G.cephe(g, yc, px(3.2) * (G.cepheOlcek ?? 1), renk(k.rol || "karsi"), k.taraf || 1, t); else cepheCiz(g, yc, px(3.2), renk(k.rol || "karsi").kontur, k.taraf || 1); g.restore(); }
   // oklar
-  for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "ok")) { const [a0, b0] = k.t || [0, 1]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 2.2))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
-    okZaman = t - a0; g.save(); g.globalAlpha = a; okCiz(g, yumusak(k.yol.map(xy), 30), p, px(k.kalin ?? 26), renk(k.rol || "karsi").dolgu); g.restore(); }
+  for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "ok")) { const [a0, b0] = k.t || [0, 1]; const p = (G.okEase || eio)(ara(t, a0, a0 + (k.cizim ?? 2.2) * (G.hiz ?? 1))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
+    okZaman = t - a0; g.save(); g.globalAlpha = a; const yy = yumusak(k.yol.map(xy), 30);
+    if (G.ok) G.ok(g, yy, p, px(k.kalin ?? 26), renk(k.rol || "karsi"), t - a0, px); else okCiz(g, yy, p, px(k.kalin ?? 26), renk(k.rol || "karsi").dolgu); g.restore(); }
   // rotalar (yer üstü kesikli, ilerleyen)
   for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "rota")) { const [a0] = k.t || [0]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 3))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
     const gc = { type: "LineString", coordinates: d3.range(0, 101).map((i) => d3.geoInterpolate(k.yol[0], k.yol[k.yol.length - 1])(i / 100)) };
@@ -389,6 +396,8 @@ function harf(g, metin, x, y, aralik) { // harf aralıklı metin (letterSpacing 
 const T = M.yazi; // marka tipografisi
 const fpx = (oran) => Math.round(oran * kisa * SS); // kısa kenara oranla piksel
 function golgeli(g, fn, bulan = 10) { g.save(); g.shadowColor = "rgba(0,8,20,0.85)"; g.shadowBlur = bulan * SS; fn(); g.restore(); fn(); }
+// anlatım grafiği stili (grafik.js); stilde olmayan parça aşağıdaki belgesel çizimine düşer
+const G = grafikKur({ M, T, SS, W, H, dil: S.dil, hex, renk, fpx, eo, eoq, eio, ara, sinir, kirpYol, yolUzun, rng, desen, tuval });
 
 function birlikCiz(g, x, y, k, a) {
   const r = renk(k.rol || "dost"), b = fpx(0.034), w = b * 1.5, h = b;
@@ -423,13 +432,16 @@ function etiketler(t, k) {
       // boyut: ülkenin ekrandaki genişliği
       const gk = q.genislik || 6; const p2 = ekrana(lo + gk / 2, la), p1 = ekrana(lo - gk / 2, la); const gen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
       const boy = sinir(gen * 0.085, fpx(0.016), fpx(0.05)); if (gen < fpx(0.06) && !q.rol) continue;
+      if (G.ulkeEtiket) { const t0 = q.t?.[0] ?? 0; G.ulkeEtiket(e, { met: q.etiket, x: p.x, y: p.y, boy, a, r: q.rol ? renk(q.rol) : null, gir: ara(t, t0 + 0.5, t0 + 0.5 + (G.etiketSure ?? 1.1)), yer_ }); continue; }
       e.font = `${T.ulke.agirlik} ${boy}px "${T.ulke.aile}"`; const met = q.etiket.toLocaleUpperCase(S.dil === "de" ? "de" : "tr");
       const gir = eo(ara(t, (q.t?.[0] ?? 0) + 0.5, (q.t?.[0] ?? 0) + 1.6)); const aralik = boy * T.ulke.aralik * (1 + 1.4 * (1 - gir)); const w = e.measureText(met).width + aralik * met.length, h = boy;
       if (!yer_(p.x - w / 2, p.y - h / 2, w, h)) continue;
       e.save(); e.globalAlpha = a; e.textAlign = "center"; e.textBaseline = "middle";
       golgeli(e, () => { e.fillStyle = q.rol ? M.etiketVurgu : M.etiket; harf(e, met, p.x + aralik / 2, p.y, aralik); }, 12); e.restore();
     } else if (q.tip === "sehir" || q.tip === "nabiz" || q.tip === "birlik_yok") {
-      const boy = fpx(T.sehir.boy * (q.onem === 1 ? 1.15 : 1)); e.font = `${T.sehir.agirlik} ${boy}px "${T.sehir.aile}"`;
+      const boy = fpx(T.sehir.boy * (q.onem === 1 ? 1.15 : 1));
+      if (G.sehir) { const t0 = q.t?.[0] ?? 0; G.sehir(e, { met: q.etiket, x: p.x, y: p.y, boy, a, onem: q.onem, yon: q.yon ?? 1, rk: q.rol ? renk(q.rol).kontur : undefined, gir: ara(t, t0, t0 + (G.etiketSure ?? 1)), yer_, konum: q.konum }); continue; }
+      e.font = `${T.sehir.agirlik} ${boy}px "${T.sehir.aile}"`;
       const w = e.measureText(q.etiket).width; const sag = (q.yon ?? 1) > 0;
       const x = sag ? p.x + boy * 0.75 : p.x - boy * 0.75 - w;
       if (!yer_(Math.min(p.x, x) - 4, p.y - boy * 0.6, w + boy, boy * 1.2)) continue;
@@ -438,7 +450,7 @@ function etiketler(t, k) {
       e.fillStyle = "#fff"; e.shadowColor = "rgba(0,0,0,0.8)"; e.shadowBlur = 6 * SS; e.fill(); e.shadowBlur = 0; e.lineWidth = boy * 0.08; e.strokeStyle = renk(q.rol || "notr").kontur; e.stroke();
       golgeli(e, () => { e.fillStyle = M.etiket; e.fillText(q.etiket, x, p.y); }, 10); e.restore();
     } else if (q.tip === "deniz") {
-      const boy = fpx(T.deniz.boy); e.font = `italic ${T.deniz.agirlik} ${boy}px "${T.deniz.aile}"`; const aralik = boy * T.deniz.aralik;
+      const boy = fpx(T.deniz.boy); e.font = `${T.deniz.italik === false ? "" : "italic "}${T.deniz.agirlik} ${boy}px "${T.deniz.aile}"`; const aralik = boy * T.deniz.aralik;
       const w = e.measureText(q.etiket).width + aralik * q.etiket.length; if (!yer_(p.x - w / 2, p.y - boy / 2, w, boy)) continue;
       e.save(); e.globalAlpha = a * 0.92; e.textAlign = "center"; e.textBaseline = "middle"; e.fillStyle = M.deniz; harf(e, q.etiket, p.x + aralik / 2, p.y, aralik); e.restore();
     }
@@ -452,13 +464,14 @@ function etiketler(t, k) {
       e.save(); e.globalAlpha = a * 0.8; e.setLineDash([3 * SS, 7 * SS]); e.lineCap = "round"; e.strokeStyle = renk(q.rol || "dost").kontur; e.lineWidth = 2.2 * SS; e.beginPath();
       d3.range(0, 41).forEach((i) => { const z = kirpYol(iz, i / 40), zz = z[z.length - 1], sp = ekrana(zz[0], zz[1]); i ? e.lineTo(sp.x, sp.y) : e.moveTo(sp.x, sp.y); }); e.stroke(); e.restore(); } }
     const gi = ara(t, (q.t?.[0] ?? 0), (q.t?.[0] ?? 0) + 0.7), geri = 1 + 2.2 * Math.pow(gi - 1, 3) + 1.2 * Math.pow(gi - 1, 2);
-    e.save(); e.translate(p.x, p.y); e.scale(geri, geri); birlikCiz(e, 0, 0, q, a * eo(gi)); e.restore();
+    e.save(); e.translate(p.x, p.y); e.scale(geri, geri); (G.birlik || birlikCiz)(e, 0, 0, q, a * eo(gi)); e.restore();
   }
 }
 function kartCiz(t) {
   for (const q of KATMAN.filter((q) => q.tip === "kart")) {
     const t0 = q.t?.[0] ?? 0, a0 = gor(q, t, 0.01, 0.5); if (a0 <= 0) continue;
     const p = ekrana(...q.konum); const a = a0 * sinir((p.yuz - 0.12) / 0.25); if (a <= 0.01) continue;
+    if (G.kart) { G.kart(e, q, p, t, a); continue; }
     const dikey = H > W, yonx = (q.yon ?? 1) * (dikey ? 0.6 : 1), b = fpx(0.019), uzun = fpx(dikey ? 0.1 : 0.085);
     const c1 = eio(ara(t, t0, t0 + 0.55)), c2 = eoq(ara(t, t0 + 0.4, t0 + 1.05)), c3 = eo(ara(t, t0 + 0.5, t0 + 2.2));
     const ex = p.x + yonx * uzun * 0.7, ey = p.y - uzun, kx = ex + yonx * uzun * 0.45;
@@ -492,7 +505,9 @@ function markaCiz(t) {
   const gx = (dikey ? M.guvenli.dikey[0] : M.guvenli.yatay[0]) * W * SS, ust = (dikey ? M.guvenli.dikey[1] : M.guvenli.yatay[1]) * H * SS, alt = H * SS - (dikey ? M.guvenli.dikey[2] : M.guvenli.yatay[2]) * H * SS;
   const vurgu = M.roller.ana.kontur;
   // başlık bloğu
-  if (Y.baslik) {
+  let baslikH = null;
+  if (Y.baslik && G.baslik) { const [a, b] = Y.baslikZaman || [0.4, S.sure - 0.6]; baslikH = G.baslik(e, { Y, t, a, b, x: gx, ust, dikey, vurgu }) ?? null; }
+  else if (Y.baslik) {
     const [a, b] = Y.baslikZaman || [0.4, S.sure - 0.6]; const g1 = eoq(ara(t, a, a + 0.9)), g2 = 1 - ara(t, b - 0.5, b); const al = Math.min(g1, g2);
     if (al > 0) {
       g.save(); g.globalAlpha = al; g.textBaseline = "alphabetic";
@@ -512,7 +527,7 @@ function markaCiz(t) {
   if (Y.tarih) {
     let tx = null; for (const d of [].concat(Y.tarih)) if (typeof d === "string") tx = d; else if (t >= d.t) tx = d.metin;
     if (tx) { const db = fpx(T.tarih.boy); g.save(); g.font = `${T.tarih.agirlik} ${db}px "${T.tarih.aile}"`; g.textAlign = "right"; g.textBaseline = "alphabetic";
-      g.globalAlpha = eo(ara(t, 0.6, 1.4)); g.textAlign = dikey ? "left" : "right"; const x = dikey ? gx : W * SS - gx, y = dikey ? ust + fpx(T.ust.boy) + fpx(T.baslik.boy * 1.05) * 1.12 + fpx(T.alt.boy) * 1.7 + db * 1.25 : ust + db * 0.9;
+      g.globalAlpha = eo(ara(t, 0.6, 1.4)); g.textAlign = dikey ? "left" : "right"; const x = dikey ? gx : W * SS - gx, y = dikey ? (baslikH != null ? ust + baslikH + db * 1.4 : ust + fpx(T.ust.boy) + fpx(T.baslik.boy * 1.05) * 1.12 + fpx(T.alt.boy) * 1.7 + db * 1.25) : ust + db * 0.9;
       golgeli(g, () => { g.fillStyle = M.metin; harf(g, tx, x, y, db * T.tarih.aralik); }, 12);
       g.fillStyle = vurgu; g.fillRect(dikey ? x : x - db * 1.2, y + db * 0.22, db * 1.2, Math.max(2, db * 0.06)); g.restore(); }
   }
@@ -524,21 +539,21 @@ function markaCiz(t) {
       g.save(); g.globalAlpha = al; g.font = `${T.cip.agirlik} ${cb}px "${T.cip.aile}"`; const met = Y.konum.toLocaleUpperCase("tr"); const w1 = g.measureText(met).width + cb * T.cip.aralik * met.length;
       g.font = `500 ${Math.round(cb * 0.82)}px "IBM Plex Mono"`; const w2 = g.measureText(koor).width;
       const pad = cb * 0.7, w = Math.max(w1, w2) + pad * 2, h = cb * 3.1, x = gx, y = alt - h;
-      g.fillStyle = M.cipZemin; g.fillRect(x, y, w * eoq(ara(t, a, a + 0.5)), h); g.fillStyle = vurgu; g.fillRect(x, y, Math.max(3, cb * 0.16), h);
-      g.fillStyle = M.metin; g.textBaseline = "alphabetic"; g.font = `${T.cip.agirlik} ${cb}px "${T.cip.aile}"`; harf(g, met, x + pad, y + cb * 1.35, cb * T.cip.aralik);
-      g.fillStyle = M.metin2; g.font = `500 ${Math.round(cb * 0.82)}px "IBM Plex Mono"`; g.fillText(koor, x + pad, y + cb * 2.55); g.restore(); }
+      if (G.kutu) G.kutu(g, x, y, w, h, vurgu, eoq(ara(t, a, a + 0.5))); else { g.fillStyle = M.cipZemin; g.fillRect(x, y, w * eoq(ara(t, a, a + 0.5)), h); g.fillStyle = vurgu; g.fillRect(x, y, Math.max(3, cb * 0.16), h); }
+      g.fillStyle = M.cipMetin ?? M.metin; g.textBaseline = "alphabetic"; g.font = `${T.cip.agirlik} ${cb}px "${T.cip.aile}"`; harf(g, met, x + pad, y + cb * 1.35, cb * T.cip.aralik);
+      g.fillStyle = M.cipMetin2 ?? M.metin2; g.font = `500 ${Math.round(cb * 0.82)}px "IBM Plex Mono"`; g.fillText(koor, x + pad, y + cb * 2.55); g.restore(); }
   }
   // lejant (sağ alt)
   if (Y.lejant && Y.lejant.length) {
     const [a] = Y.lejantZaman || [S.sure * 0.3]; const al = eo(ara(t, a, a + 0.7)) * (1 - ara(t, S.sure - 0.5, S.sure));
     if (al > 0) { const lb = fpx(T.lejant.boy), satir = lb * 1.75, pad = lb * 0.9; g.save(); g.font = `${T.lejant.agirlik} ${lb}px "${T.lejant.aile}"`;
       const w = Math.max(...Y.lejant.map((l) => g.measureText(l.ad).width)) + lb * 2.6 + pad * 2, h = satir * Y.lejant.length + pad * 1.2;
-      const x = W * SS - gx - w, y = alt - h; g.globalAlpha = al; g.fillStyle = M.cipZemin; g.fillRect(x, y, w, h);
+      const x = W * SS - gx - w, y = alt - h; g.globalAlpha = al; if (G.kutu) G.kutu(g, x, y, w, h, vurgu, 1); else { g.fillStyle = M.cipZemin; g.fillRect(x, y, w, h); }
       Y.lejant.forEach((l, i) => { const yy = y + pad * 0.6 + satir * i + satir / 2, r = renk(l.rol);
         g.globalAlpha = al * eo(ara(t, a + 0.15 * i, a + 0.15 * i + 0.6));
         if (l.desen === "tarama") { g.fillStyle = desen(g, r.dolgu, 45, lb * 0.35, lb * 0.12); } else g.fillStyle = r.dolgu;
         g.fillRect(x + pad, yy - lb * 0.45, lb * 1.4, lb * 0.9); g.strokeStyle = r.kontur; g.lineWidth = Math.max(1, lb * 0.06); g.strokeRect(x + pad, yy - lb * 0.45, lb * 1.4, lb * 0.9);
-        g.fillStyle = M.metin; g.textBaseline = "middle"; g.fillText(l.ad, x + pad + lb * 2.1, yy); });
+        g.fillStyle = M.cipMetin ?? M.metin; g.textBaseline = "middle"; g.fillText(l.ad, x + pad + lb * 2.1, yy); });
       g.restore(); }
   }
   // kaynak / künye (en alt, küçük)
@@ -549,7 +564,7 @@ function markaCiz(t) {
 
 // ---------------- kare ----------------
 window.ciz = async (t, no = 0) => {
-  const k = kameraKur(t); isikKur(t, k);
+  G.zaman = t; const k = kameraKur(t); isikKur(t, k);
   // katman tuvallerinin çözünürlüğü: ekran pikseli başına tuval pikseli
   const yerGen = k.alt * GENIS * 6371, kmPx = yerGen / W; // ekran pikseli başına km (yaklaşık, merkezde)
   const kmW = 40075 / ustW.width, latc = (BK[1] + BK[3]) / 2, kmR = (BK[2] - BK[0]) * 111.32 * Math.cos(latc * D2R) / ustR.width;

@@ -33,7 +33,14 @@ import dokular  # noqa: E402
 
 FORMATLAR = {"16x9": (1920, 1080), "9x16": (1080, 1920), "1x1": (1080, 1080), "4x5": (1080, 1350)}
 YAZILAR = {"inter-tight": ["400", "500", "600", "700"], "barlow-condensed": ["500", "600", "700"],
-           "source-serif-4": ["400-italic"], "ibm-plex-mono": ["500"]}
+           "source-serif-4": ["400-italic"], "ibm-plex-mono": ["400", "500", "600"],
+           # anlatım grafiği stilleri (grafik.js)
+           "cinzel": ["600", "700"], "eb-garamond": ["400", "400-italic", "500-italic", "600"], "caveat": ["500", "600", "700"],
+           "space-grotesk": ["500", "700"], "instrument-serif": ["400", "400-italic"]}
+AILE = {"inter-tight": "Inter Tight", "barlow-condensed": "Barlow Condensed", "source-serif-4": "Source Serif 4",
+        "ibm-plex-mono": "IBM Plex Mono", "cinzel": "Cinzel", "eb-garamond": "EB Garamond", "caveat": "Caveat",
+        "space-grotesk": "Space Grotesk", "instrument-serif": "Instrument Serif"}
+GRAFIKLER = ["belgesel", "haber", "gravur", "istihbarat", "kroki", "editoryal"]
 BETIKLER = ["d3-array/dist/d3-array.min.js", "d3-geo/dist/d3-geo.min.js", "topojson-client/dist/topojson-client.min.js"]
 IRTIFA = {"dunya": 3.6, "kita": 1.6, "bolge": 0.75, "ulke": 0.45, "sehir": 0.12}
 
@@ -139,7 +146,7 @@ def sahne_coz(s: dict, fmt: str, ss: float = 2.0) -> dict:
             "katmanlar": katmanlar, "odak": odak, "yazi": s.get("yazi", {}), "yorunge": s.get("yorunge", 0),
             "bulut": s.get("bulut"), "kabartma": s.get("kabartma", 1.0), "gunes": s.get("gunes"), "gunesHiz": s.get("gunesHiz", 0),
             "sondur": s.get("sondur", 0.35), "yildiz": s.get("yildiz"), "pozlama": s.get("pozlama"), "kalite": s.get("kalite"),
-            "marka": s.get("marka", "varsayilan")}
+            "marka": s.get("marka", "varsayilan"), "grafik": s.get("grafik", "belgesel")}
 
 
 # ---------------- sayfa + yerel sunucu ----------------
@@ -171,11 +178,21 @@ class _Sunucu:
         self.httpd.shutdown()
 
 
+def _birlestir(a: dict, b: dict) -> dict:
+    """b'yi a'nın üstüne derin yazar (grafik stili -> marka)"""
+    out = dict(a)
+    for k, v in b.items():
+        out[k] = _birlestir(out[k], v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
+    return out
+
+
 def sayfa_yaz(sahne: dict, klasor: Path) -> None:
     if not NM.joinpath("three").exists():
         subprocess.run(["npm", "install", "--no-audit", "--no-fund"], cwd=DUNYA, check=True)
     dokular.hazirla()
-    marka = json.loads((BURADA / "marka.json").read_text())[sahne["marka"]]
+    mj = json.loads((BURADA / "marka.json").read_text())
+    marka = _birlestir(mj[sahne["marka"]], mj.get("grafikler", {}).get(sahne.get("grafik", "belgesel"), {}))
+    marka["grafik"] = sahne.get("grafik", "belgesel")
     topo = json.loads((NM / "world-atlas" / "countries-50m.json").read_text())
     d = {"gunduz": "gunduz.jpg", "kure": "kure.jpg", "atlas": "atlas.jpg", "gece": "gece.png", "normal": "normal.png",
          "su": "su.png", "bulut": "bulut.png", "yukseklik": "yukseklik.png"}
@@ -207,8 +224,7 @@ class Cizer:
         self.sayfa.on("pageerror", lambda e: self.hatalar.append(str(e)))
         self.sayfa.on("console", lambda m: m.type == "error" and self.hatalar.append(m.text))
         self.sayfa.goto(f"http://127.0.0.1:{self.sunucu.port}/is/sayfa.html")
-        aileler = [f'{w} 20px "{a}"' for a, ws in [("Inter Tight", [400, 500, 600, 700]), ("Barlow Condensed", [500, 600, 700])] for w in ws]
-        aileler += ['italic 400 20px "Source Serif 4"', '500 20px "IBM Plex Mono"']
+        aileler = [("italic " if "italic" in w else "") + f'{w.split("-")[0]} 20px "{AILE[p]}"' for p, ws in YAZILAR.items() for w in ws]
         self.sayfa.evaluate("async (a) => { for (const f of a) await document.fonts.load(f, 'ĞğŞşİıÇçÖöÜü'); }", aileler)
         try:
             self.sayfa.wait_for_function("window.hazir === true", timeout=180000)
@@ -298,23 +314,79 @@ def kontakt(sahneler: list[Path], formatlar, anlar, hedef: Path, ss: float = 2.0
     return hedef
 
 
+def grafik_kontakt(hucreler: list[str], grafikler: list[str], hedef: Path, ss: float = 2.0, yuk: int = 460) -> Path:
+    """aynı sahne(ler) her grafik stilinde: satır = stil, sütun = hücre ("sahne.json:16x9:9.4").
+    Atilla'ya stil seçtirmek için tek sayfa; tam video yalnız seçilen stil için."""
+    from PIL import Image, ImageDraw, ImageFont
+    mj = json.loads((BURADA / "marka.json").read_text())
+    gruplar: dict = {}
+    for h in hucreler:
+        yol, fmt, t = h.rsplit(":", 2)
+        gruplar.setdefault((yol, fmt), []).append(float(t))
+    satirlar = []
+    for gr in grafikler:
+        kareler_ = {}
+        for (yol, fmt), ts in gruplar.items():
+            s = {**_oku(yol), "grafik": gr}
+            c = Cizer(sahne_coz(s, fmt, ss))
+            try:
+                for t in ts:
+                    kareler_[(yol, fmt, t)] = Image.open(io.BytesIO(c.ham(t, round(t * 30)))).convert("RGB")
+            finally:
+                c.kapat()
+            print(f"  {gr}: {Path(yol).stem} {fmt} tamam", file=sys.stderr, flush=True)
+        ims = [kareler_[(h.rsplit(":", 2)[0], h.rsplit(":", 2)[1], float(h.rsplit(":", 2)[2]))] for h in hucreler]
+        satirlar.append((gr, mj.get("grafikler", {}).get(gr, {}).get("_not", ""), ims))
+    kucuk = [(a, n, [im.resize((round(im.width * yuk / im.height), yuk), Image.LANCZOS) for im in ims]) for a, n, ims in satirlar]
+    gen = max(sum(im.width for im in ims) + 28 * (len(ims) + 1) for _, _, ims in kucuk)
+    sayfa = Image.new("RGB", (gen, len(kucuk) * (yuk + 96) + 24), (14, 16, 20))
+    d = ImageDraw.Draw(sayfa)
+    try:
+        f1, f2 = ImageFont.truetype("DejaVuSans-Bold.ttf", 30), ImageFont.truetype("DejaVuSans.ttf", 21)
+    except Exception:
+        f1 = f2 = ImageFont.load_default()
+    y = 24
+    for i, (a, n, ims) in enumerate(kucuk, 1):
+        d.text((28, y), f"{i}. {a.upper()}", fill=(255, 255, 255), font=f1)
+        d.text((28 + d.textlength(f"{i}. {a.upper()}", font=f1) + 18, y + 8), n, fill=(170, 176, 186), font=f2)
+        x = 28
+        for im in ims:
+            sayfa.paste(im, (x, y + 50)); x += im.width + 28
+        y += yuk + 96
+    hedef.parent.mkdir(parents=True, exist_ok=True)
+    sayfa.save(hedef, quality=90)
+    return hedef
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     alt = ap.add_subparsers(dest="komut", required=True)
     k = alt.add_parser("kare"); k.add_argument("sahne"); k.add_argument("--an", type=float, nargs="+", default=[1, 5, 9])
     k.add_argument("--format", default="16x9"); k.add_argument("-o", default="cikti"); k.add_argument("--ss", type=float, default=2.0)
+    k.add_argument("--grafik", choices=GRAFIKLER, help="anlatım grafiği stili (sahnedekini ezer)")
     v = alt.add_parser("video"); v.add_argument("sahne"); v.add_argument("--format", default="16x9"); v.add_argument("-o", required=True)
+    v.add_argument("--grafik", choices=GRAFIKLER)
     v.add_argument("--ss", type=float, default=2.0); v.add_argument("--fps", type=int, default=30); v.add_argument("--olcek", type=float, default=1.0)
     c = alt.add_parser("kontakt"); c.add_argument("sahneler", nargs="+"); c.add_argument("--formatlar", nargs="+", default=["16x9"])
     c.add_argument("--an", type=float, nargs="+", default=[1, 5, 9]); c.add_argument("-o", default="kontakt.jpg"); c.add_argument("--ss", type=float, default=2.0)
+    gk = alt.add_parser("grafik-kontakt", help="aynı sahne her grafik stilinde tek sayfada")
+    gk.add_argument("hucreler", nargs="+", help='"sahne.json:16x9:9.4" biçiminde hücreler')
+    gk.add_argument("--grafikler", nargs="+", default=GRAFIKLER, choices=GRAFIKLER); gk.add_argument("-o", default="grafik-kontakt.jpg"); gk.add_argument("--ss", type=float, default=2.0)
     d = alt.add_parser("doku"); d.add_argument("--zorla", action="store_true")
     a = ap.parse_args(argv)
     if a.komut == "kare":
-        for p in kareler(_oku(a.sahne), a.an, a.format, Path(a.o), a.ss, Path(a.sahne).stem):
+        s = _oku(a.sahne)
+        if a.grafik:
+            s["grafik"] = a.grafik
+        for p in kareler(s, a.an, a.format, Path(a.o), a.ss, Path(a.sahne).stem + (f"-{a.grafik}" if a.grafik else "")):
             print(p)
     elif a.komut == "video":
         s = _oku(a.sahne)
+        if a.grafik:
+            s["grafik"] = a.grafik
         print(video(s, a.format, Path(a.o), a.ss, a.fps, a.olcek))
+    elif a.komut == "grafik-kontakt":
+        print(grafik_kontakt(a.hucreler, a.grafikler, Path(a.o), a.ss))
     elif a.komut == "kontakt":
         print(kontakt([Path(x) for x in a.sahneler], a.formatlar, a.an, Path(a.o), a.ss))
     else:

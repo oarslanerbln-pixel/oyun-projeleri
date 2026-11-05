@@ -41,7 +41,7 @@ kam.fov = W >= H ? kisaFov : 2 * Math.atan(Math.tan(kisaFov * D2R / 2) * H / W) 
 const genFov = 2 * Math.atan(Math.tan(kam.fov * D2R / 2) * Math.max(1, W / H)); // yatay görüş açısı (rad)
 
 const yukle = new THREE.TextureLoader();
-const aniz = renderer.capabilities.getMaxAnisotropy();
+const aniz = Math.min(4, renderer.capabilities.getMaxAnisotropy());
 function doku(url, srgb) {
   return new Promise((ok, red) => yukle.load(url, (t) => { t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = aniz;
     t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.wrapS = THREE.RepeatWrapping; ok(t); }, undefined, red));
@@ -51,12 +51,12 @@ const [tRenk, tGece, tNormal, tSu, tBulut, tYuk] = await Promise.all([
   doku(V.dokular[ISIK], true), doku(V.dokular.gece), doku(V.dokular.normal), doku(V.dokular.su), doku(V.dokular.bulut), doku(V.dokular.yukseklik)]);
 
 // yere yapışık katman tuvalleri: dünya (4096×2048) + odak bölgesi (≤4096², keskin)
-function tuval(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+function tuval(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d", { willReadFrequently: true }); return c; }
 const ustW = tuval(4096, 2048), ustWt = new THREE.CanvasTexture(ustW);
 const BK = S.odak; // [lon0, lat0, lon1, lat1]
 const bw = 4096, bh = Math.min(4096, Math.round(4096 * (BK[3] - BK[1]) / ((BK[2] - BK[0]) * Math.cos(((BK[1] + BK[3]) / 2) * D2R))));
 const ustR = tuval(bw, Math.max(256, bh)), ustRt = new THREE.CanvasTexture(ustR);
-for (const t of [ustWt, ustRt]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = aniz; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; }
+for (const t of [ustWt, ustRt]) { t.colorSpace = THREE.SRGBColorSpace; t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; }
 
 const U = {
   tRenk: { value: tRenk }, tGece: { value: tGece }, tNormal: { value: tNormal }, tSu: { value: tSu }, tBulut: { value: tBulut }, tYuk: { value: tYuk },
@@ -151,7 +151,7 @@ const atm = new THREE.Mesh(new THREE.SphereGeometry(1.08, 192, 96), atmMat); sah
 }
 
 // post: bloom (şehir ışıkları, atmosfer) -> ton eşleme -> vinyet + ince gren
-const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(PW, PH, { type: THREE.HalfFloatType, samples: S.kalite === "taslak" ? 0 : 4 }));
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(PW, PH, { type: THREE.HalfFloatType, samples: S.msaa ?? 0 }));
 composer.setPixelRatio(1); composer.setSize(PW, PH);
 composer.addPass(new RenderPass(sahne, kam));
 const bloom = new UnrealBloomPass(new THREE.Vector2(PW / 2, PH / 2), M.bloom?.[0] ?? 0.55, M.bloom?.[1] ?? 0.5, M.bloom?.[2] ?? 0.82);
@@ -291,7 +291,7 @@ function okCiz(g, yol, p, gen, renk_) {
   const sekil = (gg) => { gg.beginPath(); gg.moveTo(...sol2[0]); sol2.forEach((q) => gg.lineTo(...q));
     gg.lineTo(taban[0] - dy * gen * 1.05, taban[1] + dx * gen * 1.05); gg.lineTo(u[0] + dx * ucBoy * 0.45, u[1] + dy * ucBoy * 0.45);
     gg.lineTo(taban[0] + dy * gen * 1.05, taban[1] - dx * gen * 1.05); for (let i = m - 1; i >= 0; i--) gg.lineTo(...sag2[i]); gg.closePath(); };
-  g.save(); g.translate(gen * 0.22, gen * 0.3); sekil(g); g.fillStyle = "rgba(0,0,0,0.38)"; g.filter = `blur(${gen * 0.25}px)`; g.fill(); g.restore();
+  for (const [o, al] of [[0.42, 0.12], [0.3, 0.16], [0.18, 0.2]]) { g.save(); g.translate(gen * o, gen * o * 1.3); sekil(g); g.fillStyle = `rgba(0,0,0,${al})`; g.fill(); g.restore(); }
   g.save(); sekil(g); const gr = g.createLinearGradient(y[0][0], y[0][1], u[0], u[1]); gr.addColorStop(0, hex(renk_, 0.55)); gr.addColorStop(0.4, hex(renk_, 0.92)); gr.addColorStop(1, hex(renk_, 1));
   g.fillStyle = gr; g.fill(); g.lineJoin = "round"; g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = gen * 0.09; g.stroke(); g.restore();
 }
@@ -311,7 +311,7 @@ function cepheCiz(g, yol, gen, renk_, taraf = 1) {
 function yeniden(yol, n) { const L = yolUzun(yol), out = []; for (let i = 0; i <= n; i++) { const k = kirpYol(yol, i / n); out.push(k[k.length - 1]); } return out; }
 
 let sonAnahtar = { W: "", R: "" };
-function katmanCiz(c, kutu, t, olcek, dunya) {
+function katmanCiz(c, kutu, t, olcek, dunya, hareketli = true) {
   const g = c.getContext("2d"); g.clearRect(0, 0, c.width, c.height);
   const pr = dunya ? projW(c) : projeksiyon(c, kutu), yol = d3.geoPath(pr, g);
   const xy = (p) => (dunya ? pr(p) : (() => { let q; pr.stream({ point(x, y) { q = [x, y]; } }).point(p[0], p[1]); return q; })());
@@ -323,7 +323,7 @@ function katmanCiz(c, kutu, t, olcek, dunya) {
       g.save(); g.globalAlpha = a; g.beginPath(); yol(f);
       if (k.desen === "tarama") { g.fillStyle = hex(r.dolgu, 0.18); g.fill(); g.fillStyle = desen(g, hex(r.dolgu, 0.85), 45, Math.max(6, px(9)), Math.max(1.5, px(2.2))); g.fill(); }
       else { g.fillStyle = hex(r.dolgu, k.yogunluk ?? r.alfa ?? 0.32); g.fill();
-        g.save(); g.clip(); g.strokeStyle = hex(r.kontur, 0.45); g.lineWidth = px(14); g.filter = `blur(${px(5)}px)`; g.stroke(); g.restore(); }
+        g.save(); g.clip(); for (const [w_, al] of [[18, 0.12], [11, 0.16], [5, 0.22]]) { g.strokeStyle = hex(r.kontur, al); g.lineWidth = px(w_); g.stroke(); } g.restore(); }
       g.lineJoin = "round"; g.strokeStyle = hex(r.kontur, 0.35 * a); g.lineWidth = px(6); g.stroke();
       g.strokeStyle = hex(r.kontur, 0.95); g.lineWidth = px(1.6); g.stroke(); g.restore();
     }
@@ -331,26 +331,26 @@ function katmanCiz(c, kutu, t, olcek, dunya) {
   // tüm sınırlar (ince)
   g.save(); g.beginPath(); yol(sinirlar); g.strokeStyle = M.sinir; g.lineWidth = px(M.sinirKalin ?? 0.9); g.stroke(); g.restore();
   // menzil halkaları (jeodezik daire)
-  for (const k of KATMAN.filter((k) => k.tip === "menzil")) { const a = gor(k, t, 1.0, 0.6); if (a <= 0) continue; const r = renk(k.rol || "karsi");
+  for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "menzil")) { const a = gor(k, t, 1.0, 0.6); if (a <= 0) continue; const r = renk(k.rol || "karsi");
     const p = eoq(ara(t, k.t?.[0] ?? 0, (k.t?.[0] ?? 0) + 1.6)); const ci = d3.geoCircle().center(k.konum).radius((k.km / 6371) * R2D * p).precision(1)();
     g.save(); g.globalAlpha = a; g.beginPath(); yol(ci); g.fillStyle = hex(r.dolgu, 0.12); g.fill(); g.setLineDash([px(8), px(6)]); g.strokeStyle = hex(r.kontur, 0.95); g.lineWidth = px(2); g.stroke(); g.restore(); }
   // cepheler (durumlar arası biçim değiştirir)
-  for (const k of KATMAN.filter((k) => k.tip === "cephe")) { const a = gor(k, t); if (a <= 0) continue; const ds = k.durumlar; let i = 0; while (i < ds.length - 2 && t > ds[i + 1].t) i++;
+  for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "cephe")) { const a = gor(k, t); if (a <= 0) continue; const ds = k.durumlar; let i = 0; while (i < ds.length - 2 && t > ds[i + 1].t) i++;
     const A = ds[i], B = ds[Math.min(i + 1, ds.length - 1)], f = B === A ? 0 : eio(ara(t, A.t, B.t));
     const pa = yeniden(yumusak(A.yol.map(xy), 12), 200), pb = yeniden(yumusak(B.yol.map(xy), 12), 200);
     const y = pa.map((q, j) => [q[0] + (pb[j][0] - q[0]) * f, q[1] + (pb[j][1] - q[1]) * f]);
     g.save(); g.globalAlpha = a; cepheCiz(g, y, px(3.2), renk(k.rol || "karsi").kontur, k.taraf || 1); g.restore(); }
   // oklar
-  for (const k of KATMAN.filter((k) => k.tip === "ok")) { const [a0, b0] = k.t || [0, 1]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 2.2))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
+  for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "ok")) { const [a0, b0] = k.t || [0, 1]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 2.2))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
     g.save(); g.globalAlpha = a; okCiz(g, yumusak(k.yol.map(xy), 30), p, px(k.kalin ?? 26), renk(k.rol || "karsi").dolgu); g.restore(); }
   // rotalar (yer üstü kesikli, ilerleyen)
-  for (const k of KATMAN.filter((k) => k.tip === "rota")) { const [a0] = k.t || [0]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 3))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
+  for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "rota")) { const [a0] = k.t || [0]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 3))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
     const gc = { type: "LineString", coordinates: d3.range(0, 101).map((i) => d3.geoInterpolate(k.yol[0], k.yol[k.yol.length - 1])(i / 100)) };
     const pts = gc.coordinates.map(xy); const y = kirpYol(pts, p);
     g.save(); g.globalAlpha = a; g.lineCap = "round"; g.beginPath(); y.forEach((q, i) => (i ? g.lineTo(...q) : g.moveTo(...q))); g.strokeStyle = "rgba(0,0,0,0.35)"; g.lineWidth = px(6); g.stroke();
     g.setLineDash([px(14), px(9)]); g.strokeStyle = renk(k.rol || "ana").kontur; g.lineWidth = px(3.2); g.stroke(); g.restore(); }
   // nabız halkaları
-  for (const k of KATMAN.filter((k) => k.tip === "nabiz")) { const a = gor(k, t); if (a <= 0) continue; const q = xy(k.konum), r = renk(k.rol || "ana");
+  for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "nabiz")) { const a = gor(k, t); if (a <= 0) continue; const q = xy(k.konum), r = renk(k.rol || "ana");
     for (let j = 0; j < 3; j++) { const f = ((t - (k.t?.[0] ?? 0)) / 1.8 + j / 3) % 1; if (f < 0) continue; g.beginPath(); g.arc(q[0], q[1], px(8 + 70 * eo(f)), 0, 7); g.strokeStyle = hex(r.kontur, (1 - f) * 0.9 * a); g.lineWidth = px(2.5); g.stroke(); } }
 }
 
@@ -503,16 +503,21 @@ window.ciz = async (t, no = 0) => {
   const kmW = 40075 / ustW.width, latc = (BK[1] + BK[3]) / 2, kmR = (BK[2] - BK[0]) * 111.32 * Math.cos(latc * D2R) / ustR.width;
   const olcW = kmPx / kmW, olcR = kmPx / kmR;
   const anahtar = (o) => [Math.round(o * 20), ...KATMAN.map((q) => (q.t ? Math.round(sinir((t - q.t[0]) * 30, -1, 9999)) : 0) * (t < (q.t?.[1] ?? 1e9) + 1 ? 1 : 0))].join(",");
-  const aw = anahtar(olcW), ar = anahtar(olcR);
-  if (aw !== sonAnahtar.W) { katmanCiz(ustW, null, t, olcW, true); ustWt.needsUpdate = true; sonAnahtar.W = aw; }
+  const hW = k.alt > 1.2; const aw = hW ? anahtar(olcW) : "duragan" + Math.round(olcW * 20) + KATMAN.filter((q) => q.f).map((q) => Math.round(gor(q, t, 0.8, 0.6) * 30)).join(","), ar = anahtar(olcR);
+  const _t0 = performance.now();
+  if (aw !== sonAnahtar.W) { katmanCiz(ustW, null, t, olcW, true, hW); ustWt.needsUpdate = true; sonAnahtar.W = aw; }
   if (ar !== sonAnahtar.R) { katmanCiz(ustR, BK, t, olcR, false); ustRt.needsUpdate = true; sonAnahtar.R = ar; }
+  const _t1 = performance.now();
   son.uniforms.tohum.value = (no % 97) * 1.37;
-  composer.render();
+  composer.render(); renderer.getContext().finish();
+  const _t2 = performance.now();
   e.clearRect(0, 0, PW, PH); etiketler(t, k); markaCiz(t);
   // birleştir ve kutu filtresiyle W×H'ye indir (SS=2 için tam yarıya: temiz kenar)
   a1.clearRect(0, 0, ara1.width, ara1.height); a1.imageSmoothingQuality = "high";
   a1.drawImage(cv, 0, 0, ara1.width, ara1.height); a1.drawImage(ek, 0, 0, ara1.width, ara1.height);
   s2.imageSmoothingQuality = "high"; s2.drawImage(ara1, 0, 0, W, H);
-  return son2.toDataURL("image/png");
+  const _t3 = performance.now(); const url = son2.toDataURL("image/png");
+  window.__sure = [_t1 - _t0, _t2 - _t1, _t3 - _t2, performance.now() - _t3].map(Math.round);
+  return url;
 };
 window.hazir = true;

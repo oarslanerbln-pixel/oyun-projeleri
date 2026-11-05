@@ -42,6 +42,7 @@ KOMUTLAR = {
     "cizgi-roman": "cizgi_roman/cizgi_roman.py",
     "oyuncak": "oyuncak/oyuncak.py",
     "golge-oyunu": "golge_oyunu/golge_oyunu.py",
+    "dunya": "dunya/dunya.py",
 }
 IKI_NOKTALI = {"minyatur", "analiz"}  # format seçeneklerini "9:16" yazımıyla bekleyenler
 VARSAYILAN_ANLAR = (0.15, 0.5, 0.85)  # süreye oranla

@@ -5,9 +5,9 @@ Jeopolitik analiz, seyahat / ülke sosyolojisi, askeri tarih ve çatışma senar
 
 ```
 python3 platform/sablonlar/dunya/dunya.py kur        # npm bağımlılıkları (node_modules repoya girmez)
-python3 platform/sablonlar/dunya/dunya.py kontakt ornekler/dunya-1961/sahne.json --formatlar 16x9 9x16 -o sayfa.png
-python3 platform/sablonlar/dunya/dunya.py kare  ornekler/dunya-1961/sahne.json --kaplama neon --an 2 6 10 --format 9x16 -o cikti/
-python3 platform/sablonlar/dunya/dunya.py video ornekler/dunya-1961/sahne.json --kaplama kure --format 16x9 -o film.mp4
+python3 platform/sablonlar/dunya/dunya.py kontakt ornekler/dunya-1961/dunya.json --formatlar 16x9 9x16 -o sayfa.png
+python3 platform/sablonlar/dunya/dunya.py kare  ornekler/dunya-1961/dunya.json --kaplama neon --an 2 6 10 --format 9x16 -o cikti/
+python3 platform/sablonlar/dunya/dunya.py video ornekler/dunya-1961/dunya.json --kaplama kure --format 16x9 -o film.mp4
 python3 platform/sablonlar/dunya/dunya.py video ... --ss 0.5 --olcek 0.5 --fps 25   # onay öncesi küçük animatik
 ```
 
@@ -36,7 +36,7 @@ python3 platform/sablonlar/dunya/dunya.py video ... --ss 0.5 --olcek 0.5 --fps 2
 `"kure": false` diğerlerini düz haritaya çevirir (atlas Equal Earth, karakalem/neon Natural Earth, kagit Robinson,
 parsomen eşdikdörtgen).
 
-## Sahne (`ornekler/dunya-1961/sahne.json`)
+## Sahne (`ornekler/dunya-1961/dunya.json`)
 `kaplama`, `sure`, `dil` (tr/de), `ust`/`baslik`/`altbaslik`, `rota` (yer adı ya da `{ad, konum: [boylam, enlem], etiket}`),
 `vurgu` (ülke adları), `noktalar`, `sayacNot` (mesafe sayacı başlığı; `"sayac": false` kapatır), `veriNot`, `yaylar`
 (neon uçuş yayı hedefleri), `bolge` (`{lon, lat, k, dx, dy}` elle kamera). Güvenli alan: 16:9 %6–8 kenar, 9:16 üst %11,

@@ -10,7 +10,7 @@ DEPO = BURADA.parents[2]
 sys.path.insert(0, str(BURADA))
 import dunya  # noqa: E402
 
-ORNEK = json.loads((DEPO / "ornekler/dunya-1961/sahne.json").read_text(encoding="utf-8"))
+ORNEK = json.loads((DEPO / "ornekler/dunya-1961/dunya.json").read_text(encoding="utf-8"))
 HAZIR = importlib.util.find_spec("playwright") is not None and (BURADA / "node_modules/d3-geo").exists()
 
 

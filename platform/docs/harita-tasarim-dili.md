@@ -69,6 +69,45 @@ Kırım'ı Ukrayna'ya taşır. Tartışmalı bölgeler `bolge` + `tarama` ile ay
 - Genel: hareketler 0.5–1.6 sn, yalnız ease-out/ease-in-out; aynı anda en fazla iki öğe giriş yapar; giriş zamanları
   anlatım cümlesine bağlanır (`t`).
 
+## 4c. Anlatım grafiği stilleri (`"grafik"`, Atilla 2026-11-05: "farklı stiller, uzman motion grafik kalitesi")
+Aynı sahne dosyası on bir grafik diliyle çizilir; yalnız `"grafik": "<ad>"` değişir. Biçim ve hareket
+`sinema/grafik.js`, renk ve yazı `marka.json → grafikler.<ad>`. Seçim: `sinema.py grafik-kontakt` ile tek sayfada.
+
+| Stil | Ne zaman | Görsel dil | Hareket (easing / süre) |
+|---|---|---|---|
+| `belgesel` (varsayılan) | jeopolitik analiz, büyük anlatı | incelen ok + yumuşak gölge + akan şevron, iç ışımalı ülke, Barlow/Inter | ease-out quint, 0.8–1.6 sn |
+| `haber` | gündem, kısa Reels, hızlı açıklama | düz renk, kalın koyu kontur, sert gölge, renkli etiket kutuları, beyaz veri kartı | expo-out 0.35–0.6 sn, kartta back-out taşma |
+| `gravur` | askerî tarih, imparatorluklar, eski dönem | mürekkep kontur, tarama dolgu, sınırda atlas kurdelesi, çatallı kuyruklu taralı ok, yarım daireli cephe, Cinzel + EB Garamond, kâğıt kartuş | sinüs ease-in-out 1.2–2 sn, harf harf mürekkep açılışı |
+| `istihbarat` | çatışma senaryosu, OSINT, savunma | ışıyan kıl çizgi, nokta ızgara, iz mermisi (tracer) kesikli ok, nişangâh şehir + koordinat, köşe parantezli kart, mono yazı | doğrusal/basamaklı 0.3–0.6 sn, daktilo yazım, rakam karışıp oturur |
+| `kroki` | seyahat, ülke sosyolojisi, kişisel anlatı | keçeli kalem, 8 fps titreşim ("boil"), karalama tarama, iki vuruşlu açık ok ucu, Caveat, bantlı not kartı | çizilerek ease-out, kartta back-out + dönüş |
+| `editoryal` | veri ağırlıklı analiz, ekonomi | kıl çizgi, gölgesiz düz dolgu, küçük dolu ok ucu, kılavuzlu şehir etiketi, kutusuz serif rakam | cubic ease-out 0.7–0.9 sn, 80 ms kademeli |
+| `luks` | premium marka, lüks seyahat, Atilla'nın "lüks, ortalanmış" çizgisi | şampanya altını kıl çizgi, çift raylı ok + ucunda kayan ışıltı, çok geniş aralıklı ince büyük harf + Instrument Serif | ease-out 1.2–1.8 sn, harf aralığı daralarak oturur |
+| `kagit` | eğitici, çocuk/aile, sıcak sosyoloji | renkli kâğıt katmanları + kalkık gölge, şerit oklar, testere dişli cephe, eğik kâğıt etiket, iki yapraklı kart, Fraunces | back-out ile "yapıştırma" 0.4–0.7 sn (stop-motion) |
+| `firca` | kültür, tarih, Doğu–Batı anlatıları | basınçla incelip kalınlaşan fırça darbesi, kuru fırça kılları, mürekkep lekesi şehir, fırça vurgu, kırmızı mühür | expo-out tek darbe 0.5–0.9 sn, ardından durgunluk |
+| `neon` | gece hayatı, şehir, gençlik kanalı | cam tüp çizgi (renkli hale + beyaz çekirdek), açık tüp ok ucu, tüp yazı, yuvarlak tüp çerçeveli kart | titreşerek yanma (basamaklı 0.45 sn), sonra hafif uğultu |
+| `serit` | modern açıklayıcı, teknoloji, ekonomi | kalkık levha ülkeler, kalınlığı olan şerit ok, cephe duvarı, uzun gölgeli kabartma yazı, cam kart, iğneli şehir etiketi | ease-out quint 0.6–1.0 sn, kartlar aşağıdan yükselir |
+
+Bir videoda tek stil kullanılır; stil karıştırılmaz (izleyici dili bir kez öğrenir).
+
+### Motion tasarım ilkeleri (bütün stiller için)
+1. **Easing anlam taşır.** Girişler ease-out (hızlı gelir, yumuşak oturur), çıkışlar ease-in, yer değiştirme
+   ease-in-out. Doğrusal hareket yalnız makine dili (istihbarat) ve sürekli akışlar (şevron, kesikli iz) için.
+   Back-out taşması yalnız küçük öğede (kart, birlik), büyük alanlarda asla.
+2. **Süre ölçeğe bağlı.** Küçük öğe 0.3–0.6 sn, orta (etiket, kart) 0.6–1.0 sn, büyük (ülke, cephe, ok) 1.2–2.5 sn.
+   Stilin `hiz` çarpanı ok çizim süresini ölçekler (haber 0.65, gravür 1.25).
+3. **Kademeli giriş (stagger).** Bir grubun parçaları 80–150 ms arayla: kart = nokta → bağlantı çizgisi → kutu →
+   başlık → rakam. Aynı anda en fazla iki ana öğe giriş yapar; göz tek yere bakar.
+4. **Yön ve süreklilik.** Ok çizgisi, şevron akışı, iz mermisi ve birlik izi hareketin yönünü sürekli söyler;
+   oturduktan sonra da küçük ikincil hareket sürer (akış, nabız, nefes alan kamera). Ekranda donmuş kare yok.
+5. **Tipografik hiyerarşi.** En fazla üç düzey: başlık (büyük, yoğun) → rakam/ülke adı (orta, büyük harf ve geniş
+   aralık) → açıklama (küçük, cümle düzeni, %80 opaklık). Her stil iki yazı ailesiyle sınırlıdır (+ mono koordinat).
+6. **Katmanlama.** Arazi < rol dolgusu (%12–42) < sınır < ok/cephe < şehir < etiket < kart < başlık. Her üst katman
+   altını okunur bırakır: koyu hale/gölge ya da zemin kutusu, asla parlama.
+7. **Renk = rol.** Stil rol renklerinin tonunu değiştirir (gravürde mürekkep, istihbaratta neon), anlamını değil:
+   ana amber, karşı kırmızı, dost mavi her stilde aynı rolü taşır.
+8. **Güvenli alan ve sığdırma.** Kartlar güvenli alana kıstırılır, uzun başlık sığana kadar küçültülür;
+   9:16'da başlık bloğu yüksekliği tarih damgasını aşağı iter.
+
 ## 5. Renk sistemi (roller)
 - Rol renkleri `marka.json → roller`. **ana** amber (anlatının öznesi; kanal imzası), **karsi** kırmızı,
   **dost** mavi, **ittifak** yeşil-turkuaz, **tartismali** kum sarısı (çoğunlukla tarama), **notr** gri.
@@ -108,4 +147,6 @@ Türkçe büyük harf `toLocaleUpperCase("tr")` (i → İ). Bütün metinler gü
    - 2026-11-05: kure/atlas/kağıt beğenildi; yükseltilmiş üçlüden ilki (gece küresi) öncü yön.
    - 2026-11-05: amaç jeopolitik + seyahat/sosyoloji + askerî tarih; 16:9 ve 9:16; kürenin etrafında dönen kamera,
      ara ara tam dünya; ülke adları marka yazı sistemiyle.
+   - 2026-11-05 17:00: altı anlatım grafiği stili (§4c) eklendi; seçim Atilla'da.
+   - 2026-11-05 18:15: Atilla "daha farklı stiller" → luks, kagit, firca, neon, serit eklendi (toplam 11).
    - Kalıcı: parlama/bantlanma yok, yazı güvenli alanda ve tam görünür, müşteri logosu öne çıkar.

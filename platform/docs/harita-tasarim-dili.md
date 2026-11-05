@@ -70,7 +70,7 @@ Kırım'ı Ukrayna'ya taşır. Tartışmalı bölgeler `bolge` + `tarama` ile ay
   anlatım cümlesine bağlanır (`t`).
 
 ## 4c. Anlatım grafiği stilleri (`"grafik"`, Atilla 2026-11-05: "farklı stiller, uzman motion grafik kalitesi")
-Aynı sahne dosyası altı grafik diliyle çizilir; yalnız `"grafik": "<ad>"` değişir. Biçim ve hareket
+Aynı sahne dosyası on bir grafik diliyle çizilir; yalnız `"grafik": "<ad>"` değişir. Biçim ve hareket
 `sinema/grafik.js`, renk ve yazı `marka.json → grafikler.<ad>`. Seçim: `sinema.py grafik-kontakt` ile tek sayfada.
 
 | Stil | Ne zaman | Görsel dil | Hareket (easing / süre) |
@@ -81,6 +81,11 @@ Aynı sahne dosyası altı grafik diliyle çizilir; yalnız `"grafik": "<ad>"` d
 | `istihbarat` | çatışma senaryosu, OSINT, savunma | ışıyan kıl çizgi, nokta ızgara, iz mermisi (tracer) kesikli ok, nişangâh şehir + koordinat, köşe parantezli kart, mono yazı | doğrusal/basamaklı 0.3–0.6 sn, daktilo yazım, rakam karışıp oturur |
 | `kroki` | seyahat, ülke sosyolojisi, kişisel anlatı | keçeli kalem, 8 fps titreşim ("boil"), karalama tarama, iki vuruşlu açık ok ucu, Caveat, bantlı not kartı | çizilerek ease-out, kartta back-out + dönüş |
 | `editoryal` | veri ağırlıklı analiz, ekonomi | kıl çizgi, gölgesiz düz dolgu, küçük dolu ok ucu, kılavuzlu şehir etiketi, kutusuz serif rakam | cubic ease-out 0.7–0.9 sn, 80 ms kademeli |
+| `luks` | premium marka, lüks seyahat, Atilla'nın "lüks, ortalanmış" çizgisi | şampanya altını kıl çizgi, çift raylı ok + ucunda kayan ışıltı, çok geniş aralıklı ince büyük harf + Instrument Serif | ease-out 1.2–1.8 sn, harf aralığı daralarak oturur |
+| `kagit` | eğitici, çocuk/aile, sıcak sosyoloji | renkli kâğıt katmanları + kalkık gölge, şerit oklar, testere dişli cephe, eğik kâğıt etiket, iki yapraklı kart, Fraunces | back-out ile "yapıştırma" 0.4–0.7 sn (stop-motion) |
+| `firca` | kültür, tarih, Doğu–Batı anlatıları | basınçla incelip kalınlaşan fırça darbesi, kuru fırça kılları, mürekkep lekesi şehir, fırça vurgu, kırmızı mühür | expo-out tek darbe 0.5–0.9 sn, ardından durgunluk |
+| `neon` | gece hayatı, şehir, gençlik kanalı | cam tüp çizgi (renkli hale + beyaz çekirdek), açık tüp ok ucu, tüp yazı, yuvarlak tüp çerçeveli kart | titreşerek yanma (basamaklı 0.45 sn), sonra hafif uğultu |
+| `serit` | modern açıklayıcı, teknoloji, ekonomi | kalkık levha ülkeler, kalınlığı olan şerit ok, cephe duvarı, uzun gölgeli kabartma yazı, cam kart, iğneli şehir etiketi | ease-out quint 0.6–1.0 sn, kartlar aşağıdan yükselir |
 
 Bir videoda tek stil kullanılır; stil karıştırılmaz (izleyici dili bir kez öğrenir).
 
@@ -143,4 +148,5 @@ Türkçe büyük harf `toLocaleUpperCase("tr")` (i → İ). Bütün metinler gü
    - 2026-11-05: amaç jeopolitik + seyahat/sosyoloji + askerî tarih; 16:9 ve 9:16; kürenin etrafında dönen kamera,
      ara ara tam dünya; ülke adları marka yazı sistemiyle.
    - 2026-11-05 17:00: altı anlatım grafiği stili (§4c) eklendi; seçim Atilla'da.
+   - 2026-11-05 18:15: Atilla "daha farklı stiller" → luks, kagit, firca, neon, serit eklendi (toplam 11).
    - Kalıcı: parlama/bantlanma yok, yazı güvenli alanda ve tam görünür, müşteri logosu öne çıkar.

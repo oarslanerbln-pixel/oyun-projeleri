@@ -463,6 +463,344 @@
           "boy": 0.019
         }
       }
+    },
+    "luks": {
+      "_not": "Lüks altın: şampanya altını kıl çizgiler, çift raylı ok + kayan ışıltı, geniş aralıklı ince büyük harf + Instrument Serif. Premium, yavaş.",
+      "roller": {
+        "ana": {
+          "dolgu": "#d9b26a",
+          "kontur": "#ecd29a",
+          "alfa": 0.16
+        },
+        "karsi": {
+          "dolgu": "#9e3a44",
+          "kontur": "#d97a84",
+          "alfa": 0.18
+        },
+        "dost": {
+          "dolgu": "#4a6f9e",
+          "kontur": "#9ab8dc",
+          "alfa": 0.16
+        },
+        "notr": {
+          "dolgu": "#6e6a62",
+          "kontur": "#b8b2a6",
+          "alfa": 0.12
+        },
+        "tartismali": {
+          "dolgu": "#b89a5a",
+          "kontur": "#e0c890",
+          "alfa": 0.14
+        },
+        "ittifak": {
+          "dolgu": "#4a8a72",
+          "kontur": "#8cc8b0",
+          "alfa": 0.16
+        }
+      },
+      "sinir": "rgba(217,178,106,0.32)",
+      "sinirKalin": 0.7,
+      "etiket": "#f3e2b8",
+      "deniz": "rgba(236,218,170,0.75)",
+      "metin": "#fbf6ea",
+      "metin2": "rgba(240,228,200,0.8)",
+      "vinyet": 0.5,
+      "yazi": {
+        "deniz": {
+          "aile": "Instrument Serif",
+          "agirlik": 400,
+          "boy": 0.026,
+          "aralik": 0.2
+        },
+        "tarih": {
+          "aile": "Inter Tight",
+          "agirlik": 300,
+          "boy": 0.036,
+          "aralik": 0.4
+        },
+        "cip": {
+          "aile": "Inter Tight",
+          "agirlik": 300,
+          "boy": 0.017,
+          "aralik": 0.35
+        },
+        "lejant": {
+          "aile": "Instrument Serif",
+          "agirlik": 400,
+          "boy": 0.023
+        },
+        "kaynak": {
+          "aile": "Inter Tight",
+          "agirlik": 300,
+          "boy": 0.012
+        }
+      }
+    },
+    "kagit": {
+      "_not": "Kâğıt kesik: renkli kâğıt katmanları ve kalkık gölge, şerit oklar, testere dişli cephe, eğik kâğıt etiketler, Fraunces.",
+      "roller": {
+        "ana": {
+          "dolgu": "#f0a830",
+          "kontur": "#ffd27a",
+          "alfa": 0.8
+        },
+        "karsi": {
+          "dolgu": "#d9483b",
+          "kontur": "#ff8a7a",
+          "alfa": 0.8
+        },
+        "dost": {
+          "dolgu": "#3a7bd5",
+          "kontur": "#8ab4ff",
+          "alfa": 0.8
+        },
+        "notr": {
+          "dolgu": "#a59d8f",
+          "kontur": "#d8d0c2",
+          "alfa": 0.7
+        },
+        "tartismali": {
+          "dolgu": "#e8c84a",
+          "kontur": "#f8e08a",
+          "alfa": 0.75
+        },
+        "ittifak": {
+          "dolgu": "#2f9e7a",
+          "kontur": "#7fd8b8",
+          "alfa": 0.8
+        }
+      },
+      "sinir": "rgba(255,255,255,0.35)",
+      "cipMetin": "#26211a",
+      "cipMetin2": "#6b5f4f",
+      "deniz": "rgba(220,236,255,0.9)",
+      "yazi": {
+        "deniz": {
+          "aile": "Fraunces",
+          "agirlik": 600,
+          "boy": 0.026,
+          "aralik": 0.1
+        },
+        "tarih": {
+          "aile": "Fraunces",
+          "agirlik": 700,
+          "boy": 0.054,
+          "aralik": 0
+        },
+        "cip": {
+          "aile": "Space Grotesk",
+          "agirlik": 700,
+          "boy": 0.019,
+          "aralik": 0.08
+        },
+        "lejant": {
+          "aile": "Fraunces",
+          "agirlik": 600,
+          "boy": 0.021
+        },
+        "kaynak": {
+          "aile": "Inter Tight",
+          "agirlik": 400,
+          "boy": 0.0135
+        }
+      }
+    },
+    "firca": {
+      "_not": "Mürekkep fırça: basınçlı fırça darbesi oklar, kuru fırça kılları, mürekkep lekesi şehirler, fırça vurgu, kırmızı mühür.",
+      "roller": {
+        "ana": {
+          "dolgu": "#e8a33a",
+          "kontur": "#ffc56e",
+          "alfa": 0.2
+        },
+        "karsi": {
+          "dolgu": "#c8302c",
+          "kontur": "#ff6a5c",
+          "alfa": 0.2
+        },
+        "dost": {
+          "dolgu": "#2f6fb8",
+          "kontur": "#7fb0ec",
+          "alfa": 0.2
+        },
+        "notr": {
+          "dolgu": "#8a8a8a",
+          "kontur": "#cfcfcf",
+          "alfa": 0.16
+        },
+        "tartismali": {
+          "dolgu": "#d8b84a",
+          "kontur": "#f0d88a",
+          "alfa": 0.18
+        },
+        "ittifak": {
+          "dolgu": "#2f8f6f",
+          "kontur": "#7fd0b0",
+          "alfa": 0.2
+        }
+      },
+      "sinir": "rgba(251,247,239,0.36)",
+      "etiket": "#fbf7ef",
+      "deniz": "rgba(220,232,250,0.85)",
+      "metin": "#fbf7ef",
+      "yazi": {
+        "deniz": {
+          "aile": "Instrument Serif",
+          "agirlik": 400,
+          "boy": 0.03,
+          "aralik": 0.08
+        },
+        "tarih": {
+          "aile": "Instrument Serif",
+          "agirlik": 400,
+          "boy": 0.064,
+          "aralik": 0
+        },
+        "cip": {
+          "aile": "Instrument Serif",
+          "agirlik": 400,
+          "boy": 0.024,
+          "aralik": 0.04
+        },
+        "lejant": {
+          "aile": "Instrument Serif",
+          "agirlik": 400,
+          "boy": 0.024
+        }
+      }
+    },
+    "neon": {
+      "_not": "Neon tüp: cam tüp çizgiler (renkli hale + beyaz çekirdek), açık tüp ok ucu, tüp yazılar, titreşerek yanma girişi.",
+      "roller": {
+        "ana": {
+          "dolgu": "#ffb020",
+          "kontur": "#ffc94a",
+          "alfa": 0.08
+        },
+        "karsi": {
+          "dolgu": "#ff2e88",
+          "kontur": "#ff5fa8",
+          "alfa": 0.08
+        },
+        "dost": {
+          "dolgu": "#22d3ff",
+          "kontur": "#5fe4ff",
+          "alfa": 0.08
+        },
+        "notr": {
+          "dolgu": "#8a7fb0",
+          "kontur": "#b8b0e0",
+          "alfa": 0.06
+        },
+        "tartismali": {
+          "dolgu": "#f6ff3a",
+          "kontur": "#faff8a",
+          "alfa": 0.08
+        },
+        "ittifak": {
+          "dolgu": "#2bff9a",
+          "kontur": "#7affc0",
+          "alfa": 0.08
+        }
+      },
+      "sinir": "rgba(190,170,255,0.3)",
+      "etiket": "#e8f4ff",
+      "deniz": "rgba(120,220,255,0.85)",
+      "metin": "#f4ecff",
+      "metin2": "rgba(220,210,255,0.8)",
+      "bloom": [
+        0.7,
+        0.45,
+        0.82
+      ],
+      "yazi": {
+        "deniz": {
+          "aile": "Barlow Condensed",
+          "agirlik": 500,
+          "boy": 0.024,
+          "aralik": 0.3,
+          "italik": false
+        },
+        "tarih": {
+          "aile": "Barlow Condensed",
+          "agirlik": 500,
+          "boy": 0.054,
+          "aralik": 0.08
+        },
+        "cip": {
+          "aile": "Barlow Condensed",
+          "agirlik": 500,
+          "boy": 0.022,
+          "aralik": 0.18
+        },
+        "lejant": {
+          "aile": "Barlow Condensed",
+          "agirlik": 500,
+          "boy": 0.022
+        }
+      }
+    },
+    "serit": {
+      "_not": "3D şerit: kalkık levha ülkeler, kalınlığı olan şerit oklar, cephe duvarı, uzun gölgeli kabartma yazı, cam kartlar.",
+      "roller": {
+        "ana": {
+          "dolgu": "#ffae2b",
+          "kontur": "#ffd27a",
+          "alfa": 0.62
+        },
+        "karsi": {
+          "dolgu": "#ef4444",
+          "kontur": "#ff8585",
+          "alfa": 0.62
+        },
+        "dost": {
+          "dolgu": "#3b82f6",
+          "kontur": "#93c0ff",
+          "alfa": 0.62
+        },
+        "notr": {
+          "dolgu": "#8b95a5",
+          "kontur": "#c8d0dc",
+          "alfa": 0.5
+        },
+        "tartismali": {
+          "dolgu": "#eab308",
+          "kontur": "#fde68a",
+          "alfa": 0.55
+        },
+        "ittifak": {
+          "dolgu": "#10b981",
+          "kontur": "#6ee7b7",
+          "alfa": 0.62
+        }
+      },
+      "sinir": "rgba(255,255,255,0.32)",
+      "yazi": {
+        "deniz": {
+          "aile": "Space Grotesk",
+          "agirlik": 500,
+          "boy": 0.022,
+          "aralik": 0.22,
+          "italik": false
+        },
+        "tarih": {
+          "aile": "Space Grotesk",
+          "agirlik": 700,
+          "boy": 0.05,
+          "aralik": 0
+        },
+        "cip": {
+          "aile": "Space Grotesk",
+          "agirlik": 700,
+          "boy": 0.018,
+          "aralik": 0.08
+        },
+        "lejant": {
+          "aile": "Inter Tight",
+          "agirlik": 600,
+          "boy": 0.019
+        }
+      }
     }
   }
 }

@@ -32,15 +32,15 @@ import harita  # noqa: E402
 import dokular  # noqa: E402
 
 FORMATLAR = {"16x9": (1920, 1080), "9x16": (1080, 1920), "1x1": (1080, 1080), "4x5": (1080, 1350)}
-YAZILAR = {"inter-tight": ["400", "500", "600", "700"], "barlow-condensed": ["500", "600", "700"],
+YAZILAR = {"inter-tight": ["300", "400", "500", "600", "700"], "barlow-condensed": ["500", "600", "700"],
            "source-serif-4": ["400-italic"], "ibm-plex-mono": ["400", "500", "600"],
            # anlatım grafiği stilleri (grafik.js)
-           "cinzel": ["600", "700"], "eb-garamond": ["400", "400-italic", "500-italic", "600"], "caveat": ["500", "600", "700"],
+           "cinzel": ["600", "700"], "fraunces": ["600", "600-italic", "700"], "eb-garamond": ["400", "400-italic", "500-italic", "600"], "caveat": ["500", "600", "700"],
            "space-grotesk": ["500", "700"], "instrument-serif": ["400", "400-italic"]}
 AILE = {"inter-tight": "Inter Tight", "barlow-condensed": "Barlow Condensed", "source-serif-4": "Source Serif 4",
         "ibm-plex-mono": "IBM Plex Mono", "cinzel": "Cinzel", "eb-garamond": "EB Garamond", "caveat": "Caveat",
-        "space-grotesk": "Space Grotesk", "instrument-serif": "Instrument Serif"}
-GRAFIKLER = ["belgesel", "haber", "gravur", "istihbarat", "kroki", "editoryal"]
+        "space-grotesk": "Space Grotesk", "fraunces": "Fraunces", "instrument-serif": "Instrument Serif"}
+GRAFIKLER = ["belgesel", "haber", "gravur", "istihbarat", "kroki", "editoryal", "luks", "kagit", "firca", "neon", "serit"]
 BETIKLER = ["d3-array/dist/d3-array.min.js", "d3-geo/dist/d3-geo.min.js", "topojson-client/dist/topojson-client.min.js"]
 IRTIFA = {"dunya": 3.6, "kita": 1.6, "bolge": 0.75, "ulke": 0.45, "sehir": 0.12}
 

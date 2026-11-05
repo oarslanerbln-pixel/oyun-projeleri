@@ -34,6 +34,7 @@ NM = BURADA / "node_modules"
 ORTAK = BURADA.parent.parent / "ortak"
 sys.path.insert(0, str(ORTAK))
 import harita  # noqa: E402
+sys.path.insert(0, str(BURADA))
 
 KAPLAMALAR = ["atlas", "kure", "nokta", "karakalem", "parsomen", "neon", "kagit", "izometrik"]
 FORMATLAR = {"16x9": (1920, 1080), "9x16": (1080, 1920), "1x1": (1080, 1080), "4x5": (1080, 1350)}
@@ -103,14 +104,46 @@ def sahne_coz(s: dict, fmt: str, ss: float) -> dict:
             "sayacNot": s.get("sayacNot"), "veriNot": s.get("veriNot"), "rota": rota, "vurgu": vurgu,
             "noktalar": [_yer(d, dil) for d in s.get("noktalar", [])], "yaylar": yaylar,
             "km": round(harita.mesafe([(r["lon"], r["lat"]) for r in rota])) if len(rota) > 1 and s.get("sayac", True) else 0,
-            "bolge": s.get("bolge")}
+            "bolge": s.get("bolge"), "arazi": s.get("arazi", True)}
+
+
+DOKULU = {"kure", "atlas", "kagit"}  # gerçek arazi dokulu küre (arazi.py)
+
+
+def dokular(sahne: dict) -> dict | None:
+    """kaplamanın arazi dokuları: dünya + rotayı içeren bölge yaması; önbellek yoksa indirir, olmazsa vektöre düşer"""
+    if sahne["stil"] not in DOKULU or sahne.get("kure") is False or sahne.get("arazi") is False:
+        return None
+    try:
+        import arazi
+        if not list(arazi.ONBELLEK.glob("dunya-*.npy")):
+            arazi.dunya()
+        noktalar = [(r["lon"], r["lat"]) for r in sahne["rota"] + sahne["noktalar"]]
+        if noktalar and not any(_icinde(json.loads(j.read_text())["kutu"], noktalar) for j in arazi.ONBELLEK.glob("bolge-*.json")):
+            lo = [p[0] for p in noktalar]; la = [p[1] for p in noktalar]
+            arazi.bolge((math.floor(min(lo)) - 14, math.floor(min(la)) - 10, math.ceil(max(lo)) + 14, math.ceil(max(la)) + 10))
+        out = {}
+        for d in arazi.doku_yaz(sahne["stil"]):
+            kutu = json.loads(d.with_suffix(".json").read_text())["kutu"]
+            if "dunya" in d.stem:
+                out["dunya"] = d.as_uri()
+            elif noktalar and _icinde(kutu, noktalar) and "bolge" not in out:
+                out["bolge"] = {"url": d.as_uri(), "kutu": kutu}
+        return out if "dunya" in out else None
+    except Exception as e:  # ağ yoksa vektör küre
+        print(f"arazi dokusu yok, vektör küre: {e}", file=sys.stderr)
+        return None
+
+
+def _icinde(kutu, noktalar) -> bool:
+    return all(kutu[0] <= p[0] <= kutu[2] and kutu[1] <= p[1] <= kutu[3] for p in noktalar)
 
 
 def sayfa_yaz(sahne: dict, klasor: Path) -> Path:
     if not NM.exists():
         kur()
     wa = NM / "world-atlas"
-    veri = {"sahne": sahne, "ulkeler": json.loads((wa / "countries-50m.json").read_text()),
+    veri = {"sahne": sahne, "dokular": dokular(sahne), "ulkeler": json.loads((wa / "countries-50m.json").read_text()),
             "kara": json.loads((wa / "land-50m.json").read_text())}
     (klasor / "veri.js").write_text("window.__VERI = " + json.dumps(veri, ensure_ascii=False) + ";", encoding="utf-8")
     betik = "\n".join(f'<script src="{(NM / b).as_uri()}"></script>' for b in BETIKLER)

@@ -21,6 +21,15 @@ python3 platform/sablonlar/dunya/dunya.py video ... --ss 0.5 --olcek 0.5 --fps 2
 - **Zaman çizelgesi** (süreye oranla): giriş %0–24 (küre döner / kıyılar çizilir), kamera %16–50 (dünya → bölge),
   rota %44–74, noktalar %62–88, başlık %5–20.
 
+## Gerçek arazi (kure, atlas, kagit)
+`arazi.py` AWS Open Data **Terrain Tiles** (Mapzen terrarium: SRTM, GMTED, ETOPO1...) karolarından eşdikdörtgen
+yükseklik + deniz derinliği çıkarır (dünya z5 8192×4096, rotanın çevresi z7 yaması), çok yönlü gölgelendirme yapar
+ve kaplama dokusu üretir: kure gece mavisi kabartma, atlas sıcak kâğıt + basamaklı derinlik, kagit gerçek derinlik ve
+yükseklik eşiklerinden kesik kâğıt katmanları (gölgeli). Kara maskesi Natural Earth 50m'den, vektör kıyıyla çakışır.
+Küre WebGL'de çizilir (ortografik ters izdüşüm, ışık, deniz parlaması, atmosfer), vektör katmanlar üstüne biner.
+İlk kullanımda ~90 MB karo indirilir (`~/.cache/studyo/arazi`); ağ yoksa vektör küreye düşer. `"arazi": false` kapatır.
+Teslim künyesi: "Arazi: Mapzen Terrain Tiles (SRTM, GMTED, ETOPO1), Natural Earth".
+
 ## Kaplamalar
 | ad | görsel dil |
 |---|---|

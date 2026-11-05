@@ -29,13 +29,25 @@ class SahneTest(unittest.TestCase):
             self.assertIn(f"STILLER.{k} = {{", motor)
 
 
+class AraziTest(unittest.TestCase):
+    def test_golge_duz_ve_egim(self):
+        import numpy as np
+        import arazi
+        kutu = (0, 0, 10, 10)
+        duz = arazi.golge(np.zeros((40, 40), np.float32), kutu)
+        self.assertAlmostEqual(float(duz.std()), 0.0, places=5)
+        tepe = np.fromfunction(lambda y, x: 3000 * np.exp(-((x - 20) ** 2 + (y - 20) ** 2) / 60), (40, 40)).astype(np.float32)
+        g = arazi.golge(tepe, kutu)
+        self.assertGreater(g[14, 14], g[26, 26])  # kuzeybatı yamacı aydınlık, güneydoğu gölgede
+
+
 @unittest.skipUnless(HAZIR, "playwright ya da npm bağımlılıkları yok (dunya.py kur)")
 class CizimTest(unittest.TestCase):
     def test_her_kaplama_bir_kare(self):
         import numpy as np
         with tempfile.TemporaryDirectory() as t:
             for k in dunya.KAPLAMALAR:
-                p = dunya.kareler({**ORNEK, "kaplama": k}, [9.0], "16x9", Path(t), ss=0.5)[0]
+                p = dunya.kareler({**ORNEK, "kaplama": k, "arazi": False}, [9.0], "16x9", Path(t), ss=0.5)[0]
                 a = np.asarray(__import__("PIL.Image", fromlist=["Image"]).open(p).convert("RGB"))
                 self.assertEqual(a.shape, (1080, 1920, 3))
                 self.assertGreater(a.std(), 10, k)  # boş kare değil

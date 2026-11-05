@@ -178,6 +178,94 @@
     if (cizgi) { ctx.strokeStyle = cizgi; ctx.lineWidth = 1.2 * birim; ctx.beginPath(); ctx.arc(c[0], c[1], R, 0, 7); ctx.stroke(); }
   }
 
+
+  // ---------- WebGL dokulu küre: gerçek arazi (gölgelendirme + derinlik) dokusu, ışık, kenar ----------
+  // V.dokular = {dunya: url, bolge: {url, kutu}}; düz haritada kullanılmaz
+  let GLK = null;
+  async function dokuYukle() {
+    if (!V.dokular || !V.dokular.dunya) return;
+    const yukle = (url) => new Promise((ok, red) => { const im = new Image(); im.onload = () => ok(im); im.onerror = red; im.src = url; });
+    const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height;
+    const gl = c.getContext("webgl", { preserveDrawingBuffer: true, premultipliedAlpha: true, antialias: false, alpha: true });
+    if (!gl) return;
+    const vs = "attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }";
+    const fs = `precision highp float;
+      uniform vec2 uC; uniform float uR; uniform vec2 uM; uniform vec2 uBoy;
+      uniform sampler2D uD0; uniform sampler2D uD1; uniform vec4 uK1; uniform float uB1;
+      uniform vec3 uL; uniform float uOrt, uYay, uParla, uAtm; uniform vec3 uAtmRenk;
+      const float PI = 3.14159265;
+      void main(){
+        vec2 q = vec2(gl_FragCoord.x, uBoy.y - gl_FragCoord.y);
+        float x = (q.x - uC.x) / uR, y = (uC.y - q.y) / uR; float r2 = x*x + y*y;
+        if (r2 > 1.0) { gl_FragColor = vec4(0.0); return; }
+        float z = sqrt(1.0 - r2); float sf = sin(uM.y), cf = cos(uM.y);
+        float lat = asin(clamp(z*sf + y*cf, -1.0, 1.0));
+        float lon = uM.x + atan(x, z*cf - y*sf);
+        float dlon = degrees(lon), dlat = degrees(lat);
+        dlon = mod(dlon + 180.0, 360.0) - 180.0;
+        vec3 renk = texture2D(uD0, vec2((dlon + 180.0) / 360.0, (90.0 - dlat) / 180.0)).rgb;
+        if (uB1 > 0.0) {
+          vec2 t = vec2((dlon - uK1.x) / (uK1.z - uK1.x), (uK1.w - dlat) / (uK1.w - uK1.y));
+          float kenar = min(min(t.x, 1.0 - t.x), min(t.y, 1.0 - t.y));
+          float w = smoothstep(0.0, 0.04, kenar) * uB1;
+          if (kenar > 0.0) renk = mix(renk, texture2D(uD1, t).rgb, w);
+        }
+        vec3 n = vec3(x, y, z);
+        float dif = max(dot(n, normalize(uL)), 0.0);
+        vec3 col = renk * (uOrt + uYay * dif);
+        vec3 h = normalize(normalize(uL) + vec3(0.0, 0.0, 1.0));
+        float deniz = step(renk.r + 0.02, renk.b) ;
+        col += uParla * deniz * pow(max(dot(n, h), 0.0), 60.0);
+        col = mix(col, uAtmRenk, uAtm * pow(1.0 - z, 2.2));
+        float a = smoothstep(1.0, 1.0 - 1.6 / uR, sqrt(r2));
+        gl_FragColor = vec4(col * a, a);
+      }`;
+    const derle = (tip, kaynak) => { const sh = gl.createShader(tip); gl.shaderSource(sh, kaynak); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh)); return sh; };
+    const pr = gl.createProgram(); gl.attachShader(pr, derle(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, derle(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+    const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const lp = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(lp); gl.vertexAttribPointer(lp, 2, gl.FLOAT, false, 0, 0);
+    const doku = (im, birim, mip) => {
+      const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + birim); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, im);
+      if (mip) { gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); }
+      else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, mip ? gl.REPEAT : gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    };
+    doku(await yukle(V.dokular.dunya), 0, true);
+    let bolge = null;
+    if (V.dokular.bolge) { doku(await yukle(V.dokular.bolge.url), 1, false); bolge = V.dokular.bolge.kutu; } else doku(await yukle(V.dokular.dunya), 1, false);
+    const U = (ad) => gl.getUniformLocation(pr, ad);
+    gl.uniform1i(U("uD0"), 0); gl.uniform1i(U("uD1"), 1);
+    GLK = { c, gl, U, bolge };
+  }
+  function dokuluKure(o) { // o: {ort, yay, parla, atm, atmRenk:[r,g,b], isik:[x,y,z], alfa}
+    if (!GLK || !kuremi()) return false;
+    const { c, gl, U, bolge } = GLK; const m = proj.rotate(), t = proj.translate();
+    gl.viewport(0, 0, c.width, c.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform2f(U("uC"), t[0] * SS, t[1] * SS); gl.uniform1f(U("uR"), proj.scale() * SS); gl.uniform2f(U("uM"), (-m[0] * Math.PI) / 180, (-m[1] * Math.PI) / 180);
+    gl.uniform2f(U("uBoy"), c.width, c.height);
+    if (bolge) { gl.uniform4f(U("uK1"), ...bolge); gl.uniform1f(U("uB1"), kel((proj.scale() / (Math.min(W, H) * 0.42) - 1.6) / 1.2)); } else gl.uniform1f(U("uB1"), 0);
+    gl.uniform3f(U("uL"), ...(o.isik || [-0.55, 0.6, 0.62])); gl.uniform1f(U("uOrt"), o.ort); gl.uniform1f(U("uYay"), o.yay); gl.uniform1f(U("uParla"), o.parla || 0);
+    gl.uniform1f(U("uAtm"), o.atm || 0); gl.uniform3f(U("uAtmRenk"), ...(o.atmRenk || [0, 0, 0]));
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = o.alfa ?? 1; ctx.drawImage(c, 0, 0); ctx.restore();
+    return true;
+  }
+  // ülke adı: marka yazı sistemi (geniş aralıklı büyük harf, ülkenin ortasında)
+  function ulkeAdi(v, g, o) {
+    if (g <= 0) return; const m = d3.geoCentroid(v.f); if (!gorunur(...m)) return;
+    const ad = (v.etiket || v.ad).toLocaleUpperCase(S.dil === "de" ? "de" : "tr");
+    const w = genislik(ad, o.font, o.aralik || "0.32em");
+    // ilk ülke: içinde, merkezin altında; diğerleri: ülkenin üst kenarının üstünde (şehir etiketleriyle çakışmasın)
+    let x, y; const b = yol.bounds(v.f);
+    if (o.ust) { x = (b[0][0] + b[1][0]) / 2 - w / 2; y = b[0][1] - 12 * birim; }
+    else { const p = proj(m); x = p[0] - w / 2; y = p[1] + (o.dy || 0); }
+    x = Math.max(G.x0, Math.min(G.x1 - w, x)); y = Math.max(G.y0 + 20 * birim, y);
+    yazi(ad, x, y, { font: o.font, renk: o.renk, alfa: g, aralik: o.aralik || "0.32em", hale: o.hale, haleGen: o.haleGen });
+    yerlesik.push([x - 4, y - 20 * birim, x + w + 4, y + 6 * birim]);
+  }
+
   // ---------- yazı ----------
   function yazi(t, x, y, o) {
     ctx.save();
@@ -264,14 +352,16 @@
     ciz(u) {
       const P = { kagit: "#F3EFE6", kara: "#DCD3C1", sinir: "#F3EFE6", kiyi: "#9A8C74", ag: "rgba(70,55,35,0.10)", vurgu: "#C4583A", murekkep: "#1E1B18", ikincil: "#7A6B55" };
       arkaplan(P.kagit, "#E7E1D4", "rgba(70,55,35,0.35)");
+      const gK = eo(ara(u, 0.05, 0.22));
+      const dokulu = dokuluKure({ ort: 0.86, yay: 0.2, atm: 0.22, atmRenk: [0.95, 0.93, 0.88], isik: [-0.5, 0.65, 0.6], alfa: lerp(0.35, 1, gK) });
       const gA = eio(ara(u, 0, 0.14));
       ctx.strokeStyle = P.ag; ctx.lineWidth = 0.7; izle(ctx, kismi(cizgiler(AG), gA, 0.6)); ctx.stroke();
       ctx.strokeStyle = "rgba(70,55,35,0.25)"; ctx.lineWidth = 0.9; izle(ctx, kismi(cizgiler(KURE), gA, 0.6)); ctx.stroke();
-      const gK = eo(ara(u, 0.05, 0.22));
-      ctx.save(); ctx.globalAlpha = gK; izle(ctx, cizgiler(KARA)); ctx.fillStyle = P.kara; ctx.fill();
-      ctx.strokeStyle = P.sinir; ctx.lineWidth = 0.8; izle(ctx, cizgiler(SINIR)); ctx.stroke(); ctx.restore();
-      ctx.strokeStyle = P.kiyi; ctx.lineWidth = 0.7; izle(ctx, kismi(cizgiler(KIYI), eio(ara(u, 0.02, 0.2)))); ctx.stroke();
-      VURGU.forEach((v, i) => { const g = eo(ara(u, 0.3 + i * 0.05, 0.42 + i * 0.05)); if (g <= 0) return; ctx.save(); ctx.globalAlpha = g; izle(ctx, cizgiler(v.f)); ctx.fillStyle = i ? hex(P.vurgu, 0.55) : P.vurgu; ctx.fill(); ctx.strokeStyle = P.kagit; ctx.lineWidth = 1; ctx.stroke(); ctx.restore(); });
+      ctx.save(); ctx.globalAlpha = gK; if (!dokulu) { izle(ctx, cizgiler(KARA)); ctx.fillStyle = P.kara; ctx.fill(); }
+      ctx.strokeStyle = dokulu ? "rgba(255,252,244,0.85)" : P.sinir; ctx.lineWidth = dokulu ? 0.9 : 0.8; izle(ctx, cizgiler(SINIR)); ctx.stroke(); ctx.restore();
+      ctx.strokeStyle = dokulu ? "rgba(110,92,66,0.55)" : P.kiyi; ctx.lineWidth = 0.7; izle(ctx, kismi(cizgiler(KIYI), eio(ara(u, 0.02, 0.2)))); ctx.stroke();
+      VURGU.forEach((v, i) => { const g = eo(ara(u, 0.3 + i * 0.05, 0.42 + i * 0.05)); if (g <= 0) return; ctx.save(); ctx.globalAlpha = g; izle(ctx, cizgiler(v.f)); ctx.fillStyle = i ? hex(P.vurgu, 0.5) : hex(P.vurgu, dokulu ? 0.82 : 1); ctx.fill(); ctx.strokeStyle = P.kagit; ctx.lineWidth = 1; ctx.stroke(); ctx.restore(); });
+      VURGU.forEach((v, i) => ulkeAdi(v, eo(ara(u, 0.4 + i * 0.05, 0.5 + i * 0.05)), { font: `600 ${(i ? 15 : 19) * birim}px "IBM Plex Mono"`, renk: i ? P.murekkep : "#FFF8EE", aralik: "0.4em", dy: 22 * birim, ust: i > 0, hale: i ? "rgba(243,239,230,0.85)" : null, haleGen: 5 * birim }));
       // rota: önce noktalı kılavuz, sonra kesintisiz mürekkep
       const r = rotaEkran(), f = eio(ara(u, ...T.rota));
       if (f > 0) {
@@ -307,19 +397,23 @@
       // atmosfer
       parilti((g) => { g.strokeStyle = "rgba(90,160,255,0.55)"; g.lineWidth = R * 0.02; g.beginPath(); g.arc(c[0], c[1], R * 1.01, 0, 7); g.stroke(); }, R * 0.06, 0.45 * gG);
       ctx.save(); ctx.globalAlpha = gG;
-      const og = ctx.createRadialGradient(c[0] - R * 0.35, c[1] - R * 0.4, R * 0.05, c[0], c[1], R);
-      og.addColorStop(0, P.okyanus1); og.addColorStop(1, P.okyanus2);
-      ctx.fillStyle = og; ctx.beginPath(); ctx.arc(c[0], c[1], R, 0, 7); ctx.fill();
-      ctx.strokeStyle = "rgba(120,170,255,0.08)"; ctx.lineWidth = 0.8; izle(ctx, cizgiler(AG)); ctx.stroke();
-      izle(ctx, cizgiler(KARA)); ctx.fillStyle = P.kara; ctx.fill();
+      const dokulu = dokuluKure({ ort: 0.22, yay: 1.05, parla: 0.28, atm: 0.6, atmRenk: [0.32, 0.58, 1.0], isik: [-0.55, 0.55, 0.63], alfa: gG });
+      if (!dokulu) {
+        const og = ctx.createRadialGradient(c[0] - R * 0.35, c[1] - R * 0.4, R * 0.05, c[0], c[1], R);
+        og.addColorStop(0, P.okyanus1); og.addColorStop(1, P.okyanus2);
+        ctx.fillStyle = og; ctx.beginPath(); ctx.arc(c[0], c[1], R, 0, 7); ctx.fill();
+        izle(ctx, cizgiler(KARA)); ctx.fillStyle = P.kara; ctx.fill();
+      }
+      ctx.strokeStyle = "rgba(120,170,255,0.07)"; ctx.lineWidth = 0.8; izle(ctx, cizgiler(AG)); ctx.stroke();
       ctx.strokeStyle = P.sinir; ctx.lineWidth = 0.6; izle(ctx, cizgiler(SINIR)); ctx.stroke();
       ctx.strokeStyle = P.kiyi; ctx.lineWidth = 0.8; izle(ctx, cizgiler(KIYI)); ctx.globalAlpha = 0.55 * gG; ctx.stroke();
       ctx.globalAlpha = 1;
       VURGU.forEach((v, i) => { const g = eo(ara(u, 0.32 + i * 0.05, 0.44 + i * 0.05)); if (g <= 0) return; const l = cizgiler(v.f); ctx.save(); ctx.globalAlpha = g * (i ? 0.6 : 0.9); izle(ctx, l); ctx.fillStyle = P.vurgu; ctx.fill(); ctx.restore(); parilti((gg) => { izle(gg, l); gg.strokeStyle = P.vurgu; gg.lineWidth = 2; gg.stroke(); }, 6, 0.6 * g); });
+      VURGU.forEach((v, i) => ulkeAdi(v, eo(ara(u, 0.42 + i * 0.05, 0.52 + i * 0.05)), { font: `600 ${(i ? 15 : 19) * birim}px "Space Grotesk"`, renk: i ? "#FFE2B0" : "#1A1206", aralik: "0.42em", dy: 22 * birim, ust: i > 0, hale: i ? "rgba(5,7,15,0.7)" : null, haleGen: 6 * birim }));
       // kenar kararması + sağ üst ışık
-      const kg = ctx.createRadialGradient(c[0] - R * 0.3, c[1] - R * 0.35, R * 0.2, c[0], c[1], R * 1.02);
+      if (!dokulu) { const kg = ctx.createRadialGradient(c[0] - R * 0.3, c[1] - R * 0.35, R * 0.2, c[0], c[1], R * 1.02);
       kg.addColorStop(0, "rgba(255,255,255,0.06)"); kg.addColorStop(0.6, "rgba(0,0,0,0)"); kg.addColorStop(1, "rgba(0,0,10,0.55)");
-      ctx.fillStyle = kg; ctx.beginPath(); ctx.arc(c[0], c[1], R, 0, 7); ctx.fill();
+      ctx.fillStyle = kg; ctx.beginPath(); ctx.arc(c[0], c[1], R, 0, 7); ctx.fill(); }
       ctx.restore();
       const r = rotaEkran(), f = eio(ara(u, ...T.rota));
       if (f > 0) {
@@ -561,20 +655,22 @@
       arkaplan(P.derin, "#EDE4D3", null);
       const kara = cizgiler(KARA), gG = eo(ara(u, 0, 0.2));
       const s = Math.min(1.8, Math.max(0.7, Math.sqrt(proj.scale() / 330)));
+      const dokulu = dokuluKure({ ort: 0.9, yay: 0.14, atm: 0.12, atmRenk: [1, 1, 1], isik: [-0.5, 0.65, 0.6], alfa: lerp(0.4, 1, gG) });
       ctx.save(); ctx.lineJoin = "round";
-      P.bantlar.forEach((renk, i) => {
+      if (!dokulu) P.bantlar.forEach((renk, i) => {
         const gen = (P.bantlar.length - i) * 14 * birim * s * lerp(0.4, 1, gG);
         ctx.shadowColor = "rgba(0,20,25,0.35)"; ctx.shadowBlur = 10 * birim * SS; ctx.shadowOffsetY = 3 * birim * SS;
         izle(ctx, kara); ctx.strokeStyle = renk; ctx.lineWidth = gen; ctx.stroke(); ctx.fillStyle = renk; ctx.fill();
       });
       ctx.shadowColor = "rgba(0,20,25,0.45)"; ctx.shadowBlur = 14 * birim * SS; ctx.shadowOffsetY = 5 * birim * SS;
-      izle(ctx, kara); ctx.fillStyle = P.kara; ctx.fill(); ctx.restore();
+      if (!dokulu) { izle(ctx, kara); ctx.fillStyle = P.kara; ctx.fill(); } ctx.restore();
       ctx.strokeStyle = "rgba(120,100,70,0.25)"; ctx.lineWidth = 0.7 * birim; izle(ctx, cizgiler(SINIR)); ctx.stroke();
       VURGU.forEach((v, i) => {
         const g = eio(ara(u, 0.3 + i * 0.06, 0.46 + i * 0.06)); if (g <= 0) return; const l = cizgiler(v.f); const kalk = 8 * birim * g;
         ctx.save(); ctx.translate(0, -kalk); ctx.shadowColor = "rgba(60,20,10,0.45)"; ctx.shadowBlur = (4 + 14 * g) * birim * SS; ctx.shadowOffsetY = kalk * 0.9 * SS;
         izle(ctx, l); ctx.fillStyle = i ? P.vurgu2 : P.vurgu; ctx.globalAlpha = kel(g * 1.5); ctx.fill(); ctx.restore();
       });
+      VURGU.forEach((v, i) => ulkeAdi(v, eo(ara(u, 0.42 + i * 0.05, 0.52 + i * 0.05)), { font: `700 ${(i ? 15 : 18) * birim}px Fraunces`, renk: i ? P.yazi : "#FFF6EC", aralik: "0.36em", dy: 14 * birim, ust: i > 0, hale: i ? "rgba(255,253,248,0.9)" : null, haleGen: 5 * birim }));
       const r = rotaEkran(), f = eio(ara(u, ...T.rota));
       if (f > 0) { const k = rotaKismi(r, f); ctx.save(); ctx.setLineDash([9 * birim, 7 * birim]); ctx.lineCap = "round"; ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.lineWidth = 3.2 * birim; ctx.translate(0, 2 * birim); izle(ctx, [k]); ctx.stroke(); ctx.translate(0, -2 * birim); ctx.strokeStyle = P.dikis; ctx.lineWidth = 3.2 * birim; izle(ctx, [k]); ctx.stroke(); ctx.restore(); }
       for (const y of yerler(u)) {
@@ -650,6 +746,7 @@
   ST.bolge = { lon: 0, lat: 0, k: 1, dx: 0, dy: 0 };
   window.hazir = (async () => {
     await document.fonts.ready;
+    try { await dokuYukle(); } catch (e) { console.error('doku', e); GLK = null; }
     ST.bolge = S.bolge || bolgeKamerasi();
     return true;
   })();

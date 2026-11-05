@@ -485,7 +485,7 @@ function kartCiz(t) {
       e.font = `700 ${Math.round(b * 2.4)}px "Barlow Condensed"`; const sw = e.measureText((q.onek || "") + (q.deger != null ? (q.deger).toLocaleString("tr-TR", { maximumFractionDigits: q.ondalik ?? 0 }) : "") + (q.birim ? " " + q.birim : "")).width;
       e.font = `700 ${b}px "Inter Tight"`; const bw = e.measureText((q.baslik || "").toLocaleUpperCase("tr")).width + b * 0.2 * (q.baslik || "").length;
       e.font = `500 ${Math.round(b * 0.95)}px "Inter Tight"`; const aw = e.measureText(q.alt || "").width;
-      const pad = b * 0.9, w = Math.max(sw, bw, aw) + pad * 2, h = b * (q.alt ? 5.6 : 4.4), x = yonx > 0 ? kx : kx - w, y = ey - h / 2;
+      const pad = b * 0.9, w = Math.max(sw, bw, aw) + pad * 2, h = b * (q.alt ? 5.6 : 4.4), gk = (dikey ? M.guvenli.dikey[0] : M.guvenli.yatay[0]) * W * SS, x = sinir(yonx > 0 ? kx : kx - w, gk, W * SS - gk - w), y = ey - h / 2; // güvenli alana kıstır
       e.save(); e.beginPath(); e.rect(yonx > 0 ? x : x + w * (1 - c2), y, w * c2, h); e.clip();
       e.fillStyle = M.cipZemin; e.fillRect(x, y, w, h); e.fillStyle = r.kontur; e.fillRect(yonx > 0 ? x : x + w - Math.max(3, b * 0.16), y, Math.max(3, b * 0.16), h);
       e.globalAlpha = a * eo(ara(t, t0 + 0.6, t0 + 1.2)); e.textBaseline = "alphabetic"; e.textAlign = "left";

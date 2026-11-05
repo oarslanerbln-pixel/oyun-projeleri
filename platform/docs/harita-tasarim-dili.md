@@ -52,9 +52,22 @@ Kurallar:
 | `sehir` | nokta (başkent kare) + etiket | `yon: -1` etiketi sola alır |
 | `deniz` | italik serif, açık mavi | deniz/okyanus/boğaz adları |
 | `birlik` | NATO tipi sembol; `yol` + `hareket` ile ilerler | `sembol`: piyade, zirhli, mekanize, topcu, suvari; `kademe`: XX, XXX, XXXX |
+| `kart` | veri kartı: işaret noktası, kırık bağlantı çizgisi, açılan kart, sayan rakam | `baslik`, `deger`, `ondalik`, `onek`, `birim`, `alt`, `yon: -1` sola |
 
 Sınır görüşü: uluslararası tanınan sınırlar. Natural Earth'ün fiilî görünümü Kırım'ı Rusya'ya bağlar; motor
 Kırım'ı Ukrayna'ya taşır. Tartışmalı bölgeler `bolge` + `tarama` ile ayrıca gösterilir.
+
+## 4b. Anlatım grafiklerinin hareket dili (Atilla 2026-11-05: "grafikler, animasyonlar çok daha klas olsun")
+- **Ülke girişi:** dolgu etiket noktasından dairesel açılır (1.5 sn, ease-out quint), kontur aynı anda çizilerek dolanır;
+  ülke adı geniş harf aralığından yerine oturur (tracking-in). Ani belirme yok.
+- **Ok:** uzayarak çizilir (eio), uçta kısa beyaz ışık yalnız çizilirken; gövdede uca doğru akan ince şevronlar yönü
+  ve hareketi sürekli hissettirir; üç katmanlı yumuşak gölge, beyaz ince kontur.
+- **Cephe hattı:** önce çizilerek gelir, sonra durumlar arasında biçim değiştirir; dişler ilerleme yönünde.
+- **Birlik:** hafif geri yaylanmayla (back-out) belirir, yolda ilerlerken arkasında noktalı iz bırakır.
+- **Veri kartı:** işaret noktası → bağlantı çizgisi çizilir → kart yandan açılır → rakam sayarak yerine gelir (TR/DE biçimi).
+- **Nabız:** iki ince halka, yavaş (2.4 sn), merkezde sabit nokta. Abartılı yanıp sönme yok.
+- Genel: hareketler 0.5–1.6 sn, yalnız ease-out/ease-in-out; aynı anda en fazla iki öğe giriş yapar; giriş zamanları
+  anlatım cümlesine bağlanır (`t`).
 
 ## 5. Renk sistemi (roller)
 - Rol renkleri `marka.json → roller`. **ana** amber (anlatının öznesi; kanal imzası), **karsi** kırmızı,

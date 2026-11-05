@@ -293,8 +293,18 @@ function okCiz(g, yol, p, gen, renk_) {
     gg.lineTo(taban[0] + dy * gen * 1.05, taban[1] - dx * gen * 1.05); for (let i = m - 1; i >= 0; i--) gg.lineTo(...sag2[i]); gg.closePath(); };
   for (const [o, al] of [[0.42, 0.12], [0.3, 0.16], [0.18, 0.2]]) { g.save(); g.translate(gen * o, gen * o * 1.3); sekil(g); g.fillStyle = `rgba(0,0,0,${al})`; g.fill(); g.restore(); }
   g.save(); sekil(g); const gr = g.createLinearGradient(y[0][0], y[0][1], u[0], u[1]); gr.addColorStop(0, hex(renk_, 0.55)); gr.addColorStop(0.4, hex(renk_, 0.92)); gr.addColorStop(1, hex(renk_, 1));
-  g.fillStyle = gr; g.fill(); g.lineJoin = "round"; g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = gen * 0.09; g.stroke(); g.restore();
+  g.fillStyle = gr; g.fill(); g.lineJoin = "round"; g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = gen * 0.09; g.stroke();
+  // akış: gövde içinde ilerleyen ince şevronlar (hareket yönü), uca doğru sönen
+  sekil(g); g.clip(); const L = yolUzun(yolG), ad = gen * 1.6, kay = (okZaman * gen * 2.2) % ad;
+  g.strokeStyle = "rgba(255,255,255,0.32)"; g.lineWidth = gen * 0.12; g.lineCap = "round";
+  for (let s_ = kay; s_ < L - gen * 0.5; s_ += ad) { const k1 = kirpYol(yolG, s_ / L), q = k1[k1.length - 1], k0 = kirpYol(yolG, Math.max(0, s_ - 4) / L), o = k0[k0.length - 1];
+    let ux = q[0] - o[0], uy = q[1] - o[1]; const ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul; const w = gen * (0.42 + 0.58 * s_ / L) * 0.32;
+    g.globalAlpha = 0.25 + 0.75 * (s_ / L); g.beginPath(); g.moveTo(q[0] - ux * w - uy * w, q[1] - uy * w + ux * w); g.lineTo(q[0], q[1]); g.lineTo(q[0] - ux * w + uy * w, q[1] - uy * w - ux * w); g.stroke(); }
+  g.restore();
+  if (p < 1) { const ux_ = u[0] + dx * ucBoy * 0.45, uy_ = u[1] + dy * ucBoy * 0.45, rg = g.createRadialGradient(ux_, uy_, 0, ux_, uy_, gen * 0.9); rg.addColorStop(0, "rgba(255,255,255,0.7)"); rg.addColorStop(1, "rgba(255,255,255,0)");
+    g.save(); g.globalAlpha = (1 - p) * 0.9; g.fillStyle = rg; g.beginPath(); g.arc(ux_, uy_, gen * 0.9, 0, 7); g.fill(); g.restore(); }
 }
+let okZaman = 0;
 function yolUzun(y) { let s = 0; for (let i = 1; i < y.length; i++) s += Math.hypot(y[i][0] - y[i - 1][0], y[i][1] - y[i - 1][1]); return s; }
 function cepheCiz(g, yol, gen, renk_, taraf = 1) {
   if (yol.length < 2) return; g.save(); g.lineJoin = g.lineCap = "round";
@@ -319,12 +329,20 @@ function katmanCiz(c, kutu, t, olcek, dunya, hareketli = true) {
   // ülke dolguları ve taramalar
   for (const k of KATMAN) {
     if (!k.f) continue; const a = gor(k, t, 0.8, 0.6); if (a <= 0) continue; const r = renk(k.rol || "ana");
+    const t0 = k.t?.[0] ?? 0, acil = eoq(ara(t, t0, t0 + 1.5)), iz = eio(ara(t, t0, t0 + 1.9));
+    const merkez = k.etiketKonum ? xy(k.etiketKonum) : null;
     for (const f of k.f) {
-      g.save(); g.globalAlpha = a; g.beginPath(); yol(f);
+      g.save(); g.globalAlpha = a;
+      if (merkez && acil < 1) { const kb = d3.geoBounds(f), c1 = xy([kb[0][0], kb[0][1]]), c2 = xy([kb[1][0], kb[1][1]]);
+        const R = Math.max(...[c1, c2, [c1[0], c2[1]], [c2[0], c1[1]]].map((q) => Math.hypot(q[0] - merkez[0], q[1] - merkez[1]))) * 1.05;
+        g.beginPath(); g.arc(merkez[0], merkez[1], Math.max(1, R * acil), 0, 7); g.clip(); }
+      g.beginPath(); yol(f);
       if (k.desen === "tarama") { g.fillStyle = hex(r.dolgu, 0.18); g.fill(); g.fillStyle = desen(g, hex(r.dolgu, 0.85), 45, Math.max(6, px(9)), Math.max(1.5, px(2.2))); g.fill(); }
       else { g.fillStyle = hex(r.dolgu, k.yogunluk ?? r.alfa ?? 0.32); g.fill();
         g.save(); g.clip(); for (const [w_, al] of [[18, 0.12], [11, 0.16], [5, 0.22]]) { g.strokeStyle = hex(r.kontur, al); g.lineWidth = px(w_); g.stroke(); } g.restore(); }
-      g.lineJoin = "round"; g.strokeStyle = hex(r.kontur, 0.35 * a); g.lineWidth = px(6); g.stroke();
+      g.restore(); g.save(); g.globalAlpha = a; g.beginPath(); yol(f);
+      if (iz < 1) { const L = d3.geoLength(f) * c.width / (dunya ? 2 * Math.PI : (kutu[2] - kutu[0]) * D2R) * 1.3; g.setLineDash([L * iz, L * 2]); }
+      g.lineJoin = g.lineCap = "round"; g.strokeStyle = hex(r.kontur, 0.35 * a); g.lineWidth = px(6); g.stroke();
       g.strokeStyle = hex(r.kontur, 0.95); g.lineWidth = px(1.6); g.stroke(); g.restore();
     }
   }
@@ -339,10 +357,10 @@ function katmanCiz(c, kutu, t, olcek, dunya, hareketli = true) {
     const A = ds[i], B = ds[Math.min(i + 1, ds.length - 1)], f = B === A ? 0 : eio(ara(t, A.t, B.t));
     const pa = yeniden(yumusak(A.yol.map(xy), 12), 200), pb = yeniden(yumusak(B.yol.map(xy), 12), 200);
     const y = pa.map((q, j) => [q[0] + (pb[j][0] - q[0]) * f, q[1] + (pb[j][1] - q[1]) * f]);
-    g.save(); g.globalAlpha = a; cepheCiz(g, y, px(3.2), renk(k.rol || "karsi").kontur, k.taraf || 1); g.restore(); }
+    const ci = eio(ara(t, k.t?.[0] ?? 0, (k.t?.[0] ?? 0) + 1.6)); g.save(); g.globalAlpha = a; cepheCiz(g, ci < 1 ? kirpYol(y, ci) : y, px(3.2), renk(k.rol || "karsi").kontur, k.taraf || 1); g.restore(); }
   // oklar
   for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "ok")) { const [a0, b0] = k.t || [0, 1]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 2.2))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
-    g.save(); g.globalAlpha = a; okCiz(g, yumusak(k.yol.map(xy), 30), p, px(k.kalin ?? 26), renk(k.rol || "karsi").dolgu); g.restore(); }
+    okZaman = t - a0; g.save(); g.globalAlpha = a; okCiz(g, yumusak(k.yol.map(xy), 30), p, px(k.kalin ?? 26), renk(k.rol || "karsi").dolgu); g.restore(); }
   // rotalar (yer üstü kesikli, ilerleyen)
   for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "rota")) { const [a0] = k.t || [0]; const p = eio(ara(t, a0, a0 + (k.cizim ?? 3))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
     const gc = { type: "LineString", coordinates: d3.range(0, 101).map((i) => d3.geoInterpolate(k.yol[0], k.yol[k.yol.length - 1])(i / 100)) };
@@ -351,7 +369,8 @@ function katmanCiz(c, kutu, t, olcek, dunya, hareketli = true) {
     g.setLineDash([px(14), px(9)]); g.strokeStyle = renk(k.rol || "ana").kontur; g.lineWidth = px(3.2); g.stroke(); g.restore(); }
   // nabız halkaları
   for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "nabiz")) { const a = gor(k, t); if (a <= 0) continue; const q = xy(k.konum), r = renk(k.rol || "ana");
-    for (let j = 0; j < 3; j++) { const f = ((t - (k.t?.[0] ?? 0)) / 1.8 + j / 3) % 1; if (f < 0) continue; g.beginPath(); g.arc(q[0], q[1], px(8 + 70 * eo(f)), 0, 7); g.strokeStyle = hex(r.kontur, (1 - f) * 0.9 * a); g.lineWidth = px(2.5); g.stroke(); } }
+    for (let j = 0; j < 2; j++) { const f = ((t - (k.t?.[0] ?? 0)) / 2.4 + j / 2) % 1; if (f < 0) continue; g.beginPath(); g.arc(q[0], q[1], px(6 + 56 * eoq(f)), 0, 7); g.strokeStyle = hex(r.kontur, Math.pow(1 - f, 1.6) * 0.85 * a); g.lineWidth = px(1.6); g.stroke(); }
+    g.beginPath(); g.arc(q[0], q[1], px(4), 0, 7); g.fillStyle = hex(r.kontur, a); g.fill(); }
 }
 
 // ---------------- ekran katmanı: etiketler, birlikler, marka ----------------
@@ -405,7 +424,7 @@ function etiketler(t, k) {
       const gk = q.genislik || 6; const p2 = ekrana(lo + gk / 2, la), p1 = ekrana(lo - gk / 2, la); const gen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
       const boy = sinir(gen * 0.085, fpx(0.016), fpx(0.05)); if (gen < fpx(0.06) && !q.rol) continue;
       e.font = `${T.ulke.agirlik} ${boy}px "${T.ulke.aile}"`; const met = q.etiket.toLocaleUpperCase(S.dil === "de" ? "de" : "tr");
-      const aralik = boy * T.ulke.aralik; const w = e.measureText(met).width + aralik * met.length, h = boy;
+      const gir = eo(ara(t, (q.t?.[0] ?? 0) + 0.5, (q.t?.[0] ?? 0) + 1.6)); const aralik = boy * T.ulke.aralik * (1 + 1.4 * (1 - gir)); const w = e.measureText(met).width + aralik * met.length, h = boy;
       if (!yer_(p.x - w / 2, p.y - h / 2, w, h)) continue;
       e.save(); e.globalAlpha = a; e.textAlign = "center"; e.textBaseline = "middle";
       golgeli(e, () => { e.fillStyle = q.rol ? M.etiketVurgu : M.etiket; harf(e, met, p.x + aralik / 2, p.y, aralik); }, 12); e.restore();
@@ -429,7 +448,40 @@ function etiketler(t, k) {
     const a0 = gor(q, t, 0.5, 0.5); if (a0 <= 0) continue; let lo, la;
     if (q.yol) { const [t0, t1] = q.hareket || q.t || [0, 1]; [lo, la] = noktaYolGeo(q.yol, eio(ara(t, t0, t1))); } else [lo, la] = q.konum;
     const p = ekrana(lo, la); const a = a0 * sinir((p.yuz - 0.12) / 0.25); if (a <= 0.01) continue;
-    birlikCiz(e, p.x, p.y, q, a * eo(ara(t, (q.t?.[0] ?? 0), (q.t?.[0] ?? 0) + 0.5)));
+    if (q.yol) { const [t0, t1] = q.hareket || q.t || [0, 1]; const pr = eio(ara(t, t0, t1)); if (pr > 0) { const iz = kirpYol(q.yol.map((z) => [z[0], z[1]]), pr);
+      e.save(); e.globalAlpha = a * 0.8; e.setLineDash([3 * SS, 7 * SS]); e.lineCap = "round"; e.strokeStyle = renk(q.rol || "dost").kontur; e.lineWidth = 2.2 * SS; e.beginPath();
+      d3.range(0, 41).forEach((i) => { const z = kirpYol(iz, i / 40), zz = z[z.length - 1], sp = ekrana(zz[0], zz[1]); i ? e.lineTo(sp.x, sp.y) : e.moveTo(sp.x, sp.y); }); e.stroke(); e.restore(); } }
+    const gi = ara(t, (q.t?.[0] ?? 0), (q.t?.[0] ?? 0) + 0.7), geri = 1 + 2.2 * Math.pow(gi - 1, 3) + 1.2 * Math.pow(gi - 1, 2);
+    e.save(); e.translate(p.x, p.y); e.scale(geri, geri); birlikCiz(e, 0, 0, q, a * eo(gi)); e.restore();
+  }
+}
+function kartCiz(t) {
+  for (const q of KATMAN.filter((q) => q.tip === "kart")) {
+    const t0 = q.t?.[0] ?? 0, a0 = gor(q, t, 0.01, 0.5); if (a0 <= 0) continue;
+    const p = ekrana(...q.konum); const a = a0 * sinir((p.yuz - 0.12) / 0.25); if (a <= 0.01) continue;
+    const dikey = H > W, yonx = (q.yon ?? 1) * (dikey ? 0.6 : 1), b = fpx(0.019), uzun = fpx(dikey ? 0.1 : 0.085);
+    const c1 = eio(ara(t, t0, t0 + 0.55)), c2 = eoq(ara(t, t0 + 0.4, t0 + 1.05)), c3 = eo(ara(t, t0 + 0.5, t0 + 2.2));
+    const ex = p.x + yonx * uzun * 0.7, ey = p.y - uzun, kx = ex + yonx * uzun * 0.45;
+    e.save(); e.globalAlpha = a; const r = renk(q.rol || "ana");
+    e.fillStyle = "#fff"; e.beginPath(); e.arc(p.x, p.y, b * 0.28 * eo(ara(t, t0, t0 + 0.3)), 0, 7); e.fill();
+    e.strokeStyle = "rgba(255,255,255,0.85)"; e.lineWidth = Math.max(1.5, b * 0.08); e.beginPath(); e.moveTo(p.x, p.y);
+    const L1 = Math.hypot(ex - p.x, ey - p.y), L2 = Math.abs(kx - ex), top = (L1 + L2) * c1;
+    if (top <= L1) e.lineTo(p.x + (ex - p.x) * top / L1, p.y + (ey - p.y) * top / L1); else { e.lineTo(ex, ey); e.lineTo(ex + (kx - ex) * (top - L1) / L2, ey); } e.stroke();
+    if (c2 > 0) {
+      const deger = q.deger != null ? (q.deger * c3).toLocaleString(S.dil === "de" ? "de-DE" : "tr-TR", { maximumFractionDigits: q.ondalik ?? 0 }) : "";
+      e.font = `700 ${Math.round(b * 2.4)}px "Barlow Condensed"`; const sw = e.measureText((q.onek || "") + (q.deger != null ? (q.deger).toLocaleString("tr-TR", { maximumFractionDigits: q.ondalik ?? 0 }) : "") + (q.birim ? " " + q.birim : "")).width;
+      e.font = `700 ${b}px "Inter Tight"`; const bw = e.measureText((q.baslik || "").toLocaleUpperCase("tr")).width + b * 0.2 * (q.baslik || "").length;
+      e.font = `500 ${Math.round(b * 0.95)}px "Inter Tight"`; const aw = e.measureText(q.alt || "").width;
+      const pad = b * 0.9, w = Math.max(sw, bw, aw) + pad * 2, h = b * (q.alt ? 5.6 : 4.4), x = yonx > 0 ? kx : kx - w, y = ey - h / 2;
+      e.save(); e.beginPath(); e.rect(yonx > 0 ? x : x + w * (1 - c2), y, w * c2, h); e.clip();
+      e.fillStyle = M.cipZemin; e.fillRect(x, y, w, h); e.fillStyle = r.kontur; e.fillRect(yonx > 0 ? x : x + w - Math.max(3, b * 0.16), y, Math.max(3, b * 0.16), h);
+      e.globalAlpha = a * eo(ara(t, t0 + 0.6, t0 + 1.2)); e.textBaseline = "alphabetic"; e.textAlign = "left";
+      e.font = `700 ${b}px "Inter Tight"`; e.fillStyle = r.kontur; harf(e, (q.baslik || "").toLocaleUpperCase("tr"), x + pad, y + pad + b * 0.8, b * 0.2);
+      e.font = `700 ${Math.round(b * 2.4)}px "Barlow Condensed"`; e.fillStyle = M.metin; e.fillText((q.onek || "") + deger + (q.birim ? " " + q.birim : ""), x + pad, y + pad + b * 3.3);
+      if (q.alt) { e.font = `500 ${Math.round(b * 0.95)}px "Inter Tight"`; e.fillStyle = M.metin2; e.fillText(q.alt, x + pad, y + pad + b * 4.55); }
+      e.restore();
+    }
+    e.restore();
   }
 }
 function noktaYolGeo(yol, p) { const pts = yol.map((q) => [q[0], q[1]]); const k = kirpYol(pts, p); return k[k.length - 1]; }
@@ -511,7 +563,7 @@ window.ciz = async (t, no = 0) => {
   son.uniforms.tohum.value = (no % 97) * 1.37;
   composer.render(); renderer.getContext().finish();
   const _t2 = performance.now();
-  e.clearRect(0, 0, PW, PH); etiketler(t, k); markaCiz(t);
+  e.clearRect(0, 0, PW, PH); etiketler(t, k); kartCiz(t); markaCiz(t);
   // birleştir ve kutu filtresiyle W×H'ye indir (SS=2 için tam yarıya: temiz kenar)
   a1.clearRect(0, 0, ara1.width, ara1.height); a1.imageSmoothingQuality = "high";
   a1.drawImage(cv, 0, 0, ara1.width, ara1.height); a1.drawImage(ek, 0, 0, ara1.width, ara1.height);

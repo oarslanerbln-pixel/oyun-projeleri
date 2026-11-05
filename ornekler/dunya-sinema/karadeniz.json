@@ -1,0 +1,24 @@
+{
+  "isik": "gece",
+  "sure": 12,
+  "dil": "tr",
+  "anlar": [0.5, 5.5, 10.5],
+  "kamera": [
+    {"t": 0, "hedef": [18, 28], "irtifa": "dunya", "egim": 0, "yon": 0, "kayX": 0.12},
+    {"t": 6.5, "hedef": [34, 43], "irtifa": 0.62, "egim": 38, "yon": -6, "kayX": 0.08, "kayY_dikey": -0.06},
+    {"t": 12, "hedef": [35, 43.5], "irtifa": 0.5, "egim": 46, "yon": 4, "kayX": 0.08, "kayY_dikey": -0.06}
+  ],
+  "katmanlar": [
+    {"tip": "ulke", "ad": "Türkiye", "rol": "ana", "t": [4.5, 12], "oncelik": 10},
+    {"tip": "ulke", "ad": "Rusya", "rol": "karsi", "t": [5, 12], "oncelik": 9, "etiketKonum": [40, 51]},
+    {"tip": "ulke", "ad": "Ukrayna", "rol": "dost", "t": [5.3, 12], "oncelik": 9},
+    {"tip": "deniz", "ad": "Karadeniz", "konum": [34.5, 43.2], "t": [5.5, 12], "oncelik": 8},
+    {"tip": "sehir", "ad": "İstanbul", "konum": "İstanbul", "t": [6, 12], "onem": 1, "oncelik": 7, "yon": -1},
+    {"tip": "sehir", "ad": "Sivastopol", "konum": [33.52, 44.6], "t": [6.3, 12], "oncelik": 6},
+    {"tip": "nabiz", "konum": [29.0, 41.1], "t": [6.5, 12], "rol": "ana"},
+    {"tip": "ok", "yol": [[33.4, 44.5], [32.0, 43.2], [29.6, 41.5]], "rol": "karsi", "t": [7.2, 12], "kalin": 22}
+  ],
+  "yazi": {"ust": "Jeopolitik analiz", "baslik": "BOĞAZLARIN ANAHTARI", "alt": "Karadeniz'de güç dengesi",
+           "konum": "Karadeniz", "tarih": "2026", "kaynak": "Harita: Natural Earth · Arazi: Mapzen Terrain Tiles · NASA Black Marble",
+           "lejant": [{"rol": "ana", "ad": "Türkiye"}, {"rol": "karsi", "ad": "Rusya"}, {"rol": "dost", "ad": "Ukrayna"}]}
+}

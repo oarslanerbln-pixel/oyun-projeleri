@@ -50,3 +50,21 @@ parsomen eşdikdörtgen).
 `vurgu` (ülke adları), `noktalar`, `sayacNot` (mesafe sayacı başlığı; `"sayac": false` kapatır), `veriNot`, `yaylar`
 (neon uçuş yayı hedefleri), `bolge` (`{lon, lat, k, dx, dy}` elle kamera). Güvenli alan: 16:9 %6–8 kenar, 9:16 üst %11,
 alt %23.
+
+## Sinematik küre (`sinema/`, three.js)
+Perspektif kamera ile dönen küre: gerçek arazi yükseltmesi, bulut, gece ışıkları, atmosfer saçılımı, bloom/vinyet/gren
+ve yere yapışık katmanlar (ülke rolü, tarama, ok, değişen cephe hattı, menzil, rota, nabız) + ekran katmanı (etiket,
+NATO tipi birlik, başlık, tarih damgası, konum çipi, lejant, künye). Tasarım dili ve kurallar:
+`platform/docs/harita-tasarim-dili.md`; marka değerleri `sinema/marka.json`.
+
+```
+python3 platform/sablonlar/dunya/sinema/sinema.py doku                      # dokuları üret (~2 dk, ~/.cache/studyo/kure)
+python3 platform/sablonlar/dunya/sinema/sinema.py kontakt ornekler/dunya-sinema/*.json --formatlar 16x9 9x16 -o sayfa.jpg
+python3 platform/sablonlar/dunya/sinema/sinema.py kare  ornekler/dunya-sinema/karadeniz.json --an 1 6 10 --format 9x16 -o cikti/
+python3 platform/sablonlar/dunya/sinema/sinema.py video ornekler/dunya-sinema/karadeniz.json --format 16x9 -o film.mp4
+python3 platform/sablonlar/dunya/sinema/sinema.py video ... --ss 1 --olcek 0.5   # onay öncesi küçük animatik
+```
+Işık modları: `gece` (varsayılan), `alacakaranlik`, `gunduz`, `atlas`. Örnekler: `ornekler/dunya-sinema/`
+(karadeniz = jeopolitik, barbarossa-1941 = askerî tarih, goc-1961 = göç/sosyoloji).
+Dokular: NASA Blue Marble + Black Marble, Natural Earth renkli kabartma, Terrain Tiles z6 kabartma (raw.githubusercontent.com
+ve s3.amazonaws.com açık olmalı). Başsız Chromium SwiftShader (GPU yok) ile kare başına birkaç saniye.

@@ -1,0 +1,23 @@
+{
+  "isik": "gunduz",
+  "sure": 12,
+  "dil": "tr",
+  "anlar": [0.8, 6.5, 11],
+  "bulut": 0.8,
+  "kamera": [
+    {"t": 0, "hedef": [25, 20], "irtifa": "dunya", "egim": 0, "yon": 0, "kayX": 0.12},
+    {"t": 6.5, "hedef": [20, 45], "irtifa": 0.95, "egim": 30, "yon": -4, "kayX": 0.05, "kayY_dikey": -0.05},
+    {"t": 12, "hedef": [19, 46], "irtifa": 0.85, "egim": 36, "yon": 3, "kayX": 0.05, "kayY_dikey": -0.05}
+  ],
+  "katmanlar": [
+    {"tip": "ulke", "ad": "Türkiye", "rol": "ana", "t": [5, 12], "oncelik": 9},
+    {"tip": "ulke", "ad": "Almanya", "rol": "dost", "t": [5.3, 12], "oncelik": 9},
+    {"tip": "rota", "yol": ["İstanbul", "Münih"], "rol": "ana", "t": [6.5, 12], "cizim": 3.5},
+    {"tip": "sehir", "ad": "İstanbul", "konum": "İstanbul", "onem": 1, "t": [6, 12], "oncelik": 8},
+    {"tip": "sehir", "ad": "Münih", "konum": "Münih", "onem": 1, "t": [9.5, 12], "oncelik": 8},
+    {"tip": "sehir", "ad": "Köln", "konum": "Köln", "t": [10, 12], "oncelik": 5},
+    {"tip": "nabiz", "konum": "Münih", "rol": "ana", "t": [9.8, 12]}
+  ],
+  "yazi": {"ust": "30 Ekim 1961 · İşgücü anlaşması", "baslik": "İSTANBUL'DAN MÜNİH'E", "alt": "Bir neslin yolculuğu",
+           "konum": "Orta Avrupa", "tarih": "1961", "kaynak": "Harita: Natural Earth · Arazi: Mapzen Terrain Tiles · NASA Blue Marble"}
+}

@@ -108,6 +108,16 @@ Bir videoda tek stil kullanılır; stil karıştırılmaz (izleyici dili bir kez
 8. **Güvenli alan ve sığdırma.** Kartlar güvenli alana kıstırılır, uzun başlık sığana kadar küçültülür;
    9:16'da başlık bloğu yüksekliği tarih damgasını aşağı iter.
 
+## 4d. Ses: grafiğe oturan efekt + aynı tonda müzik (Atilla 2026-11-06: "fırçayı seçiyorum; sesler, sfx ve animasyon uyumlu olsun, hışırtı ve aynı tonda buğu olmasın")
+
+`sinema.py video` artık varsayılan olarak sesli çıkar (`--sessiz` ile kapanır; yalnız ses: `sinema.py ses sahne.json -o iz.wav`). Kaynak `sinema/ses.py`:
+
+- **Olaylar sahneden çıkar**, karedeki formüllerle aynı zamanda: ok darbesi `t0`'da başlar ve sesi fırçanın hızını izler (expo: başta güçlü, uca doğru söner); ok başı `t0 + 0.27·çizim·hız`'da oturur → taiko vurgu, `0.29`'da mürekkep sıçraması. Şehir = mürekkep damlası notası, kart = fırça silme + mühür, birlik = tahta tık, tarih değişimi = kâğıt + nota, kamera yolculuğu = alçak hava.
+- **Uyum:** ezgili her efekt müziğin gamından (D minör/majör pentatonik), vurgular akor köküyle aynı perdede. Şehirler sırayla gamda yükselir, önemli şehir oktav çifti alır. Müzik 72 BPM; enerji ilk harita hareketiyle açılır, sonda kök akorla kapanır.
+- **Ruh hâli:** cephe ya da birlik varsa `gergin` (minör + hafif taiko nabzı), yoksa `sakin` (majör pentatonik, davulsuz).
+- **Kalite:** beyaz gürültü yok (fırça sesi 2.6 kHz altında kâğıt lifi taneleri), 50 Hz altı kesilir, taiko ve bas kökü A2'nin altına inmez ve 0.2 sn'de söner (uzun alçak sinüs = uğultu), anlatımdaki gibi uzun yankı yok (0.9 sn küçük oda, %12). Çıkış −16 LUFS, tepe −1.5 dBTP. Test: `SesIzi` (hışırtı < 1 sn, 50 Hz altı payı < −20 dB).
+- Fırça stilinin hareketi (aynı tur): yazılar alfa ile belirmez, fırçanın yönünde yumuşak kenarla "sızar"; ok ucunda ıslak mürekkep boncuğu, geçtiği yerde kâğıda yayılan hale, baş oturunca sıçrama; şehirde düşen damla + bir kez açılan halka; mühür büyükten iner, döner, oturunca mürekkep çerçevesi açılır.
+
 ## 5. Renk sistemi (roller)
 - Rol renkleri `marka.json → roller`. **ana** amber (anlatının öznesi; kanal imzası), **karsi** kırmızı,
   **dost** mavi, **ittifak** yeşil-turkuaz, **tartismali** kum sarısı (çoğunlukla tarama), **notr** gri.

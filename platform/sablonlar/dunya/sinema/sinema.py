@@ -263,7 +263,15 @@ def kareler(s: dict, anlar, fmt: str, hedef: Path, ss: float = 2.0, ad: str = "k
     return out
 
 
-def video(s: dict, fmt: str, cikti: Path, ss: float = 2.0, fps: int = 30, olcek: float = 1.0) -> Path:
+def video(s: dict, fmt: str, cikti: Path, ss: float = 2.0, fps: int = 30, olcek: float = 1.0, sesli: bool = True) -> Path:
+    """Kareleri çizer; `sesli` ise grafik olaylarına oturan efekt + müzik izini (ses.py) ekler."""
+    if sesli:
+        import ses
+        with tempfile.TemporaryDirectory() as d:
+            sessiz = video(s, fmt, Path(d) / "sessiz.mp4", ss, fps, olcek, sesli=False)
+            rapor = ses.uret(s, Path(d) / "ses.wav")
+            print(f"  ses: {rapor['olay']} olay, {rapor['ruh']}, hışırtı {rapor['hisirti']['en_uzun_sn']} sn", file=sys.stderr)
+            return ses.ekle(sessiz, Path(d) / "ses.wav", cikti)
     sahne = sahne_coz(s, fmt, ss)
     W, H = round(sahne["W"] * olcek / 2) * 2, round(sahne["H"] * olcek / 2) * 2
     cikti.parent.mkdir(parents=True, exist_ok=True)
@@ -367,6 +375,9 @@ def main(argv=None) -> int:
     v = alt.add_parser("video"); v.add_argument("sahne"); v.add_argument("--format", default="16x9"); v.add_argument("-o", required=True)
     v.add_argument("--grafik", choices=GRAFIKLER)
     v.add_argument("--ss", type=float, default=2.0); v.add_argument("--fps", type=int, default=30); v.add_argument("--olcek", type=float, default=1.0)
+    v.add_argument("--sessiz", action="store_true", help="ses izi ekleme")
+    se = alt.add_parser("ses", help="yalnız ses izi (efekt + müzik) WAV"); se.add_argument("sahne"); se.add_argument("-o", required=True)
+    se.add_argument("--grafik", choices=GRAFIKLER)
     c = alt.add_parser("kontakt"); c.add_argument("sahneler", nargs="+"); c.add_argument("--formatlar", nargs="+", default=["16x9"])
     c.add_argument("--an", type=float, nargs="+", default=[1, 5, 9]); c.add_argument("-o", default="kontakt.jpg"); c.add_argument("--ss", type=float, default=2.0)
     gk = alt.add_parser("grafik-kontakt", help="aynı sahne her grafik stilinde tek sayfada")
@@ -384,7 +395,13 @@ def main(argv=None) -> int:
         s = _oku(a.sahne)
         if a.grafik:
             s["grafik"] = a.grafik
-        print(video(s, a.format, Path(a.o), a.ss, a.fps, a.olcek))
+        print(video(s, a.format, Path(a.o), a.ss, a.fps, a.olcek, sesli=not a.sessiz))
+    elif a.komut == "ses":
+        import ses
+        s = _oku(a.sahne)
+        if a.grafik:
+            s["grafik"] = a.grafik
+        print(ses.uret(s, Path(a.o)))
     elif a.komut == "grafik-kontakt":
         print(grafik_kontakt(a.hucreler, a.grafikler, Path(a.o), a.ss))
     elif a.komut == "kontakt":

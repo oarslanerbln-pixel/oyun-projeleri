@@ -130,6 +130,31 @@ export function grafikKur(A) {
         if (pts.length > 1) { cizgi(g, pts); g.strokeStyle = `rgba(0,0,0,${kuru * (0.5 + rr() * 0.5)})`; g.lineWidth = gen * (0.03 + rr() * 0.05); g.stroke(); } } }
     g.restore();
   }
+  // mürekkep yazı: harfler alfa ile belirmez; fırçanın geçtiği yönde yumuşak bir kenarla soldan sağa "sızar"
+  function murekkepYazi(g, met, x, y, f, rgb = "251,247,239", al = 1) {
+    if (f <= 0 || !met) return; const w = g.measureText(met).width, x0 = x - (g.textAlign === "center" ? w / 2 : g.textAlign === "right" ? w : 0);
+    if (f >= 1) { g.fillStyle = `rgba(${rgb},${al})`; g.fillText(met, x, y); return; }
+    const ken = Math.max(w * 0.35, 8 * SS), uc = x0 - ken + (w + ken * 1.02) * f, gr = g.createLinearGradient(uc, 0, uc + ken, 0);
+    gr.addColorStop(0, `rgba(${rgb},${al})`); gr.addColorStop(1, `rgba(${rgb},0)`); g.fillStyle = gr; g.fillText(met, x, y);
+  }
+  // hanko mühür basışı: büyükten iner (0.22 sn, expo), hafif döner, oturunca bir kez açılan ince mürekkep çerçevesi; dokulu yüzey
+  function damga(g, cx, cy, m, z, harf_ = null, aci = -0.06) {
+    if (z <= 0) return; const p = expo(ara(z, 0, 0.22)), s = 1 + 0.9 * (1 - p);
+    g.save(); g.translate(cx, cy); g.rotate(aci + 0.22 * (1 - p)); g.scale(s, s); g.globalAlpha *= ara(z, 0, 0.07);
+    g.fillStyle = KIRMIZI; g.fillRect(-m / 2, -m / 2, m, m); const rr = rng(Math.round(m) * 7 + 5); g.fillStyle = "rgba(251,247,239,0.2)";
+    for (let i = 0; i < 16; i++) { g.beginPath(); g.arc((rr() - 0.5) * m * 0.92, (rr() - 0.5) * m * 0.92, m * (0.008 + rr() * 0.03), 0, 7); g.fill(); }
+    g.strokeStyle = "rgba(251,247,239,0.6)"; g.lineWidth = m * 0.05; g.strokeRect(-m * 0.36, -m * 0.36, m * 0.72, m * 0.72);
+    if (harf_) { g.fillStyle = "#fbf7ef"; g.font = `700 ${Math.round(m * 0.46)}px "Cinzel"`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(harf_, 0, m * 0.04); }
+    const h = ara(z, 0.2, 0.75); if (h > 0 && h < 1) { const k = m * (1 + eo(h) * 0.7); g.strokeStyle = hex(KIRMIZI, 0.55 * (1 - h)); g.lineWidth = m * 0.035; g.strokeRect(-k / 2, -k / 2, k, k); }
+    g.restore();
+  }
+  // mürekkep sıçraması: fırça ucunun durduğu yerden ileri savrulan damlalar; uçarken uzun, otururken yuvarlak
+  function sicrama(g, x, y, dx, dy, gen, f, c, tohum) {
+    if (f <= 0) return; const rr = rng(tohum), yon = Math.atan2(dy, dx), e_ = expo(f); g.save(); g.fillStyle = c;
+    for (let i = 0; i < 10; i++) { const an = yon + (rr() - 0.5) * 2.4, d = gen * (0.8 + rr() * 2.6) * e_, rad = gen * (0.05 + rr() * 0.15);
+      g.save(); g.translate(x + Math.cos(an) * d, y + Math.sin(an) * d); g.rotate(an); g.scale(1 + 1.8 * (1 - e_), 1 - 0.3 * (1 - e_)); g.beginPath(); g.arc(0, 0, rad, 0, 7); g.fill(); g.restore(); }
+    g.restore();
+  }
   function deger(q, f) { return q.deger != null ? (q.onek || "") + sayi(q.deger * f, q.ondalik) + (q.birim ? " " + q.birim : "") : ""; }
 
   // =====================================================================================
@@ -637,12 +662,17 @@ export function grafikKur(A) {
       ulkeDolgu(g, yol, f, r, px) { g.beginPath(); yol(f); g.fillStyle = hex(r.dolgu, 0.2); g.fill(); g.save(); g.clip();
         for (const [d, al, w] of [[0, 0.32, 22], [px(3), 0.22, 12]]) { g.save(); g.translate(d, -d); g.beginPath(); yol(f); g.strokeStyle = hex(r.dolgu, al); g.lineWidth = px(w); g.stroke(); g.restore(); } g.restore(); },
       ulkeKontur(g, yol, f, r, px) { g.lineJoin = "round"; g.beginPath(); yol(f); g.strokeStyle = hex(r.kontur, 0.9); g.lineWidth = px(2.2); g.stroke(); g.save(); g.translate(px(1.5), px(1)); g.beginPath(); yol(f); g.strokeStyle = hex(r.kontur, 0.35); g.lineWidth = px(1); g.stroke(); g.restore(); },
+      // ok: hızlı darbe (expo); ucunda ıslak mürekkep boncuğu, geçtiği yerde kâğıda yayılan açık hale, başı oturunca sıçrama
       ok(g, yol, p, gen, r) {
         const y = kirpYol(yol, p); if (y.length < 2) return; g.save(); g.lineCap = "round"; g.lineJoin = "round";
+        const x_ = p >= 1 ? 1 : -Math.log2(1 - p) / 10; // expo'nun tersi: doğrusal ilerleme
         g.save(); g.translate(gen * 0.1, gen * 0.16); g.globalAlpha *= 0.35; fircaDarbe(g, y, gen * 0.85, "#000", 7); g.restore();
+        const yay = eo(ara(x_, 0.05, 0.6)); fircaDarbe(g, y, gen * (0.95 + 0.45 * yay), hex(r.dolgu, 0.1 + 0.08 * yay), 7, 0);
         fircaDarbe(g, y, gen * 0.85, r.dolgu, 7);
         const u = y[y.length - 1], o_ = y[Math.max(0, y.length - 5)]; let dx = u[0] - o_[0], dy = u[1] - o_[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l; const k = gen * 1.6 * expo(ara(p, 0.85, 1));
+        const bon = 1 - ara(x_, 0.22, 0.32); if (bon > 0) { g.fillStyle = koyu(r.dolgu, 0.55); g.globalAlpha *= 1; g.beginPath(); g.arc(u[0], u[1], gen * 0.42 * bon, 0, 7); g.fill(); }
         if (k > 0) for (const s of [1, -1]) { const ca = Math.cos(0.6 * s), sa = Math.sin(0.6 * s), bx = -(dx * ca - dy * sa), by = -(dx * sa + dy * ca); fircaDarbe(g, [[u[0] + bx * k, u[1] + by * k], [u[0] + bx * k * 0.5, u[1] + by * k * 0.5], [u[0], u[1]]], gen * 0.6, r.dolgu, 3 + s); }
+        sicrama(g, u[0], u[1], dx, dy, gen, ara(x_, 0.27, 0.42), r.dolgu, Math.round(yolUzun(yol)) % 997);
         g.restore();
       },
       cephe(g, yol, gen, r, taraf) {
@@ -653,14 +683,17 @@ export function grafikKur(A) {
         const met = o.met, boy = o.boy * 1.05; e.font = `italic 400 ${boy}px "Instrument Serif"`; const w = e.measureText(met).width, h = boy;
         if (!o.yer_(o.x - w / 2, o.y - h / 2, w, h * 1.2)) return; const f = expo(o.gir);
         e.save(); e.globalAlpha = o.a; if (o.r) { const pts = [[o.x - w * 0.55, o.y + boy * 0.42], [o.x, o.y + boy * 0.36], [o.x - w * 0.55 + w * 1.15 * f, o.y + boy * 0.3]]; fircaDarbe(e, kirpYol(pts, 1), boy * 0.22, o.r.dolgu, met.length); }
-        e.globalAlpha = o.a * f; e.textAlign = "center"; e.textBaseline = "middle"; e.shadowColor = "rgba(0,0,0,0.85)"; e.shadowBlur = 8 * SS; e.fillStyle = "#fbf7ef"; e.fillText(met, o.x, o.y); e.restore();
+        e.globalAlpha = o.a; e.textAlign = "center"; e.textBaseline = "middle"; e.shadowColor = "rgba(0,0,0,0.85)"; e.shadowBlur = 8 * SS; murekkepYazi(e, met, o.x, o.y, ara(o.gir, 0.12, 1)); e.restore();
       },
       sehir(e, o) {
         const boy = o.boy * 1.1; e.font = `italic 400 ${boy}px "Instrument Serif"`; const w = e.measureText(o.met).width, sag = o.yon > 0, x = sag ? o.x + boy * 0.75 : o.x - boy * 0.75 - w;
         if (!o.yer_(Math.min(o.x, x) - 4, o.y - boy * 0.6, w + boy, boy * 1.2)) return; const f = expo(o.gir), rr = rng(o.met.length * 31 + 7);
-        e.save(); e.globalAlpha = o.a; e.fillStyle = o.onem === 1 ? KIRMIZI : "#fbf7ef"; e.beginPath(); e.arc(o.x, o.y, boy * 0.24 * f, 0, 7); e.fill();
-        for (let i = 0; i < 5; i++) { const an = rr() * 6.28, d = boy * (0.3 + rr() * 0.3) * f; e.beginPath(); e.arc(o.x + Math.cos(an) * d, o.y + Math.sin(an) * d, boy * (0.03 + rr() * 0.05), 0, 7); e.fill(); }
-        e.globalAlpha = o.a * f; e.textBaseline = "middle"; e.shadowColor = "rgba(0,0,0,0.85)"; e.shadowBlur = 8 * SS; e.fillStyle = "#fbf7ef"; e.fillText(o.met, x, o.y); e.restore();
+        // mürekkep damlası: düşer (back-out), lekeler açılır, bir kez yayılan halka; isim fırçanın ardından sızar
+        const d0 = backOut(ara(o.gir, 0, 0.32), 3), sp = expo(ara(o.gir, 0.06, 0.5)), rk = o.onem === 1 ? KIRMIZI : "#fbf7ef";
+        e.save(); e.globalAlpha = o.a; e.fillStyle = rk; e.beginPath(); e.arc(o.x, o.y, boy * 0.24 * Math.max(0, d0), 0, 7); e.fill();
+        for (let i = 0; i < 5; i++) { const an = rr() * 6.28, d = boy * (0.3 + rr() * 0.3) * sp; e.beginPath(); e.arc(o.x + Math.cos(an) * d, o.y + Math.sin(an) * d, boy * (0.03 + rr() * 0.05) * sp, 0, 7); e.fill(); }
+        const h = ara(o.gir, 0.1, 1); if (h > 0 && h < 1) { e.strokeStyle = hex(rk, 0.55 * (1 - h)); e.lineWidth = boy * 0.05 * (1 - h * 0.6); e.beginPath(); e.arc(o.x, o.y, boy * (0.3 + 1.2 * eo(h)), 0, 7); e.stroke(); }
+        e.textBaseline = "middle"; e.shadowColor = "rgba(0,0,0,0.85)"; e.shadowBlur = 8 * SS; murekkepYazi(e, o.met, x, o.y, ara(o.gir, 0.15, 1)); e.restore();
       },
       kart(e, q, p, t, a) {
         const t0 = q.t?.[0] ?? 0, b = fpx(0.02), r = renk(q.rol || "ana"), { yonx, ex, ey, kx } = kartYeri(p, q);
@@ -669,11 +702,11 @@ export function grafikKur(A) {
         if (c2 > 0) { const vb = Math.round(b * 2.9); e.font = `400 ${vb}px "Instrument Serif"`; const sw = e.measureText(deger(q, 1)).width; e.font = `italic 400 ${Math.round(b * 1.05)}px "Instrument Serif"`; const bw = e.measureText(q.baslik || "").width, aw = e.measureText(q.alt || "").width;
           const pad = b * 0.9, w = Math.max(sw, bw, aw) + pad * 2, x = kiskac(yonx > 0 ? kx : kx - w, w), y0 = ey - b * 2.2;
           fircaDarbe(e, [[x, y0 + b * 0.6], [x + w * 0.5, y0 + b * 0.4], [x + w * c2, y0 + b * 0.5]], b * 3.2, hex(r.dolgu, 0.92), 5, 0.4);
-          e.textAlign = "left"; e.textBaseline = "alphabetic"; e.shadowColor = "rgba(0,0,0,0.6)"; e.shadowBlur = 6 * SS; e.globalAlpha = a * ara(c2, 0.4, 1);
-          e.font = `italic 400 ${Math.round(b * 1.05)}px "Instrument Serif"`; e.fillStyle = "#fbf7ef"; e.fillText(q.baslik || "", x + pad, y0 - b * 1.6);
-          e.font = `400 ${vb}px "Instrument Serif"`; e.fillText(deger(q, c3), x + pad, y0 + b * 1.45);
-          if (q.alt) { e.font = `italic 400 ${Math.round(b * 1.05)}px "Instrument Serif"`; e.fillStyle = "rgba(251,247,239,0.8)"; e.fillText(q.alt, x + pad, y0 + b * 3.4); }
-          const m = b * 1.1; e.shadowBlur = 0; e.globalAlpha = a * ara(c2, 0.7, 1); e.fillStyle = KIRMIZI; e.fillRect(x + w - m * 0.6, y0 - b * 2.6, m, m); e.fillStyle = "#fbf7ef"; e.font = `700 ${Math.round(m * 0.6)}px "Cinzel"`; e.textAlign = "center"; e.fillText(ust((q.baslik || "?")[0]), x + w - m * 0.1, y0 - b * 2.6 + m * 0.75); }
+          e.textAlign = "left"; e.textBaseline = "alphabetic"; e.shadowColor = "rgba(0,0,0,0.6)"; e.shadowBlur = 6 * SS; e.globalAlpha = a;
+          e.font = `italic 400 ${Math.round(b * 1.05)}px "Instrument Serif"`; murekkepYazi(e, q.baslik || "", x + pad, y0 - b * 1.6, ara(t, t0 + 0.45, t0 + 1.0));
+          e.font = `400 ${vb}px "Instrument Serif"`; murekkepYazi(e, deger(q, c3), x + pad, y0 + b * 1.45, ara(t, t0 + 0.5, t0 + 0.95));
+          if (q.alt) { e.font = `italic 400 ${Math.round(b * 1.05)}px "Instrument Serif"`; murekkepYazi(e, q.alt, x + pad, y0 + b * 3.4, ara(t, t0 + 0.75, t0 + 1.4), "251,247,239", 0.8); }
+          const m = b * 1.6; e.shadowBlur = 0; damga(e, x + w - m * 0.2, y0 - b * 2.4 + m / 2, m, t - (t0 + 0.8), ust((q.baslik || "?")[0])); }
         e.restore();
       },
       birlik(g, x, y, k, a) { birlikP(g, x, y, k, a, { el: true, kenar: "#fbf7ef", ic: "#fbf7ef", kal: 0.12, metin: "#fbf7ef", font: `italic 400 ${Math.round(fpx(0.034) * 0.55)}px "Instrument Serif"` }); },
@@ -682,11 +715,11 @@ export function grafikKur(A) {
         const kb = fpx(0.024), maxW = W * SS - 2 * gx, bb0 = fpx(dikey ? 0.085 : 0.085), ab = fpx(0.03), m2 = Y.baslik;
         const bb = sigdir(e, (s) => `400 ${s}px "Instrument Serif"`, bb0, m2, 0, maxW - bb0 * 0.5); e.font = `400 ${bb}px "Instrument Serif"`; const tw = e.measureText(m2).width;
         e.save(); e.globalAlpha = out; e.textBaseline = "alphabetic"; e.textAlign = "left"; let y = yUst + kb * 1.2;
-        if (Y.ust) { const m = kb * 1.35, f = backOut(ara(t, a, a + 0.4), 2.5); e.save(); e.translate(x + m / 2, y - m * 0.45); e.scale(f, f); e.rotate(-0.06); e.fillStyle = KIRMIZI; e.fillRect(-m / 2, -m / 2, m, m); e.restore();
-          e.globalAlpha = out * ara(t, a + 0.2, a + 0.6); e.font = `italic 400 ${kb}px "Instrument Serif"`; e.fillStyle = "#fbf7ef"; e.fillText(Y.ust, x + m * 1.4, y); e.globalAlpha = out; }
+        if (Y.ust) { const m = kb * 1.35; damga(e, x + m / 2, y - m * 0.45, m, t - a);
+          e.font = `italic 400 ${kb}px "Instrument Serif"`; murekkepYazi(e, Y.ust, x + m * 1.4, y, ara(t, a + 0.2, a + 0.8)); }
         y += bb * 1.05; const s1 = expo(ara(t, a + 0.15, a + 0.75)); fircaDarbe(e, [[x - bb * 0.2, y + bb * 0.08], [x + tw * 0.5, y + bb * 0.02], [x - bb * 0.2 + (tw + bb * 0.5) * s1, y + bb * 0.06]], bb * 0.32, hex(vurgu, 0.9), 3, 0.35);
-        e.globalAlpha = out * ara(t, a + 0.35, a + 0.9); e.font = `400 ${bb}px "Instrument Serif"`; e.save(); e.shadowColor = "rgba(0,0,0,0.7)"; e.shadowBlur = 10 * SS; e.fillStyle = "#fbf7ef"; e.fillText(m2, x, y); e.restore();
-        if (Y.alt) { y += ab * 1.7; e.globalAlpha = out * ara(t, a + 0.7, a + 1.3); e.font = `italic 400 ${ab}px "Instrument Serif"`; e.save(); e.shadowColor = "rgba(0,0,0,0.8)"; e.shadowBlur = 8 * SS; e.fillStyle = "rgba(251,247,239,0.9)"; e.fillText(Y.alt, x, y); e.restore(); }
+        e.font = `400 ${bb}px "Instrument Serif"`; e.save(); e.shadowColor = "rgba(0,0,0,0.7)"; e.shadowBlur = 10 * SS; murekkepYazi(e, m2, x, y, ara(t, a + 0.25, a + 1.0)); e.restore();
+        if (Y.alt) { y += ab * 1.7; e.font = `italic 400 ${ab}px "Instrument Serif"`; e.save(); e.shadowColor = "rgba(0,0,0,0.8)"; e.shadowBlur = 8 * SS; murekkepYazi(e, Y.alt, x, y, ara(t, a + 0.75, a + 1.6), "251,247,239", 0.9); e.restore(); }
         e.restore(); return y + ab - yUst;
       },
       kutu(e, x, y, w, h, vurgu, f) { fircaDarbe(e, [[x, y + h / 2], [x + w * f * 0.5, y + h / 2 - h * 0.04], [x + w * f, y + h / 2]], h * 1.15, "rgba(8,8,10,0.82)", 9, 0.5); },

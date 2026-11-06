@@ -4,6 +4,7 @@ from pathlib import Path
 
 KOK = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(KOK / "sinema"))
+sys.path.insert(0, str(KOK.parents[1] / "ortak"))
 
 
 class SinemaSahne(unittest.TestCase):
@@ -53,3 +54,40 @@ class GrafikStilleri(unittest.TestCase):
         import sinema
         m = sinema._birlestir({"a": {"x": 1, "y": 2}, "b": 1}, {"a": {"y": 3}})
         self.assertEqual(m, {"a": {"x": 1, "y": 3}, "b": 1})
+
+
+class SesIzi(unittest.TestCase):
+    """ses.py: olaylar karedeki zamanlamayla aynı, iz tıslamaz, 50 Hz altı uğultu yok."""
+
+    def _sahne(self):
+        import json
+        s = json.loads((KOK.parents[2] / "ornekler" / "dunya-sinema" / "barbarossa-1941.json").read_text(encoding="utf-8"))
+        s["grafik"] = "firca"
+        return s
+
+    def test_olaylar_grafikle_esli(self):
+        import ses
+        s = self._sahne()
+        o = ses.olaylar(s)
+        turler = {e["tur"] for e in o}
+        for t in ("darbe", "sicrama", "damga", "damla", "baslik", "tahta", "vurgu"):
+            self.assertIn(t, turler)
+        ok = next(k for k in s["katmanlar"] if k["tip"] == "ok")
+        d = ok["cizim"] * ses.STIL["firca"][0]
+        self.assertTrue(any(e["tur"] == "sicrama" and abs(e["t"] - (ok["t"][0] + 0.29 * d)) < 1e-6 for e in o))
+        self.assertEqual(ses.ruh(s), "gergin")
+        self.assertEqual(o, sorted(o, key=lambda e: e["t"]))
+
+    def test_iz_tislamaz(self):
+        import numpy as np
+        import ses
+        import sfx
+        s = self._sahne()
+        s["sure"] = 10
+        o = [e for e in ses.olaylar(s) if e["t"] < 9]
+        x = ses.muzik(s, 10, "gergin", o) * 0.5 + ses.efektler(s, 10, "gergin", o) * 0.9
+        self.assertLess(sfx.gurultu_analizi(x)["en_uzun_sn"], 1.0)
+        m = x.mean(axis=1)
+        P = np.abs(np.fft.rfft(m)) ** 2
+        f = np.fft.rfftfreq(len(m), 1 / ses.SR)
+        self.assertLess(10 * np.log10(P[f < 50].sum() / P.sum()), -20)  # taiko ve bas kökü 73 Hz'e inmez

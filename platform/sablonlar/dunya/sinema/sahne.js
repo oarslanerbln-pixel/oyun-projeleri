@@ -515,11 +515,16 @@ function yolYaziCiz(t) {
     e.save(); e.globalAlpha = a; e.font = st.font(boy); e.textAlign = "center"; e.textBaseline = "middle"; e.shadowColor = st.golge; e.shadowBlur = 8 * SS;
     const met = q.metin, ar = boy * (q.aralik ?? 0.06), ws = [...met].map((c) => e.measureText(c).width + ar), top = ws.reduce((x, y) => x + y, 0);
     const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
-    const n = met.length; let s = Math.max(0, (L[L.length - 1] - top) * (q.hiza ?? 0.5)), ofs = boy * (q.ofset ?? -0.9);
-    [...met].forEach((c, i) => { const m = s + ws[i] / 2; s += ws[i]; let j = 1; while (j < L.length - 1 && L[j] < m) j++;
-      const u = sinir((m - L[j - 1]) / ((L[j] - L[j - 1]) || 1)), x = P[j - 1][0] + (P[j][0] - P[j - 1][0]) * u, y = P[j - 1][1] + (P[j][1] - P[j - 1][1]) * u;
-      const an = Math.atan2(P[j][1] - P[j - 1][1], P[j][0] - P[j - 1][0]), al = sinir((f * (n + 8) - i) / 8); if (al <= 0) return;
-      e.save(); e.translate(x - Math.sin(an) * ofs, y + Math.cos(an) * ofs); e.rotate(an); e.fillStyle = `rgba(${st.renk},${al})`; e.fillText(c, 0, 0); e.restore(); });
+    const n = met.length, ofs = boy * (q.ofset ?? -0.9), bos = Math.max(0, L[L.length - 1] - top);
+    const dz = H > W, gk = M.guvenli[dz ? "dikey" : "yatay"], kx0 = gk[0] * W * SS + boy * 0.6, kx1 = W * SS - kx0, ky0 = gk[1] * H * SS + boy * 0.6, ky1 = H * SS - gk[2] * H * SS - boy * 0.6;
+    const dizi = (hz) => { let s = bos * hz; return [...met].map((c, i) => { const m = s + ws[i] / 2; s += ws[i]; let j = 1; while (j < L.length - 1 && L[j] < m) j++;
+      const u = sinir((m - L[j - 1]) / ((L[j] - L[j - 1]) || 1)), an = Math.atan2(P[j][1] - P[j - 1][1], P[j][0] - P[j - 1][0]);
+      return { c, an, x: P[j - 1][0] + (P[j][0] - P[j - 1][0]) * u - Math.sin(an) * ofs, y: P[j - 1][1] + (P[j][1] - P[j - 1][1]) * u + Math.cos(an) * ofs }; }); };
+    const icinde = (d) => d.every((g_) => g_.x > kx0 && g_.x < kx1 && g_.y > ky0 && g_.y < ky1); // güvenli alan: yazı yarıda kesilmez
+    const h0 = q.hiza ?? 0.5; let gl = null; for (let k = 0; k <= 100 && !gl; k++) for (const hz of [h0 - k * 0.01, h0 + k * 0.01]) if (hz >= 0 && hz <= 1) { const d = dizi(hz); if (icinde(d)) { gl = d; break; } }
+    if (!gl) { e.restore(); continue; }
+    gl.forEach((g_, i) => { const al = sinir((f * (n + 8) - i) / 8); if (al <= 0) return;
+      e.save(); e.translate(g_.x, g_.y); e.rotate(g_.an); e.fillStyle = `rgba(${st.renk},${al})`; e.fillText(g_.c, 0, 0); e.restore(); });
     e.restore();
   }
 }

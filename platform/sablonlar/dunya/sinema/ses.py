@@ -305,7 +305,7 @@ def efektler(s: dict, sure: float, mod: str, olay: list[dict]) -> np.ndarray:
     return iz.x[: int(sure * SR)]
 
 
-def uret(s: dict, cikti: Path, lufs: float = -16.0) -> dict:
+def uret(s: dict, cikti: Path, lufs: float = -14.0) -> dict:
     """Sahnenin ses izini yazar (48 kHz stereo WAV, loudnorm). Döndürür: olay sayısı, ruh hâli, hışırtı ölçüsü."""
     sure = float(s["sure"])
     olay = olaylar(s)

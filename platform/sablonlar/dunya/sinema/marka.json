@@ -666,6 +666,9 @@
           "aile": "Instrument Serif",
           "agirlik": 400,
           "boy": 0.024
+        },
+        "kaynak": {
+          "boy": 0.0165
         }
       }
     },

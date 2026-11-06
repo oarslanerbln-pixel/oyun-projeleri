@@ -179,6 +179,11 @@ def olaylar(s: dict) -> list[dict]:
             o += [{"t": a0 + i * 60 / BPM, "tur": "nabiz", "kaz": 1 - 0.25 * i} for i in range(2)]
         elif tip == "birlik":
             o.append({"t": a0, "tur": "tahta"})
+        elif tip == "not":
+            o.append({"t": a0, "tur": "darbe", "sure": 0.55, "kaz": 0.6})
+            o.append({"t": a0, "tur": "damga", "kaz": 0.7})
+        elif tip == "yolyazi":
+            o.append({"t": a0, "tur": "darbe", "sure": float(k.get("sure", 1.4)), "profil": "eio", "kaz": 0.4})
         elif tip == "kart":
             o.append({"t": a0 + 0.3, "tur": "darbe", "sure": 0.6, "kaz": 0.75})
             o.append({"t": a0 + 0.8, "tur": "damga"})

@@ -103,7 +103,7 @@ def sahne_coz(s: dict, fmt: str, ss: float = 2.0) -> dict:
             k["ulkeler"] = [_ulke(a, dil) for a in k["ulkeler"]]
             if "etiketKonum" in k or "konum" in k:
                 k["etiketKonum"] = list(_konum(k.get("etiketKonum") or k["konum"], dil)[:2])
-        elif tip in ("ok", "rota", "birlik") and "yol" in k:
+        elif tip in ("ok", "rota", "birlik", "yolyazi") and "yol" in k:
             k["yol"] = [list(_konum(p, dil)[:2]) for p in k["yol"]]
             noktalar += [tuple(p) for p in k["yol"]]
         if tip == "cephe":

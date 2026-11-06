@@ -118,6 +118,16 @@ Bir videoda tek stil kullanılır; stil karıştırılmaz (izleyici dili bir kez
 - **Kalite:** beyaz gürültü yok (fırça sesi 2.6 kHz altında kâğıt lifi taneleri), 50 Hz altı kesilir, taiko ve bas kökü A2'nin altına inmez ve 0.2 sn'de söner (uzun alçak sinüs = uğultu), anlatımdaki gibi uzun yankı yok (0.9 sn küçük oda, %12). Çıkış −14 LUFS (kalite kapısının hedefi), tepe −1.5 dBTP. Test: `SesIzi` (hışırtı < 1 sn, 50 Hz altı payı < −20 dB).
 - Fırça stilinin hareketi (aynı tur): yazılar alfa ile belirmez, fırçanın yönünde yumuşak kenarla "sızar"; ok ucunda ıslak mürekkep boncuğu, geçtiği yerde kâğıda yayılan hale, baş oturunca sıçrama; şehirde düşen damla + bir kez açılan halka; mühür büyükten iner, döner, oturunca mürekkep çerçevesi açılır.
 
+## 4e. Harita üstünde anlatım (Atilla 2026-11-06: "harita üzerinde anlatım çok daha iyi olabilir, grafikler daha klas olabilir")
+Örnek: `ornekler/dunya-sinema/barbarossa-1941-anlatim.json` (A + C birleşimi, Atilla seçti).
+- **Ritim:** her 2–3 sn bir olay; ilk 5 sn boş kalmaz (küre → sınır hattı çizilir → ilk veri kartı).
+- **Kamera olayı izler:** her anlatım adımına bir anahtar kare: sınıra yaklaş, okların ucunu takip et, hedefe it.
+- **`not` katmanı** (ekranda anlatı cümlesi): `{"tip":"not","t":[a,b],"metin","alt","bicim":"serit"|"bolum"}`. Şerit sol altta, mühürde Romen bölüm numarası; bölüm kartı ekranın solunda büyük (dramatik, haritayı örter).
+- **`yolyazi` katmanı** (kartografik yazı): `{"tip":"yolyazi","yol":[...],"metin","t","ofset","hiza","boy"}`; metin bir ok, cephe ya da sınır boyunca harf harf dizilir, hep soldan sağa okunur. `ofset` yolun hangi yanında (kalın okta ±1.4).
+- **Cephe `"yikama": true`:** ilk hat ile bugünkü hat arasındaki alan (kazanılan toprak) seyreltik mürekkep yıkamasıyla dolar; güçlü dolgu haritayı boğar (%6 taban + kenarda koyulaşma yeterli).
+- **Boyut:** fırçada şehir etiketi 1.45×, kart 0.027, birlik yazısı 0.78×, lejant 0.024, kaynak 0.0165. Aynı anda en fazla iki veri kartı; ilki çıkınca ikincisi gelir.
+- Ses: `not` = fırça silme + mühür, `yolyazi` = uzun hafif fırça (ses.py olaylardan otomatik).
+
 ## 5. Renk sistemi (roller)
 - Rol renkleri `marka.json → roller`. **ana** amber (anlatının öznesi; kanal imzası), **karsi** kırmızı,
   **dost** mavi, **ittifak** yeşil-turkuaz, **tartismali** kum sarısı (çoğunlukla tarama), **notr** gri.

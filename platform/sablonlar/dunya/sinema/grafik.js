@@ -623,7 +623,7 @@ export function grafikKur(A) {
         e.fillStyle = "#26211a"; e.textAlign = "center"; e.textBaseline = "middle"; e.fillText(o.met, 0, boy * 0.05); e.restore();
       },
       kart(e, q, p, t, a) {
-        const t0 = q.t?.[0] ?? 0, b = fpx(0.02), r = renk(q.rol || "ana"), { yonx, ex, ey, kx } = kartYeri(p, q);
+        const t0 = q.t?.[0] ?? 0, b = fpx(0.027), r = renk(q.rol || "ana"), { yonx, ex, ey, kx } = kartYeri(p, q, q.uzun);
         const c1 = eo(ara(t, t0, t0 + 0.5)), c2 = ara(t, t0 + 0.3, t0 + 0.9), c3 = eo(ara(t, t0 + 0.5, t0 + 1.8));
         e.save(); e.globalAlpha = a; e.strokeStyle = "#f7f1e3"; e.lineWidth = b * 0.2; e.lineCap = "round"; e.setLineDash([b * 0.5, b * 0.4]); kirikCizgi(e, p, ex, ey, kx, c1); e.setLineDash([]);
         e.fillStyle = r.dolgu; e.beginPath(); e.arc(p.x, p.y, b * 0.4, 0, 7); e.fill();
@@ -686,7 +686,7 @@ export function grafikKur(A) {
         e.globalAlpha = o.a; e.textAlign = "center"; e.textBaseline = "middle"; e.shadowColor = "rgba(0,0,0,0.85)"; e.shadowBlur = 8 * SS; murekkepYazi(e, met, o.x, o.y, ara(o.gir, 0.12, 1)); e.restore();
       },
       sehir(e, o) {
-        const boy = o.boy * 1.1; e.font = `italic 400 ${boy}px "Instrument Serif"`; const w = e.measureText(o.met).width, sag = o.yon > 0, x = sag ? o.x + boy * 0.75 : o.x - boy * 0.75 - w;
+        const boy = o.boy * 1.45; e.font = `italic 400 ${boy}px "Instrument Serif"`; const w = e.measureText(o.met).width, sag = o.yon > 0, x = sag ? o.x + boy * 0.75 : o.x - boy * 0.75 - w;
         if (!o.yer_(Math.min(o.x, x) - 4, o.y - boy * 0.6, w + boy, boy * 1.2)) return; const f = expo(o.gir), rr = rng(o.met.length * 31 + 7);
         // mürekkep damlası: düşer (back-out), lekeler açılır, bir kez yayılan halka; isim fırçanın ardından sızar
         const d0 = backOut(ara(o.gir, 0, 0.32), 3), sp = expo(ara(o.gir, 0.06, 0.5)), rk = o.onem === 1 ? KIRMIZI : "#fbf7ef";
@@ -696,7 +696,7 @@ export function grafikKur(A) {
         e.textBaseline = "middle"; e.shadowColor = "rgba(0,0,0,0.85)"; e.shadowBlur = 8 * SS; murekkepYazi(e, o.met, x, o.y, ara(o.gir, 0.15, 1)); e.restore();
       },
       kart(e, q, p, t, a) {
-        const t0 = q.t?.[0] ?? 0, b = fpx(0.02), r = renk(q.rol || "ana"), { yonx, ex, ey, kx } = kartYeri(p, q);
+        const t0 = q.t?.[0] ?? 0, b = fpx(0.027), r = renk(q.rol || "ana"), { yonx, ex, ey, kx } = kartYeri(p, q, q.uzun);
         const c1 = expo(ara(t, t0, t0 + 0.5)), c2 = expo(ara(t, t0 + 0.3, t0 + 0.9)), c3 = eo(ara(t, t0 + 0.5, t0 + 1.7));
         e.save(); e.globalAlpha = a; e.strokeStyle = "rgba(251,247,239,0.85)"; e.lineWidth = b * 0.1; kirikCizgi(e, p, ex, ey, kx, c1); e.fillStyle = "#fbf7ef"; e.beginPath(); e.arc(p.x, p.y, b * 0.28, 0, 7); e.fill();
         if (c2 > 0) { const vb = Math.round(b * 2.9); e.font = `400 ${vb}px "Instrument Serif"`; const sw = e.measureText(deger(q, 1)).width; e.font = `italic 400 ${Math.round(b * 1.05)}px "Instrument Serif"`; const bw = e.measureText(q.baslik || "").width, aw = e.measureText(q.alt || "").width;
@@ -709,7 +709,7 @@ export function grafikKur(A) {
           const m = b * 1.6; e.shadowBlur = 0; damga(e, x + w - m * 0.2, y0 - b * 2.4 + m / 2, m, t - (t0 + 0.8), ust((q.baslik || "?")[0])); }
         e.restore();
       },
-      birlik(g, x, y, k, a) { birlikP(g, x, y, k, a, { el: true, kenar: "#fbf7ef", ic: "#fbf7ef", kal: 0.12, metin: "#fbf7ef", font: `italic 400 ${Math.round(fpx(0.034) * 0.55)}px "Instrument Serif"` }); },
+      birlik(g, x, y, k, a) { birlikP(g, x, y, k, a, { el: true, kenar: "#fbf7ef", ic: "#fbf7ef", kal: 0.12, metin: "#fbf7ef", font: `italic 400 ${Math.round(fpx(0.034) * 0.78)}px "Instrument Serif"` }); },
       baslik(e, o) {
         const { Y, t, a, b, x, ust: yUst, vurgu } = o; const out = 1 - ara(t, b - 0.5, b); if (out <= 0) return;
         const kb = fpx(0.024), maxW = W * SS - 2 * gx, bb0 = fpx(dikey ? 0.085 : 0.085), ab = fpx(0.03), m2 = Y.baslik;
@@ -723,6 +723,31 @@ export function grafikKur(A) {
         e.restore(); return y + ab - yUst;
       },
       kutu(e, x, y, w, h, vurgu, f) { fircaDarbe(e, [[x, y + h / 2], [x + w * f * 0.5, y + h / 2 - h * 0.04], [x + w * f, y + h / 2]], h * 1.15, "rgba(8,8,10,0.82)", 9, 0.5); },
+      // kazanılan toprak: üç kat seyreltik mürekkep yıkaması (sumi-e "bokashi"); kenara doğru koyulaşan kuru kenar, düz dolgu yok
+      yikama(g, alan, r, px) { const yol_ = () => { g.beginPath(); alan.forEach((q, j) => (j ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]))); g.closePath(); };
+        g.save(); yol_(); g.fillStyle = hex(r.dolgu, 0.06); g.fill(); g.clip(); g.lineJoin = "round";
+        for (const [w, al] of [[30, 0.05], [14, 0.07], [5, 0.12]]) { yol_(); g.strokeStyle = hex(r.dolgu, al); g.lineWidth = px(w); g.stroke(); }
+        const rr = rng(alan.length * 13 + 3); g.globalCompositeOperation = "destination-out"; // kâğıt lifi: yıkamada açık damarlar
+        for (let k = 0; k < 9; k++) { const i = Math.floor(rr() * (alan.length - 1)), q = alan[i], u = alan[(i + 40) % alan.length]; g.beginPath(); g.moveTo(q[0], q[1]); g.lineTo(q[0] + (u[0] - q[0]) * 0.6, q[1] + (u[1] - q[1]) * 0.6); g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = px(1 + rr() * 2.5); g.stroke(); }
+        g.restore(); },
+      yolYazi: { font: (b) => `italic 400 ${Math.round(b * 1.15)}px "Instrument Serif"`, renk: "251,247,239", golge: "rgba(0,0,0,0.9)" },
+      // anlatım notu: "serit" = sol altta fırça şeridi + mühürde bölüm numarası; "bolum" = ekranın solunda büyük bölüm kartı
+      not(e, q, z, out, no) {
+        const bolum = q.bicim === "bolum", alt = H * SS - (dikey ? G.dikey[2] : G.yatay[2]) * H * SS;
+        const b = fpx(bolum ? 0.068 : 0.041), sb = fpx(bolum ? 0.032 : 0.027), m = bolum ? b * 1.05 : b * 1.1, maxW = W * SS * (dikey ? 0.84 : bolum ? 0.62 : 0.55) - m * 1.5;
+        e.save(); e.font = `400 ${b}px "Instrument Serif"`; const sat = []; let cur = "";
+        for (const k of String(q.metin).split(" ")) { const d = cur ? cur + " " + k : k; if (e.measureText(d).width > maxW && cur) { sat.push(cur); cur = k; } else cur = d; } if (cur) sat.push(cur);
+        e.font = `italic 400 ${sb}px "Instrument Serif"`; const sw = q.alt ? e.measureText(q.alt).width : 0; e.font = `400 ${b}px "Instrument Serif"`;
+        const tw = Math.max(sw, ...sat.map((x) => e.measureText(x).width)), h = sat.length * b * 1.12 + (q.alt ? sb * 1.6 : 0);
+        const x = gx, tx = x + m * 1.5, y0 = bolum ? H * SS * 0.5 - h / 2 : alt - h - b * 0.35;
+        e.globalAlpha = out; const s1 = expo(ara(z, 0.05, 0.6));
+        fircaDarbe(e, [[x - b * 0.4, y0 + h * 0.5], [x + (tw + m * 2) * 0.5, y0 + h * 0.46], [x - b * 0.4 + (tw + m * 2.2 + b * 0.8) * s1, y0 + h * 0.52]], h + b * 0.9, "rgba(8,8,10,0.8)", 17, 0.45);
+        damga(e, x + m / 2, y0 + m * 0.5, m, z, no.length < 3 ? no : null);
+        e.textAlign = "left"; e.textBaseline = "alphabetic"; e.shadowColor = "rgba(0,0,0,0.75)"; e.shadowBlur = 8 * SS;
+        sat.forEach((s_, i) => murekkepYazi(e, s_, tx, y0 + b * 0.86 + i * b * 1.12, ara(z, 0.18 + i * 0.25, 0.85 + i * 0.25)));
+        if (q.alt) { e.font = `italic 400 ${sb}px "Instrument Serif"`; murekkepYazi(e, q.alt, tx, y0 + sat.length * b * 1.12 + sb * 1.15, ara(z, 0.6, 1.3), "251,247,239", 0.85); }
+        e.restore();
+      },
     },
 
     // -------------------------------------------------------------------------------- NEON

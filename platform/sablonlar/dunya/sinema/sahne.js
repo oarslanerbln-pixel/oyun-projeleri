@@ -363,6 +363,9 @@ function katmanCiz(c, kutu, t, olcek, dunya, hareketli = true) {
     const pa = yeniden(yumusak(A.yol.map(xy), 12), 200), pb = yeniden(yumusak(B.yol.map(xy), 12), 200);
     const y = pa.map((q, j) => [q[0] + (pb[j][0] - q[0]) * f, q[1] + (pb[j][1] - q[1]) * f]);
     const ci = eio(ara(t, k.t?.[0] ?? 0, (k.t?.[0] ?? 0) + 1.6)); g.save(); g.globalAlpha = a; const yc = ci < 1 ? kirpYol(y, ci) : y;
+    if (k.yikama && f + i > 0) { // ilk hat ile bugünkü hat arasındaki alan: kazanılan toprak (mürekkep yıkaması)
+      const p0 = yeniden(yumusak(ds[0].yol.map(xy), 12), 200), alan = p0.concat(y.slice().reverse()), r = renk(k.rol || "karsi");
+      if (G.yikama) G.yikama(g, alan, r, px, t); else { g.beginPath(); alan.forEach((q, j) => (j ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]))); g.closePath(); g.fillStyle = hex(r.dolgu, 0.22); g.fill(); } }
     if (G.cephe) G.cephe(g, yc, px(3.2) * (G.cepheOlcek ?? 1), renk(k.rol || "karsi"), k.taraf || 1, t); else cepheCiz(g, yc, px(3.2), renk(k.rol || "karsi").kontur, k.taraf || 1); g.restore(); }
   // oklar
   for (const k of (hareketli ? KATMAN : []).filter((k) => k.tip === "ok")) { const [a0, b0] = k.t || [0, 1]; const p = (G.okEase || eio)(ara(t, a0, a0 + (k.cizim ?? 2.2) * (G.hiz ?? 1))); const a = gor(k, t, 0.01, 0.6); if (a <= 0 || p <= 0) continue;
@@ -499,6 +502,38 @@ function kartCiz(t) {
 }
 function noktaYolGeo(yol, p) { const pts = yol.map((q) => [q[0], q[1]]); const k = kirpYol(pts, p); return k[k.length - 1]; }
 
+// yol yazısı: metin coğrafi bir yol boyunca harf harf dizilir (ok, cephe ya da sınır boyunca anlatım); yön soldan sağa okunur
+function yolYaziCiz(t) {
+  for (const q of KATMAN.filter((q) => q.tip === "yolyazi")) {
+    const a0 = gor(q, t, 0.01, 0.5); if (a0 <= 0) continue;
+    const ps = d3.range(0, 49).map((i) => { const z = noktaYolGeo(q.yol, i / 48); return ekrana(z[0], z[1]); }); if (ps.some((p) => p.z > 1)) continue;
+    const a = a0 * sinir((Math.min(...ps.map((p) => p.yuz)) - 0.12) / 0.25); if (a <= 0.01) continue;
+    let P = ps.map((p) => [p.x, p.y]); for (let k = 0; k < 3; k++) P = P.map((p, i) => (i && i < P.length - 1 ? [(P[i - 1][0] + 2 * p[0] + P[i + 1][0]) / 4, (P[i - 1][1] + 2 * p[1] + P[i + 1][1]) / 4] : p));
+    if (P[P.length - 1][0] < P[0][0]) P.reverse();
+    const st = G.yolYazi || { font: (b) => `600 ${b}px "Inter Tight"`, renk: "251,247,239", golge: "rgba(0,8,20,0.85)" };
+    const boy = fpx(q.boy ?? 0.03), t0 = q.t?.[0] ?? 0, f = ara(t, t0, t0 + (q.sure ?? 1.4));
+    e.save(); e.globalAlpha = a; e.font = st.font(boy); e.textAlign = "center"; e.textBaseline = "middle"; e.shadowColor = st.golge; e.shadowBlur = 8 * SS;
+    const met = q.metin, ar = boy * (q.aralik ?? 0.06), ws = [...met].map((c) => e.measureText(c).width + ar), top = ws.reduce((x, y) => x + y, 0);
+    const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+    const n = met.length; let s = Math.max(0, (L[L.length - 1] - top) * (q.hiza ?? 0.5)), ofs = boy * (q.ofset ?? -0.9);
+    [...met].forEach((c, i) => { const m = s + ws[i] / 2; s += ws[i]; let j = 1; while (j < L.length - 1 && L[j] < m) j++;
+      const u = sinir((m - L[j - 1]) / ((L[j] - L[j - 1]) || 1)), x = P[j - 1][0] + (P[j][0] - P[j - 1][0]) * u, y = P[j - 1][1] + (P[j][1] - P[j - 1][1]) * u;
+      const an = Math.atan2(P[j][1] - P[j - 1][1], P[j][0] - P[j - 1][0]), al = sinir((f * (n + 8) - i) / 8); if (al <= 0) return;
+      e.save(); e.translate(x - Math.sin(an) * ofs, y + Math.cos(an) * ofs); e.rotate(an); e.fillStyle = `rgba(${st.renk},${al})`; e.fillText(c, 0, 0); e.restore(); });
+    e.restore();
+  }
+}
+// anlatım notu: ekranda kısa anlatı cümlesi (alt şerit ya da bölüm kartı); stil yoksa sade kutu
+const ROMA = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+function notCiz(t) {
+  KATMAN.filter((q) => q.tip === "not").forEach((q, i) => { const [t0, t1] = q.t || [0, 3]; if (t < t0) return; const out = 1 - ara(t, t1 - 0.45, t1); if (out <= 0) return;
+    const no = ROMA[(q.no ?? i + 1) - 1] || String(q.no ?? i + 1);
+    if (G.not) { G.not(e, q, t - t0, out, no); return; }
+    const dikey = H > W, gx = (dikey ? M.guvenli.dikey[0] : M.guvenli.yatay[0]) * W * SS, alt = H * SS - (dikey ? M.guvenli.dikey[2] : M.guvenli.yatay[2]) * H * SS;
+    const b = fpx(0.034); e.save(); e.globalAlpha = out * eo(ara(t, t0, t0 + 0.5)); e.font = `600 ${b}px "Inter Tight"`; const w = e.measureText(q.metin).width + b * 1.6;
+    e.fillStyle = M.cipZemin; e.fillRect(gx, alt - b * 2.2, w, b * 2); e.fillStyle = M.metin; e.textBaseline = "middle"; e.fillText(q.metin, gx + b * 0.8, alt - b * 1.2); e.restore(); });
+}
+
 // marka yazıları (ekran uzayı, güvenli alan içinde)
 function markaCiz(t) {
   const Y = S.yazi || {}, g = e, dikey = H > W;
@@ -578,7 +613,7 @@ window.ciz = async (t, no = 0) => {
   son.uniforms.tohum.value = (no % 97) * 1.37;
   composer.render(); renderer.getContext().finish();
   const _t2 = performance.now();
-  e.clearRect(0, 0, PW, PH); etiketler(t, k); kartCiz(t); markaCiz(t);
+  e.clearRect(0, 0, PW, PH); etiketler(t, k); yolYaziCiz(t); kartCiz(t); markaCiz(t); notCiz(t);
   // birleştir ve kutu filtresiyle W×H'ye indir (SS=2 için tam yarıya: temiz kenar)
   a1.clearRect(0, 0, ara1.width, ara1.height); a1.imageSmoothingQuality = "high";
   a1.drawImage(cv, 0, 0, ara1.width, ara1.height); a1.drawImage(ek, 0, 0, ara1.width, ara1.height);

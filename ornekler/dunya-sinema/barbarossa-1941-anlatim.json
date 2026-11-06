@@ -1,0 +1,633 @@
+{
+ "isik": "alacakaranlik",
+ "sure": 18,
+ "dil": "tr",
+ "grafik": "firca",
+ "bulut": 0.7,
+ "kamera": [
+  {
+   "t": 0,
+   "hedef": [
+    5,
+    35
+   ],
+   "irtifa": "dunya",
+   "egim": 0,
+   "yon": 0,
+   "kayX": 0.12
+  },
+  {
+   "t": 1.6,
+   "hedef": [
+    8,
+    38
+   ],
+   "irtifa": "dunya",
+   "egim": 0,
+   "yon": 0,
+   "kayX": 0.1
+  },
+  {
+   "t": 4.6,
+   "hedef": [
+    24.5,
+    52.6
+   ],
+   "irtifa": 0.42,
+   "egim": 38,
+   "yon": 6,
+   "kayX": 0.04,
+   "kayY_dikey": -0.04
+  },
+  {
+   "t": 6.4,
+   "hedef": [
+    25.5,
+    52.9
+   ],
+   "irtifa": 0.47,
+   "egim": 40,
+   "yon": 8,
+   "kayX": 0.04
+  },
+  {
+   "t": 10.6,
+   "hedef": [
+    31,
+    54.2
+   ],
+   "irtifa": 0.7,
+   "egim": 38,
+   "yon": 10,
+   "kayX": 0.05
+  },
+  {
+   "t": 14.2,
+   "hedef": [
+    35.6,
+    55.3
+   ],
+   "irtifa": 0.44,
+   "egim": 46,
+   "yon": 16,
+   "kayX": 0.03
+  },
+  {
+   "t": 18,
+   "hedef": [
+    36.6,
+    55.6
+   ],
+   "irtifa": 0.38,
+   "egim": 48,
+   "yon": 20,
+   "kayX": 0.03
+  }
+ ],
+ "katmanlar": [
+  {
+   "tip": "cephe",
+   "rol": "karsi",
+   "taraf": -1,
+   "yikama": true,
+   "t": [
+    3.0,
+    18
+   ],
+   "durumlar": [
+    {
+     "t": 7.0,
+     "yol": [
+      [
+       21.1,
+       55.7
+      ],
+      [
+       23.0,
+       54.3
+      ],
+      [
+       23.9,
+       52.1
+      ],
+      [
+       24.0,
+       50.5
+      ],
+      [
+       22.6,
+       49.0
+      ],
+      [
+       26.5,
+       48.2
+      ],
+      [
+       28.2,
+       45.5
+      ]
+     ]
+    },
+    {
+     "t": 14.0,
+     "yol": [
+      [
+       30.3,
+       59.6
+      ],
+      [
+       33.5,
+       58.3
+      ],
+      [
+       35.9,
+       56.9
+      ],
+      [
+       37.0,
+       56.0
+      ],
+      [
+       37.6,
+       54.2
+      ],
+      [
+       36.1,
+       51.7
+      ],
+      [
+       37.8,
+       48.0
+      ],
+      [
+       39.7,
+       47.2
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "tip": "ok",
+   "yol": [
+    [
+     21.8,
+     55.2
+    ],
+    [
+     25.3,
+     56.9
+    ],
+    [
+     29.4,
+     58.7
+    ]
+   ],
+   "rol": "karsi",
+   "t": [
+    6.4,
+    18
+   ],
+   "cizim": 4.2,
+   "kalin": 24
+  },
+  {
+   "tip": "ok",
+   "yol": [
+    [
+     23.8,
+     52.6
+    ],
+    [
+     27.6,
+     53.9
+    ],
+    [
+     31.9,
+     54.8
+    ],
+    [
+     36.2,
+     55.6
+    ]
+   ],
+   "rol": "karsi",
+   "t": [
+    6.9,
+    18
+   ],
+   "cizim": 4.8,
+   "kalin": 32
+  },
+  {
+   "tip": "ok",
+   "yol": [
+    [
+     24.2,
+     50.4
+    ],
+    [
+     28.5,
+     50.2
+    ],
+    [
+     32.5,
+     49.4
+    ],
+    [
+     36.4,
+     48.6
+    ]
+   ],
+   "rol": "karsi",
+   "t": [
+    7.4,
+    18
+   ],
+   "cizim": 4.5,
+   "kalin": 26
+  },
+  {
+   "tip": "birlik",
+   "sembol": "zirhli",
+   "kademe": "XXXX",
+   "etiket": "2. Panzer Grubu",
+   "rol": "karsi",
+   "taraf": "dusman",
+   "yol": [
+    [
+     23.8,
+     52.6
+    ],
+    [
+     27.6,
+     53.9
+    ],
+    [
+     31.9,
+     54.8
+    ],
+    [
+     33.9,
+     54.3
+    ]
+   ],
+   "hareket": [
+    7.2,
+    13.2
+   ],
+   "t": [
+    7.0,
+    18
+   ]
+  },
+  {
+   "tip": "sehir",
+   "ad": "Leningrad",
+   "konum": [
+    30.32,
+    59.94
+   ],
+   "onem": 1,
+   "t": [
+    6.4,
+    18
+   ],
+   "oncelik": 8
+  },
+  {
+   "tip": "sehir",
+   "ad": "Kiev",
+   "konum": [
+    30.52,
+    50.45
+   ],
+   "t": [
+    7.4,
+    18
+   ],
+   "oncelik": 7
+  },
+  {
+   "tip": "sehir",
+   "ad": "Smolensk",
+   "konum": [
+    32.05,
+    54.78
+   ],
+   "t": [
+    9.0,
+    18
+   ],
+   "oncelik": 6,
+   "yon": -1
+  },
+  {
+   "tip": "sehir",
+   "ad": "Moskova",
+   "konum": [
+    37.62,
+    55.75
+   ],
+   "onem": 1,
+   "t": [
+    10.0,
+    18
+   ],
+   "oncelik": 9
+  },
+  {
+   "tip": "kart",
+   "konum": [
+    23.9,
+    51.2
+   ],
+   "t": [
+    4.6,
+    10.2
+   ],
+   "baslik": "Mihver gücü",
+   "deger": 3.8,
+   "ondalik": 1,
+   "birim": "milyon asker",
+   "alt": "22 Haziran 1941, yaklaşık",
+   "yon": -1,
+   "rol": "karsi"
+  },
+  {
+   "tip": "birlik",
+   "sembol": "piyade",
+   "kademe": "XXXX",
+   "etiket": "Batı Cephesi",
+   "rol": "dost",
+   "konum": [
+    37.9,
+    54.5
+   ],
+   "t": [
+    13.2,
+    18
+   ]
+  },
+  {
+   "tip": "nabiz",
+   "konum": [
+    37.62,
+    55.75
+   ],
+   "rol": "dost",
+   "t": [
+    14.0,
+    18
+   ]
+  },
+  {
+   "tip": "kart",
+   "konum": [
+    39.6,
+    54.3
+   ],
+   "t": [
+    14.8,
+    18
+   ],
+   "baslik": "Moskova önünde",
+   "deger": 30,
+   "birim": "km",
+   "alt": "En yakın Alman öncüsü, Aralık 1941",
+   "yon": 1,
+   "rol": "karsi"
+  },
+  {
+   "tip": "not",
+   "t": [
+    1.6,
+    5.8
+   ],
+   "metin": "22 Haziran 1941, şafak vakti.",
+   "alt": "Almanya 2.900 km'lik sınır boyunca saldırıya geçer.",
+   "bicim": "serit"
+  },
+  {
+   "tip": "not",
+   "t": [
+    6.2,
+    10.4
+   ],
+   "metin": "Üç ordu grubu aynı anda ilerler.",
+   "alt": "Kuzey Leningrad'a, Merkez Moskova'ya, Güney Kiev'e.",
+   "bicim": "serit"
+  },
+  {
+   "tip": "not",
+   "t": [
+    10.6,
+    13.8
+   ],
+   "metin": "Smolensk'te kanlı kuşatma.",
+   "alt": "Moskova yolu açılır, ama ilerleme haftalarca yavaşlar.",
+   "bicim": "serit"
+  },
+  {
+   "tip": "not",
+   "t": [
+    14.0,
+    17.6
+   ],
+   "metin": "5 Aralık: Moskova önünde karşı taarruz.",
+   "alt": "Yıldırım savaşı ilk kez durdurulur.",
+   "bicim": "serit"
+  },
+  {
+   "tip": "yolyazi",
+   "yol": [
+    [
+     21.1,
+     55.7
+    ],
+    [
+     23.0,
+     54.3
+    ],
+    [
+     23.9,
+     52.1
+    ],
+    [
+     24.0,
+     50.5
+    ],
+    [
+     22.6,
+     49.0
+    ],
+    [
+     26.5,
+     48.2
+    ],
+    [
+     28.2,
+     45.5
+    ]
+   ],
+   "metin": "22 Haziran 1941 · 2.900 km'lik sınır",
+   "t": [
+    3.6,
+    7.4
+   ],
+   "ofset": 1.1,
+   "boy": 0.028
+  },
+  {
+   "tip": "yolyazi",
+   "yol": [
+    [
+     21.8,
+     55.2
+    ],
+    [
+     25.3,
+     56.9
+    ],
+    [
+     29.4,
+     58.7
+    ]
+   ],
+   "metin": "Ordu Grubu Kuzey",
+   "t": [
+    8.2,
+    18
+   ],
+   "ofset": -1.4
+  },
+  {
+   "tip": "yolyazi",
+   "yol": [
+    [
+     23.8,
+     52.6
+    ],
+    [
+     27.6,
+     53.9
+    ],
+    [
+     31.9,
+     54.8
+    ],
+    [
+     36.2,
+     55.6
+    ]
+   ],
+   "metin": "Ordu Grubu Merkez",
+   "t": [
+    8.8,
+    18
+   ],
+   "ofset": -1.5
+  },
+  {
+   "tip": "yolyazi",
+   "yol": [
+    [
+     24.2,
+     50.4
+    ],
+    [
+     28.5,
+     50.2
+    ],
+    [
+     32.5,
+     49.4
+    ],
+    [
+     36.4,
+     48.6
+    ]
+   ],
+   "metin": "Ordu Grubu Güney",
+   "t": [
+    9.3,
+    18
+   ],
+   "ofset": 1.5
+  },
+  {
+   "tip": "yolyazi",
+   "yol": [
+    [
+     30.3,
+     59.6
+    ],
+    [
+     33.5,
+     58.3
+    ],
+    [
+     35.9,
+     56.9
+    ],
+    [
+     37.0,
+     56.0
+    ],
+    [
+     37.6,
+     54.2
+    ],
+    [
+     36.1,
+     51.7
+    ],
+    [
+     37.8,
+     48.0
+    ],
+    [
+     39.7,
+     47.2
+    ]
+   ],
+   "metin": "Aralık 1941 cephesi",
+   "t": [
+    14.6,
+    18
+   ],
+   "ofset": 1.2,
+   "hiza": 0.75
+  }
+ ],
+ "yazi": {
+  "ust": "Askerî tarih",
+  "baslik": "BARBAROSSA HAREKÂTI",
+  "alt": "Üç ordu grubu, tek hedef: Moskova",
+  "tarih": [
+   {
+    "t": 0,
+    "metin": "22 HAZİRAN 1941"
+   },
+   {
+    "t": 10.8,
+    "metin": "AĞUSTOS 1941"
+   },
+   {
+    "t": 14.0,
+    "metin": "5 ARALIK 1941"
+   }
+  ],
+  "lejant": [
+   {
+    "rol": "karsi",
+    "ad": "Mihver ilerleyişi"
+   },
+   {
+    "rol": "dost",
+    "ad": "Sovyet kuvvetleri"
+   }
+  ],
+  "kaynak": "Cephe hatları yaklaşık · Harita: Natural Earth · Arazi: Mapzen Terrain Tiles · NASA Blue Marble"
+ }
+}

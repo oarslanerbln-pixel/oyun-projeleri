@@ -46,6 +46,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 |---|---|
 | `gelistirme/` | `DEVIR.md`, `beyin-firtinasi-2026-10-19.md` (son bölüm = güncel yol haritası), `gelistirme-plani.md`, `token-analizi-2026-10-19.md`, `maliyet.csv` (her sipariş bir satır), `katalog.jsonl` + `katalog.md` (teslim edilen her video; `katalog.py ara`), `render-sureleri.csv` |
 | `the-leaf/` | Müşteri The Leaf Berlin: `1-tv-ekrani`, `2-instagram-reel`, `3-bumper` (+ `v2`), `4-ebru-3d/` (DEVIR); kaynak `proje/` |
+| `jetpac/` | Müşteri Jetpac (Travel eSIM, İstanbul havalimanı): `teslim/` A akış, B ritim, C lounge; `teslim2/` D voice over, E ipuçları, F kısa (Atilla'nın kendi sesi + altyazı); betikler `teslim/kurgu_jetpac.py`, `teslim/kurgu_konusma.py`; ham klipler cihazda `D:\jetpac\ham` (DEVIR.md) |
 | `lezzet-dunyasi/` | Müşteri, bitti: kinetik/kolaj/minyatür/origami (+ `-ses`) 9:16 |
 | `le-mariage/` | Müşteri düğün salonu: reel, karusel (`onizleme/`), `animasyon/` neon, `sunum/le-mariage-praesentation.pdf`; DEVIR |
 | `markalasma-nedir/` | Kendi kanal: güncel finaller `tek-cizgi-20sn-logo/` (TR) ve `tek-cizgi-20sn-de-logo/` (DE); her alt klasörde DEVIR. `30sn/` eski karalama |

@@ -37,6 +37,51 @@ def tel(nota: float, d: float, rng) -> np.ndarray:
     return out * np.minimum(1, (n - np.arange(n)) / (0.05 * SR))
 
 
+def piyano(nota: float, d: float, hiz: float = 0.7) -> np.ndarray:
+    """Keçe piyano: harmonikli sinüs, yumuşak atak (8 ms), yüksek harmonikler hızlı söner; gürültü yok."""
+    n = int(d * SR); tt = np.arange(n) / SR; f = mtof(nota)
+    x = np.zeros(n)
+    for h, (g, son) in enumerate(((1.0, 1.6), (0.42, 0.9), (0.18, 0.55), (0.08, 0.35), (0.04, 0.22)), 1):
+        if f * h > 9000:
+            break
+        x += g * np.sin(2 * np.pi * f * h * (1 + 0.0004 * h * h) * tt) * np.exp(-tt / (son * (1.4 - 0.4 * hiz)))
+    x *= np.minimum(tt / 0.008, 1) * np.minimum(1, (d - tt) / 0.12)
+    return x * hiz * 0.5
+
+
+def can(nota: float, d: float) -> np.ndarray:
+    """Yumuşak çan: uyumsuz kısmi tonlar, uzun sönüm, sinüs (hışırtısız)."""
+    n = int(d * SR); tt = np.arange(n) / SR; f = mtof(nota)
+    x = sum(g * np.sin(2 * np.pi * f * k * tt) * np.exp(-tt / s_) for k, g, s_ in ((1, 1, 0.9), (2.76, 0.35, 0.4), (5.4, 0.12, 0.2)))
+    return x * np.minimum(tt / 0.004, 1) * np.minimum(1, (d - tt) / 0.1) * 0.5
+
+
+def _piyano_muzik(s, muzik, ekle, akorlar, vurus, son_an):
+    """Yalnız temiz keçe piyano (Atilla 2026-11-11: arkada "uvuvu" sesi olmasın): sürekli pad, vibrato, detune ve
+    derin vuruş yok; bas notası ≥ C3. Sakin: ölçü başında yumuşak akor. Orta/enerjik: sekizlik arpej (enerjikte daha dolu)."""
+    olcu = 4 * vurus
+    k = 0
+    while k * olcu < son_an:
+        tb = k * olcu; a = akorlar[k % len(akorlar)]
+        en = senaryo.enerji(s, tb + 0.01)
+        ust = [m + 12 for m in a]
+        ekle(muzik, tb, piyano(max(min(a), 48), olcu * 1.1, 0.5), 0.14, pan=-0.1)
+        if en == "sakin":
+            for j, m in enumerate(ust):
+                ekle(muzik, tb + j * 0.03, piyano(m, olcu * 0.9, 0.45), 0.09, pan=(j - 1.5) * 0.15)
+        else:
+            sira = ust + [ust[0] + 12, ust[2] + 12, ust[1] + 12, ust[3]]
+            for v in range(8):
+                t = tb + v * vurus / 2
+                if t < son_an:
+                    ekle(muzik, t, piyano(sira[v % len(sira)], vurus * 1.4, 0.6 if v % 2 == 0 else 0.45),
+                         0.11 if en == "enerjik" else 0.09, pan=0.25 if v % 2 else -0.25)
+            if en == "enerjik":
+                for j, m in enumerate(ust[:3]):
+                    ekle(muzik, tb, piyano(m, olcu, 0.5), 0.07, pan=(j - 1) * 0.2)
+        k += 1
+
+
 def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db: float = 8.0) -> dict:
     import soundfile as sf
     sure = s["sure"]; n = int(SR * sure)
@@ -68,9 +113,12 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
         tt = np.arange(int(d * SR)) / SR
         return np.sin(2 * np.pi * mtof(nota) * tt) * np.exp(-tt / 0.4) * np.minimum(1, (d - tt) / 0.04)
 
+    piyano_modu = s.get("stil") == "zarif" or s["muzik"].get("tur") == "piyano"
+    if piyano_modu:
+        _piyano_muzik(s, muzik, ekle, akorlar, vurus, son_an)
     # tel: her vuruşta akorun bir sesi (yumuşak arpej), ölçü başında tam akor; pad sürekli
     k = 0
-    while k * olcu < son_an:
+    while not piyano_modu and k * olcu < son_an:
         tb = k * olcu; a = akorlar[k % len(akorlar)]
         ekle(muzik, tb, pad(a, min(olcu + 0.3, son_an - tb + 0.4)), 0.22)
         for j, nota in enumerate(a):
@@ -81,7 +129,7 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
                 ekle(muzik, t, tel(a[(v * 3) % 4] + 24, 0.8, rng), 0.07 if v % 2 else 0.05, pan=0.3 if v % 2 else -0.3)
         k += 1
     adim = vurus / 2
-    for i in range(int(son_an / adim)):
+    for i in range(0 if piyano_modu else int(son_an / adim)):
         t = i * adim
         en = senaryo.enerji(s, t)
         if en == "sakin":
@@ -94,7 +142,10 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
             ekle(muzik, t + adim / 2, fx.shaker(rng, 0.07), 0.05, pan=0.2)
     # final: parlak akor
     for j, nota in enumerate(akorlar[0] + [akorlar[0][0] + 24]):
-        ekle(muzik, son_an + j * 0.03, tel(nota + 12, 0.9, rng), 0.12, pan=(j - 2) * 0.2)
+        if piyano_modu:
+            ekle(muzik, son_an - 0.5 + j * 0.06, piyano(nota + 12, 2.6, 0.8), 0.16, pan=(j - 2) * 0.18)
+        else:
+            ekle(muzik, son_an + j * 0.03, tel(nota + 12, 0.9, rng), 0.12, pan=(j - 2) * 0.2)
 
     def pop():  # yumuşak "blop": aşağı kayan kısa ton
         tt = np.arange(int(0.12 * SR)) / SR
@@ -104,8 +155,11 @@ def miksle(s: dict, cikti: Path, seslendirme: Path | None = None, muzik_alti_db:
             "tik": lambda: fx.tik(rng, 2600, 0.015) * 0.5,
             "hisirti": lambda: fx.whoosh(rng, 0.28, alt=300, ust=1800) * 0.35,
             "parilti": lambda: fx.parilti(rng, 1.0) * 0.6}
+    if piyano_modu:   # gürültüsüz: yalnız yumuşak çan (nesne, sevinç); poz ve yazı sessiz
+        uret = {"pop": lambda: can(84, 1.4) * 0.5, "parilti": lambda: sum(can(m, 2.0) for m in (84, 88, 91)) * 0.3}
     for an, ad in senaryo.ses_olaylari(s):
-        ekle(efekt, an, uret[ad](), 1.0, pan=0.15)
+        if ad in uret:
+            ekle(efekt, an, uret[ad](), 1.0, pan=0.15)
 
     vo = np.zeros(n); bulunan = []
     for satir in s["seslendirme"]["satirlar"]:

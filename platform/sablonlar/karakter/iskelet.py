@@ -44,6 +44,8 @@ POZLAR: dict[str, dict] = {
                   bakis_y=0.3, salinim="zipla"),
     "yuru": dict(salinim="yuru"),
     "selam": dict(kol_sag_a=118, kol_sag_b=26, bas=-4, bakis_x=0.2, salinim="selam"),
+    "yorgun": dict(kol_sag_a=6, kol_sag_b=-2, kol_sol_a=6, kol_sol_b=-2, govde=3, bas=13, bakis_x=-0.2, bakis_y=-0.7),
+    "gerin": dict(kol_sag_a=150, kol_sag_b=14, kol_sol_a=150, kol_sol_b=14, bas=-8, bakis_y=0.6),
     "omuz": dict(kol_sag_a=30, kol_sag_b=68, kol_sol_a=30, kol_sol_b=68, bas=7, bakis_y=0.2),
 }
 POZ_ADLARI = tuple(POZLAR)

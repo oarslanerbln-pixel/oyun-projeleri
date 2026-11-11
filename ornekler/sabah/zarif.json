@@ -1,0 +1,165 @@
+{
+ "kimlik": "sabah-zarif",
+ "stil": "zarif",
+ "sure": 30.0,
+ "fps": 30,
+ "format": [
+  "9x16"
+ ],
+ "dil": "tr",
+ "karakter": {
+  "sac": "kisa"
+ },
+ "muzik": {
+  "bpm": 78,
+  "akorlar": [
+   [
+    48,
+    52,
+    55,
+    59
+   ],
+   [
+    43,
+    47,
+    50,
+    55
+   ],
+   [
+    45,
+    48,
+    52,
+    55
+   ],
+   [
+    41,
+    45,
+    48,
+    52
+   ]
+  ]
+ },
+ "sahneler": [
+  {
+   "bas": 0,
+   "poz": "yorgun",
+   "ifade": "notr",
+   "kamera": "yakin",
+   "enerji": "sakin",
+   "x": 0.25,
+   "yazi": "Bugün başlayacağım.",
+   "dekor": [
+    {
+     "tur": "yatak",
+     "x": 0.3,
+     "olcek": 0.62
+    },
+    {
+     "tur": "pencere",
+     "x": 0.76,
+     "olcek": 0.62
+    }
+   ],
+   "anahtarlar": [
+    {
+     "t": 2.6,
+     "ifade": "dusunceli",
+     "poz": "dusun"
+    }
+   ]
+  },
+  {
+   "bas": 7.0,
+   "poz": "omuz",
+   "ifade": "uzgun",
+   "kamera": "normal",
+   "enerji": "sakin",
+   "yazi": "Sorun tembellik değil.",
+   "dekor": [
+    {
+     "tur": "masa",
+     "x": 0.8,
+     "olcek": 0.62
+    },
+    {
+     "tur": "telefon",
+     "x": 0.8,
+     "olcek": 0.62,
+     "ekran": true
+    },
+    {
+     "tur": "bitki",
+     "x": 0.18,
+     "olcek": 0.62
+    }
+   ]
+  },
+  {
+   "bas": 14.0,
+   "poz": "dusun",
+   "ifade": "dusunceli",
+   "kamera": "genis",
+   "enerji": "orta",
+   "x": 0.35,
+   "yazi": "Söz değil, kanıt.",
+   "dekor": [
+    {
+     "tur": "dag",
+     "x": 0.3,
+     "olcek": 0.62
+    },
+    {
+     "tur": "tas",
+     "x": 0.7,
+     "olcek": 0.62,
+     "t": 16.5
+    }
+   ],
+   "anahtarlar": [
+    {
+     "t": 16.5,
+     "poz": "isaret",
+     "ifade": "gulumse"
+    }
+   ]
+  },
+  {
+   "bas": 21.5,
+   "poz": "gerin",
+   "ifade": "sevincli",
+   "kamera": "normal",
+   "enerji": "enerjik",
+   "x": -0.3,
+   "yazi": "İki dakika. Başla.",
+   "dekor": [
+    {
+     "tur": "gunes",
+     "x": 0.5,
+     "olcek": 0.62
+    },
+    {
+     "tur": "kapi",
+     "x": 0.8,
+     "olcek": 0.62,
+     "t": 23.0
+    }
+   ],
+   "anahtarlar": [
+    {
+     "t": 23.5,
+     "poz": "yuru",
+     "ifade": "kararli",
+     "x": 0.55
+    },
+    {
+     "t": 27.5,
+     "poz": "selam",
+     "ifade": "gulumse"
+    }
+   ]
+  }
+ ],
+ "seslendirme": {
+  "satirlar": []
+ }
+}

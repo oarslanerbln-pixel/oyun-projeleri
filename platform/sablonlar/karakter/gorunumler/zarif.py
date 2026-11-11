@@ -97,12 +97,12 @@ class Gorunum(cizgisel.Gorunum):
 
     # ---------- kamera (cizim.Cizici.kare çağırır) ----------
     def kamera(self, t: float) -> tuple[float, float, float]:
-        """(ölçek, odak x, odak y) — odak kadraj oranı. Sahne değişince 0,9 sn'de yumuşak geçiş, içinde hafif yaklaşma."""
+        """(ölçek, odak x, odak y) — odak kadraj oranı. Sahne değişince 0,5 sn'de yumuşak geçiş, içinde hafif yaklaşma."""
         sh_ = self.s["sahneler"]
         hedef = [KAMERALAR.get(sh.get("kamera", "normal"), 1.0) for sh in sh_]
         z = hedef[0]
         for i, sh in enumerate(sh_[1:], 1):
-            p = out_cubic(prog(t, sh["bas"], 0.9)) if t >= sh["bas"] else 0.0
+            p = out_cubic(prog(t, sh["bas"], 0.5)) if t >= sh["bas"] else 0.0
             z = z + (hedef[i] - z) * (p * p * (3 - 2 * p) if p < 1 else 1.0)
         sh = senaryo.sahne_at(self.s, t)
         ic = prog(t, sh["bas"], max(0.5, sh["_son"] - sh["bas"]))
@@ -161,7 +161,7 @@ class Gorunum(cizgisel.Gorunum):
             son = d.get("son", son)
             if t < t0 or t >= son + 0.01:
                 continue
-            cik = 1 - prog(t, son - 0.3, 0.3) if son < self.s["sure"] else 1.0
+            cik = 1 - prog(t, son - 0.18, 0.18) if son < self.s["sure"] else 1.0
             out.append({**d, "_t0": t0, "_bas": bas, "_son": son, "_alfa": cik})
         return out
 
@@ -172,8 +172,8 @@ class Gorunum(cizgisel.Gorunum):
         x = d.get("x", 0.5) * W
         y = d["y"] * H if "y" in d else ay
         o = d.get("olcek", 1.0) * B
-        ciz = out_cubic(prog(t, d["_t0"], d.get("cizim_sn", 0.9)))       # çizgi belirme
-        dol = prog(t, d["_t0"] + d.get("cizim_sn", 0.9) * 0.6, 0.4)      # dolgu sonra
+        ciz = out_cubic(prog(t, d["_t0"], d.get("cizim_sn", 0.5)))       # çizgi belirme
+        dol = prog(t, d["_t0"] + d.get("cizim_sn", 0.5) * 0.6, 0.4)      # dolgu sonra
         ilerle = prog(t, d["_t0"], max(0.5, d["_son"] - d["_t0"]))        # sahne boyunca (güneş doğar, kapı açılır)
         a = d["_alfa"]
         cizgiler, dolgular = getattr(self, "_d_" + d["tur"])(x, y, o, ilerle, d)
@@ -284,6 +284,7 @@ class Gorunum(cizgisel.Gorunum):
     def _d_yol(self, x, y, o, ilerle, d):
         H = self.c.H
         ufuk = y - 0.02 * o
+        H = (y + 0.045 * H) / 1.05   # yol yazı alanına inmez: zemin çizgisinin hemen altında biter
         sol = self._cizgi_yol((x - 0.55 * o, H * 1.05), (x - 0.02 * o, ufuk))
         sag = self._cizgi_yol((x + 0.55 * o, H * 1.05), (x + 0.02 * o, ufuk))
         dol = skia.Path(); dol.moveTo(x - 0.55 * o, H * 1.05); dol.lineTo(x - 0.02 * o, ufuk); dol.lineTo(x + 0.02 * o, ufuk)

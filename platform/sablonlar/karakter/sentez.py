@@ -57,42 +57,28 @@ def can(nota: float, d: float) -> np.ndarray:
 
 
 def _piyano_muzik(s, muzik, ekle, akorlar, vurus, son_an):
-    """Sakin: yarım notalık geniş akor + yaylı pad. Orta: sekizlik arpej. Enerjik: arpej + derin ama kısa kalp atışı
-    vuruşu (sinüs, tık yok) ve oktavlı bas. Pad notaları ≥ D3 (alçak sürekli sinüs vızıltı yapar)."""
+    """Yalnız temiz keçe piyano (Atilla 2026-11-11: arkada "uvuvu" sesi olmasın): sürekli pad, vibrato, detune ve
+    derin vuruş yok; bas notası ≥ C3. Sakin: ölçü başında yumuşak akor. Orta/enerjik: sekizlik arpej (enerjikte daha dolu)."""
     olcu = 4 * vurus
-    def yayli(notalar, d):
-        tt = np.arange(int(d * SR)) / SR
-        e = np.minimum(tt / 1.2, 1) * np.minimum((d - tt) / 0.8, 1)
-        vib = 1 + 0.002 * np.sin(2 * np.pi * 4.8 * tt)
-        x = sum(np.sin(2 * np.pi * mtof(k) * vib * (1 + det) * tt) + 0.25 * np.sin(4 * np.pi * mtof(k) * (1 + det) * tt)
-                for k in notalar for det in (-0.0025, 0.0025))
-        return fx.bant(x, ust=2200) * e / (len(notalar) * 2.5)
-    def atis():
-        tt = np.arange(int(0.35 * SR)) / SR
-        return np.sin(2 * np.pi * np.cumsum(55 + 45 * np.exp(-tt / 0.04)) / SR) * np.exp(-tt / 0.12) * np.minimum(tt / 0.003, 1)
     k = 0
     while k * olcu < son_an:
         tb = k * olcu; a = akorlar[k % len(akorlar)]
         en = senaryo.enerji(s, tb + 0.01)
         ust = [m + 12 for m in a]
-        ekle(muzik, tb, yayli([max(m, 50) for m in ust[:3]], min(olcu + 0.6, son_an - tb + 0.6)), 0.20 if en == "sakin" else 0.26)
-        ekle(muzik, tb, piyano(min(a), olcu * 1.2, 0.55), 0.20, pan=-0.1)          # bas: akorun kökü
+        ekle(muzik, tb, piyano(max(min(a), 48), olcu * 1.1, 0.5), 0.14, pan=-0.1)
         if en == "sakin":
             for j, m in enumerate(ust):
-                ekle(muzik, tb + j * 0.025, piyano(m, olcu * 0.9, 0.5), 0.10, pan=(j - 1.5) * 0.15)
-            ekle(muzik, tb + olcu / 2, piyano(ust[-1] + 12, olcu * 0.5, 0.4), 0.06, pan=0.25)
+                ekle(muzik, tb + j * 0.03, piyano(m, olcu * 0.9, 0.45), 0.09, pan=(j - 1.5) * 0.15)
         else:
             sira = ust + [ust[0] + 12, ust[2] + 12, ust[1] + 12, ust[3]]
             for v in range(8):
                 t = tb + v * vurus / 2
                 if t < son_an:
-                    ekle(muzik, t, piyano(sira[v % len(sira)], vurus * 1.6, 0.62 if v % 2 == 0 else 0.48), 0.10,
-                         pan=0.25 if v % 2 else -0.25)
+                    ekle(muzik, t, piyano(sira[v % len(sira)], vurus * 1.4, 0.6 if v % 2 == 0 else 0.45),
+                         0.11 if en == "enerjik" else 0.09, pan=0.25 if v % 2 else -0.25)
             if en == "enerjik":
-                for v in (0, 2, 2.5):
-                    if tb + v * vurus < son_an:
-                        ekle(muzik, tb + v * vurus, atis(), 0.30 if v == 0 else 0.18)
-                ekle(muzik, tb, piyano(min(a) - 12, olcu, 0.6), 0.16)
+                for j, m in enumerate(ust[:3]):
+                    ekle(muzik, tb, piyano(m, olcu, 0.5), 0.07, pan=(j - 1) * 0.2)
         k += 1
 
 

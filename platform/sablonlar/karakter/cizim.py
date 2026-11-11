@@ -64,6 +64,7 @@ class Cizici:
         self.yazi_tipi = skia.Typeface.MakeFromFile(font_bul())
         self.gorunum = gor.Gorunum(s, self)
         self.t = 0.0
+        self.ses_dir = seslendirme
         self.agiz = agiz_mod.Agiz()
         self.agiz_kaynak = {}
         for x in senaryo.konusan_satirlar(s):
@@ -128,6 +129,8 @@ class Cizici:
             self.gorunum.on_plan(cv, t)
         cv.restore()
         self._yazilar(cv, t)
+        if s.get("altyazi") and hasattr(self.gorunum, "altyazi"):   # konuşma kelime kelime ekranda
+            self.gorunum.altyazi(cv, t)
 
     def _yazilar(self, cv, t: float):
         yx, yy, ymaks, punto = self.d["yazi"]

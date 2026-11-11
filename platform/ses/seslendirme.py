@@ -376,7 +376,8 @@ def senaryodan(s: dict, cikti: Path, saglayici: str | None = "otomatik", ses: st
     dil = sb.get("dil") or (s.get("dil") if s.get("dil") != "sahne" else None)  # ortak sahne dilinde "dil" biçimdir
     ayar = {"ses": ses or sb.get("ses"), "dil": dil, "saglayici": sb.get("saglayici"),
             "telaffuz": sb.get("telaffuz"), "klasor": s.get("_klasor"),
-            "tarz": sb.get("tarz"), "yonetmen": sb.get("yonetmen", True), "model": sb.get("model")}
+            "tarz": sb.get("tarz"), "yonetmen": sb.get("yonetmen", True), "model": sb.get("model"),
+            **({"hiz": sb["hiz"]} if sb.get("hiz") else {})}   # Piper konuşma hızı (1.1 = %10 hızlı)
     return uret(satirlar, Path(cikti), saglayici, ayar)
 
 

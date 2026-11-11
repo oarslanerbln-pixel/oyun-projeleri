@@ -29,7 +29,7 @@ FONT_DOSYA = "DMSerifDisplay-Regular.ttf"
 FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/dmserifdisplay/DMSerifDisplay-Regular.ttf"
 
 DEKORLAR = ("pencere", "yatak", "kapi", "dag", "tas", "yol", "bitki", "masa", "telefon", "kitap", "gunes")
-KAMERALAR = {"normal": 1.0, "yakin": 1.10, "genis": 0.94}
+KAMERALAR = {"normal": 1.0, "yakin": 1.12, "cok_yakin": 1.30, "genis": 0.90, "uzak": 0.70}
 
 
 def serif_font() -> str | None:
@@ -97,18 +97,74 @@ class Gorunum(cizgisel.Gorunum):
 
     # ---------- kamera (cizim.Cizici.kare çağırır) ----------
     def kamera(self, t: float) -> tuple[float, float, float]:
-        """(ölçek, odak x, odak y) — odak kadraj oranı. Sahne değişince 0,5 sn'de yumuşak geçiş, içinde hafif yaklaşma."""
+        """(ölçek, odak x, odak y). Sahnenin `kamera`sına 0,5 sn'de yumuşak geçiş; `kamera_son` verilirse sahne
+        boyunca oraya kayar (yakından uzağa açılma ya da uzaktan yaklaşma), yoksa hafif yaklaşma."""
         sh_ = self.s["sahneler"]
-        hedef = [KAMERALAR.get(sh.get("kamera", "normal"), 1.0) for sh in sh_]
-        z = hedef[0]
+        def bas_z(sh): return KAMERALAR.get(sh.get("kamera", "normal"), 1.0)
+        def son_z(sh): return KAMERALAR.get(sh.get("kamera_son"), bas_z(sh) * 1.025)
+        def yum(p): return p * p * (3 - 2 * p)
+        def sahnede(sh, t):
+            return bas_z(sh) + (son_z(sh) - bas_z(sh)) * yum(prog(t, sh["bas"], max(0.5, sh["_son"] - sh["bas"])))
+        z = sahnede(sh_[0], t)
         for i, sh in enumerate(sh_[1:], 1):
-            p = out_cubic(prog(t, sh["bas"], 0.5)) if t >= sh["bas"] else 0.0
-            z = z + (hedef[i] - z) * (p * p * (3 - 2 * p) if p < 1 else 1.0)
-        sh = senaryo.sahne_at(self.s, t)
-        ic = prog(t, sh["bas"], max(0.5, sh["_son"] - sh["bas"]))
-        z *= 1.0 + 0.025 * ic
+            if t < sh["bas"]:
+                break
+            onceki = sahnede(sh_[i - 1], sh["bas"])
+            p = yum(out_cubic(prog(t, sh["bas"], 0.5)))
+            z = onceki + (sahnede(sh, t) - onceki) * p
         d = self.c.d
         return z, d["cx"], d["ayak"]   # ayak çizgisi sabit kalır, yazıyla çakışmaz
+
+    # ---------- altyazı (senaryoda "altyazi": true) ----------
+    def _altyazi_hazirla(self):
+        import soundfile as sf
+        parcalar = []
+        for x in self.s["seslendirme"]["satirlar"]:
+            yol = (self.c.ses_dir / f"{x['id']}.wav") if self.c.ses_dir else None
+            if not yol or not yol.exists():
+                continue
+            d = max(0.3, sf.info(str(yol)).duration - 0.15)
+            kel = x.get("metin", "").split()
+            agir = [len(k) + (4 if k[-1] in ".,:;!?" else 0) + 2 for k in kel]
+            top = sum(agir) or 1; an = x["t"] + 0.05; zaman = []
+            for k, a in zip(kel, agir):
+                zaman.append((k, an)); an += d * a / top
+            grup = []
+            for i, (k, a) in enumerate(zaman):
+                grup.append((k, a))
+                metin = " ".join(g[0] for g in grup)
+                if k[-1] in ".,:;!?" or len(grup) >= 4 or len(metin) >= 20 or i == len(zaman) - 1:
+                    son = zaman[i + 1][1] if i + 1 < len(zaman) else x["t"] + d + 0.35
+                    parcalar.append((grup, grup[0][1], son)); grup = []
+        self._parcalar = parcalar
+
+    def altyazi(self, cv, t):
+        if not hasattr(self, "_parcalar"):
+            self._altyazi_hazirla()
+        par = next((p for p in self._parcalar if p[1] <= t < p[2]), None)
+        if not par:
+            return
+        grup, bas, son = par
+        W, H = self.c.W, self.c.H
+        yx, yy, ymaks, punto = self.c.d["yazi"]
+        f = skia.Font(self.c.yazi_tipi, punto * W * 1.05)
+        bosluk = f.measureText(" ")
+        genis = [f.measureText(k) for k, _ in grup]
+        top = sum(genis) + bosluk * (len(grup) - 1)
+        if top > ymaks * W:
+            f = skia.Font(self.c.yazi_tipi, f.getSize() * ymaks * W / top)
+            olc = ymaks * W / top; genis = [g * olc for g in genis]; bosluk *= olc; top = ymaks * W
+        x = yx * W - top / 2; y = yy * H + f.getSize() * 0.36
+        for (k, an), g in zip(grup, genis):
+            gir = out_cubic(prog(t, an - 0.04, 0.16))
+            if gir > 0:
+                b = skia.Paint(AntiAlias=True, Color=self.cizgi); b.setAlphaf(gir)
+                cv.drawString(k, x, y + (1 - gir) * 0.012 * H, f, b)
+                if an <= t < an + 0.35:   # o an söylenen kelimenin altında vurgu çizgisi
+                    v = skia.Paint(AntiAlias=True, Color=self.vurgu)
+                    cv.drawRoundRect(skia.Rect.MakeXYWH(x, y + f.getSize() * 0.16, g * out_cubic(prog(t, an, 0.18)),
+                                                        f.getSize() * 0.09), 3, 3, v)
+            x += g + bosluk
 
     # ---------- zemin ----------
     def zemin(self, cv, t, g, ekr):
@@ -122,13 +178,15 @@ class Gorunum(cizgisel.Gorunum):
             rgba = np.dstack([rgb, np.full((H, W), 255, np.uint8)])
             self._zemin_resmi = skia.Image.fromarray(np.ascontiguousarray(rgba), colorType=skia.kRGBA_8888_ColorType)
         # kamera dışına taşan kenar boşluğu için önce düz renk
+        cv.save(); cv.resetMatrix()
         cv.clear(self.kagit)
         cv.drawImage(self._zemin_resmi, 0, 0)
+        cv.restore()
         ay = self.c.d["ayak"] * H
         # ufuk/zemin çizgisi: kadrajı aşan, çok hafif dalgalı tek mürekkep çizgisi
-        p = skia.Path(); p.moveTo(-0.2 * W, ay)
-        for i in range(1, 25):
-            x = -0.2 * W + i * 1.4 * W / 24
+        p = skia.Path(); p.moveTo(-1.0 * W, ay)
+        for i in range(1, 49):
+            x = -1.0 * W + i * 3.0 * W / 48
             p.lineTo(x, ay + math.sin(i * 1.7) * 0.0012 * H)
         k = self._kalem(self.kalin * 0.7); k.setAlphaf(0.85)
         cv.drawPath(p, k)

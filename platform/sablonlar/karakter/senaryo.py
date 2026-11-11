@@ -10,7 +10,7 @@ from pathlib import Path
 
 import iskelet
 
-GORUNUMLER = ("cizgisel", "maskot", "siluet")   # gorunumler/<ad>.py; yeni görünüm buraya eklenir
+GORUNUMLER = ("cizgisel", "maskot", "siluet", "zarif")   # gorunumler/<ad>.py; yeni görünüm buraya eklenir
 NESNELER = ("tabela", "ampul", "soru", "grafik", "balon", "kalp")
 EK_NESNELER = {"maskot": ("logo",)}   # yalnız o görünümde anlamlı nesneler
 MASKOT_NESNELERI = ("kupa", "sise", "kutu", "gorsel")   # maskotun gövdesi; gorsel = müşterinin ürün fotoğrafı (PNG)
@@ -21,6 +21,8 @@ VARSAYILAN_PALET = {"zemin": "#F7F5EF", "cizgi": "#161616", "vurgu": "#FFD25A", 
 STIL_PALETLERI = {
     "maskot": {"zemin": "#FDE3DA", "cizgi": "#2A1E1A", "vurgu": "#F49A8E", "dolgu": "#FFFFFF", "yazi": "#2A1E1A",
                "golge": "#F2CBBE", "govde": "#FFFFFF", "icerik": "#7A4A2C"},
+    "zarif": {"zemin": "#F3ECDF", "cizgi": "#2A2420", "vurgu": "#E9A25B", "dolgu": "#9FB7AE", "yazi": "#2A2420",
+              "golge": "#E2D6C3", "ikincil": "#9FB7AE"},
     "siluet": {"cizgi": "#1E1424", "vurgu": "#FFF1C9", "dolgu": "#FFF1C9", "yazi": "#FFE7B0",
                "bantlar": ["#FBE3A8", "#F9CB7E", "#F4A764", "#E2805F", "#B85A69", "#6E3C5E"]},
 }

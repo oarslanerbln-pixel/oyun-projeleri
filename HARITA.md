@@ -34,7 +34,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `stil/` (motor) | kağıt kesik (serbest süre), izometrik, hamur, piksel |
 | `karakalem`, `tek_cizgi`, `origami`, `kolaj`, `minyatur`, `golge_oyunu`, `oyuncak` (3D oyuncak), `cizgi_roman`, `risograf` | adıyla aynı |
 | `karakalem_anlatim/` | uzun video için serbest karakalem sahneleri: bölüm kartı, harita, anlatıcı karakter, belge, kalabalık, sayaç, terazi, takvim (`anlatim.py kontakt`; kurguda `"stil": "karakalem_anlatim"`) |
-| `karakter/` | ortak karakter iskeleti + görünümler (`gorunumler/cizgisel.py`) |
+| `karakter/` | ortak karakter iskeleti + görünümler (`gorunumler/cizgisel.py`; klas sürüm `zarif.py`: kâğıt zemin, fırça çizgi, dekor, kamera, piyano sesi; örnek `ornekler/sabah/zarif.json`) |
 | `ekran/` | kalkış tabelası, VHS, akış alanı |
 | `desen/` | vitray, linol, çini, teknik çizim |
 | `karusel/`, `neon/` | Instagram karusel, neon animasyon |

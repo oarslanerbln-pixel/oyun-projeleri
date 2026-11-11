@@ -63,6 +63,7 @@ class Cizici:
         self.pal = s["palet"]
         self.yazi_tipi = skia.Typeface.MakeFromFile(font_bul())
         self.gorunum = gor.Gorunum(s, self)
+        self.t = 0.0
         self.agiz = agiz_mod.Agiz()
         self.agiz_kaynak = {}
         for x in senaryo.konusan_satirlar(s):
@@ -97,8 +98,13 @@ class Cizici:
     def kare(self, cv, t: float):
         import skia
         s = self.s
+        self.t = t
         g, y, xk = senaryo.durum(s, t, self.agiz, getattr(self.gorunum, "ORAN", None))
         ekr = self.ekran(xk)
+        cv.save()
+        if hasattr(self.gorunum, "kamera"):   # görünümün kamerası (zarif: yavaş yaklaşma, sahneye göre kadraj)
+            z, fx, fy = self.gorunum.kamera(t)
+            cv.translate(fx * self.W, fy * self.H); cv.scale(z, z); cv.translate(-fx * self.W, -fy * self.H)
         if hasattr(self.gorunum, "zemin"):   # görünümün kendi zemini (siluet: gün batımı bantları, güneş, tepe)
             self.gorunum.zemin(cv, t, g, ekr)
             p = 0.0
@@ -118,6 +124,9 @@ class Cizici:
             cik = 1 - prog(t, son - 0.16, 0.16) if son < s["sure"] else 1.0
             if gir * cik > 0.001:
                 self.gorunum.nesne(cv, n, g, ekr, gir * cik, t - n["t"])
+        if hasattr(self.gorunum, "on_plan"):
+            self.gorunum.on_plan(cv, t)
+        cv.restore()
         self._yazilar(cv, t)
 
     def _yazilar(self, cv, t: float):

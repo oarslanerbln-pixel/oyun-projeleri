@@ -32,7 +32,7 @@ Format verilmezse senaryonun `format` listesi, o da yoksa yalnız `9x16`. Dikeyd
 }
 ```
 
-- **poz**: `ayakta`, `el_kaldir`, `isaret`, `dusun`, `sevin` (zıplar), `yuru` (adım atar; `x` değişirse bir sonraki anahtara kadar yürür), `selam` (el sallar), `omuz` (omuz silker). Geçişler 0,38 sn yumuşak.
+- **poz**: `ayakta`, `yorgun`, `gerin`, `el_kaldir`, `isaret`, `dusun`, `sevin` (zıplar), `yuru` (adım atar; `x` değişirse bir sonraki anahtara kadar yürür), `selam` (el sallar), `omuz` (omuz silker). Geçişler 0,38 sn yumuşak.
 - **ifade**: `notr`, `gulumse`, `sevincli`, `sasir`, `uzgun`, `kararli`, `dusunceli`. Göz kırpma ve nefes kendiliğinden.
 - **anahtarlar**: sahne içinde ek poz/ifade/konum değişimi (`t` sahnenin içinde).
 - **x**: karakterin yatay yeri, -1..1 (kadrajın karaktere ayrılan bandında).
@@ -49,6 +49,15 @@ Format verilmezse senaryonun `format` listesi, o da yoksa yalnız `9x16`. Dikeyd
 ## Gün batımı siluet (`"stil": "siluet"`)
 
 Düz renk bantlı gökyüzü (`palet.bantlar`, yukarıdan aşağı 2–9 renk; gradyan yok), video boyunca yavaşça batan güneş (`palet.vurgu`), koyu tepe ve tek renk siluet (`palet.cizgi`), uçan kuşlar. Yazı tepenin koyu zemininde açık renkle (`palet.yazi`). `karakter.eslik`: yanında ikinci siluet, `{"x": 0.36, "boy": 0.9, "sac": "uzun", "poz": "ayakta"}`. Yüz çizilmez, ifade beden dilinden okunur; seslendirme satırlarında `"konusan": "anlatici"` kullan. Örnek: `ornekler/kucuk-aliskanliklar/siluet.json`.
+
+## Zarif çizgi (`"stil": "zarif"`)
+
+Çizgiselin klas sürümü (2026-11-11): sıcak kâğıt zemin (çok ince sabit gren, gradyan yok), sıcak mürekkep, uçlara doğru incelen fırça çizgisi, eklemden geçen eğri kol ve bacaklar, yuvarlak kazak gövde + düz gölge, ten rengi yüz ve allık, gecikmeyle sallanan atkı (ikincil hareket), serif başlık yazısı (DM Serif Display, ilk kullanımda indirilir). Örnek: `ornekler/sabah/zarif.json`.
+
+- **dekor** (sahnede ya da senaryo düzeyinde liste): `pencere` (içinde güneş doğar), `yatak`, `kapi` (açılır, yere ışık düşer), `dag`, `tas`, `yol`, `bitki`, `masa`, `telefon` (`"ekran": true` açık ekran), `kitap`, `gunes` (karakterin arkasında doğan büyük güneş). Alanlar: `x` (kadraj oranı), isteğe bağlı `y`, `olcek` (karakter boyu oranı, ~0.6), `t`, `son`, `cizim_sn`. Çizgiler elle çiziliyormuş gibi belirir, dolgular sonra gelir; sahne bitince söner.
+- **kamera** (sahnede): `normal`, `yakin` (1.10), `genis` (0.94); geçiş 0,9 sn yumuşak, sahne içinde %2,5 yavaş yaklaşma. Ayak çizgisi sabit kalır, yazıyla çakışmaz.
+- Ek pozlar (bütün görünümlerde): `yorgun` (omuzlar düşük, baş eğik), `gerin` (sabah gerinmesi).
+- Ses: tel ve shaker yerine keçe piyano + yaylı pad; enerjik sahnede yumuşak kalp atışı vuruşu. Gürültü tabanlı efekt yok (hışırtı, whoosh, tık kullanılmaz); nesne ve sevinçte yalnız yumuşak çan. Başka görünümde `"muzik": {"tur": "piyano"}` aynı sesi açar.
 
 ## Yeni görünüm eklemek (konuşan maskot, siluet...)
 

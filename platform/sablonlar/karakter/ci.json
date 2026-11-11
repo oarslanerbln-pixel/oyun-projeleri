@@ -4,7 +4,8 @@
       "dosyalar": [
         "ornekler/*/cizgisel.json",
         "ornekler/*/maskot.json",
-        "ornekler/*/siluet.json"
+        "ornekler/*/siluet.json",
+        "ornekler/*/zarif.json"
       ],
       "komut": [
         "{python}",

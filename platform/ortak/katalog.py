@@ -35,7 +35,7 @@ KLASOR_DIL = {"the-leaf": "de", "le-mariage": "de", "al-andalus": "de", "atilla-
 ATLA = {"is", "sahneler", ".onbellek", "uploads", "havuz"}  # ara dosyalar ve önbellek
 STIL_ESANLAM = {"3d-oyuncak": "oyuncak", "tabela": "kalkis-tabelasi", "akis": "akis-alani", "imza": "bumper",
                 "vitrin": "urun-vitrini", "golge": "golge-oyunu", "uzun": "kurgu", "sahne": "sahne", "atlas": "minyatur"}
-STILLER = ["akis-alani", "analiz", "bumper", "cini", "cizgi-roman", "cizgisel", "ebru", "gercekci-3d", "golge-oyunu",
+STILLER = ["akis-alani", "analiz", "bumper", "cini", "cizgi-roman", "cizgisel", "zarif", "ebru", "gercekci-3d", "golge-oyunu",
            "hamur", "izometrik", "kagit-kesik", "kalkis-tabelasi", "karakalem", "karusel", "kinetik", "kolaj", "linol",
            "maskot", "mekan", "minyatur", "neon", "origami", "oyuncak", "piksel", "risograf", "siluet", "teknik-cizim",
            "tek-cizgi", "urun-vitrini", "vhs", "vitray"]

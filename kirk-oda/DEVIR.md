@@ -1,6 +1,6 @@
 # Devir: kirk-oda
 
-Güncellendi 2026-11-16 20:43. Revizyon ya da devam işi buradan başlar; eski thread okunmaz. Kurallar: platform/docs/uretim-standardi.md
+Güncellendi 2026-11-16 20:52. Revizyon ya da devam işi buradan başlar; eski thread okunmaz. Kurallar: platform/docs/uretim-standardi.md
 
 ## Teslim edilenler
 - (henüz video yok)
@@ -11,5 +11,9 @@ Güncellendi 2026-11-16 20:43. Revizyon ya da devam işi buradan başlar; eski t
 ## Kararlar ve geri bildirim
 - 2026-11-16: Durum (16 Kas 2026): takvimde Faz 1'in ilk haftası; depoda Faz 0'ın insan işleri görünmüyor (Unity projesi açılmamış, flow-manifest boş, K0 dönüşleri karar kaydına işlenmemiş).
 - 2026-11-16: Sıradaki bulut işi: 08-dikey-dilim-plani.md '2–8 Kas' satırı — kirk-oda.md tablosundan RoomDefinition varlıklarını üreten Editor betiği (tablo ayrıştırma saf C#, dotnet testli; Editor kabuğu ince).
+- 2026-11-16: K0 gelince: K-06 (DURSUN / SABRİ) ve K-07 karar kaydında kesinleşir; gerekirse GameRoot.inscriptionLetters ve diyalog-ilkeleri.md aynı commit'te.
+- 2026-11-16: Yeni thread önce kirk-oda/CLAUDE.md, sonra 08-dikey-dilim-plani.md'den tek satırı hedefler.
+- 2026-11-16: Durum (16 Kas 2026): takvimde Faz 1'in ilk haftası; depoda Faz 0'ın insan işleri görünmüyor (Unity projesi açılmamış, flow-manifest boş, K0 dönüşleri karar kaydına işlenmemiş).
+- 2026-11-16: Yapıldı: '2–8 Kas' satırının betiği (Editor/RoomTableImporter.cs + Editor/RoomTable/RoomTableParser.cs, 7 test). Bitti ölçütünün Unity yarısı açık: proje açılınca menüden 6 varlık üretilip OnValidate uyarısı olmadığı görülmeli.
 - 2026-11-16: K0 gelince: K-06 (DURSUN / SABRİ) ve K-07 karar kaydında kesinleşir; gerekirse GameRoot.inscriptionLetters ve diyalog-ilkeleri.md aynı commit'te.
 - 2026-11-16: Yeni thread önce kirk-oda/CLAUDE.md, sonra 08-dikey-dilim-plani.md'den tek satırı hedefler.

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    Unity olmadan KirkOda.Core'u derleyip EditMode testlerini koşturur.
+    Unity olmadan KirkOda.Core'u ve motorsuz Editor araçlarını (KirkOda.Tooling) derleyip EditMode testlerini koşturur.
     Kaynak dosyalar Unity klasöründen bağlanır; burada kopya yok.
     LangVersion 9.0: Unity 6'nın desteklediği sürüm. Burada derlenen kod Unity'de de derlenir.
   -->
@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Compile Include="../../unity/Assets/_KirkOda/Runtime/Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../unity/Assets/_KirkOda/Editor/RoomTable/**/*.cs" Link="Tooling/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../../unity/Assets/_KirkOda/Tests/EditMode/**/*.cs" Link="Tests/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 

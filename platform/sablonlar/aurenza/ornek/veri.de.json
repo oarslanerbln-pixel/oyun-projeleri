@@ -1,0 +1,30 @@
+{
+  "dil": "de",
+  "sure": 22.0,
+  "kancaSecim": "A",
+  "kancalar": {
+    "A": {"t0": -0.9, "t1": 2.1, "ust": "BEVOR SIE GOLD KAUFEN", "s1": "Macht Ihr Juwelier", "s2": "diese drei Dinge?"},
+    "B": {"t0": -0.9, "t1": 2.1, "ust": "AUS DER WERKSTATT", "s1": "Ehrlichkeit ist", "s2": "unser Handwerk"}
+  },
+  "ogeler": [
+    {"tip": "baslik", "t0": 2.3, "t1": 4.0, "ust": "BEI UNS", "metin": "Drei Regeln"},
+    {"tip": "kural", "t0": 4.2, "t1": 8.0, "no": "I", "metin": "Wir wiegen vor Ihren Augen", "alt": "FEINGEHALT UND GEWICHT OFFEN", "altT": 6.0},
+    {"tip": "kural", "t0": 8.2, "t1": 11.5, "y": 1440, "no": "II", "metin": "Keine versteckten Preise", "alt": "TAGESAKTUELLE GOLDPREISE"},
+    {"tip": "etiket", "t0": 11.6, "t1": 13.0, "metin": "JEDEN TAG AKTUELL"},
+    {"tip": "kural", "t0": 13.2, "t1": 16.0, "no": "III", "metin": "Kein Kaufzwang", "kelimeler": [[14.0, "KOMMEN"], [14.6, "FRAGEN"], [15.2, "INFORMIEREN"]]},
+    {"tip": "alinti", "t0": 16.1, "t1": 18.4, "metin": ["Vertrauen ist", "das wertvollste Gold."], "imza": "UNSER GRUNDSATZ", "y": 1440}
+  ],
+  "gizle": [[16.1, 18.4]],
+  "altyazi": [
+    [0.1, 2.2, "Bevor Sie Gold kaufen, fragen Sie sich:"],
+    [2.3, 4.0, "Bei uns gibt es drei Regeln."],
+    [4.2, 8.0, "Erstens: Wir wiegen Ihr Gold vor Ihren Augen."],
+    [8.2, 11.5, "Zweitens: Keine versteckten Preise."],
+    [13.2, 16.0, "Drittens: Kein Kaufzwang. Kommen, fragen, informieren."]
+  ],
+  "son": {
+    "t0": 18.5, "cta": 19.6, "kare": "son.jpg", "foto": "foto.jpg", "odak": [0.5, 0.45], "fotoY": 500,
+    "alinti": ["Vertrauen ist", "das wertvollste Gold."], "imza": "AURENZA · SEIT GENERATIONEN",
+    "marka": "AURENZA", "markaAlt": "FINE JEWELRY · BERLIN", "takip": "Folgt uns", "takipAlt": "UND BLEIBT AUF DEM LAUFENDEN"
+  }
+}

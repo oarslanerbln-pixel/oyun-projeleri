@@ -40,6 +40,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `karusel/`, `neon/` | Instagram karusel, neon animasyon |
 | `dunya/` | dünya haritası motion graphic: dönen küre + kamera, 8 kaplama (atlas, kure, nokta, karakalem, parsomen, neon, kagit, izometrik), d3-geo + Chromium; `dunya.py kontakt`. **`dunya/sinema/`**: three.js sinematik küre (perspektif kamera uçuşu, gerçek arazi, bulut, gece ışıkları, atmosfer, post FX; ülke rolleri, ok, cephe, menzil, NATO birlik sembolleri, marka yazı sistemi), 4 ışık modu; 11 anlatım grafiği stili (`"grafik"`: belgesel, haber, gravur, istihbarat, kroki, editoryal, luks, kagit, firca, neon, serit; `grafik.js`, `sinema.py grafik-kontakt`); `sinema.py kontakt/kare/video`, örnekler `ornekler/dunya-sinema/`, kurallar `platform/docs/harita-tasarim-dili.md` |
 | `animasyon/` | AI çekimli proje iskeleti |
+| `aurenza/` | Kuyumcu Ferhat (Aurenza) bindirme stili, TR/DE: kanca başlık, mücevher kutusu kartları, altyazı, fotoğraf finali + takip kartı; `aurenza.py denetle/kareler/bindir/srt` |
 
 ## Ortak klasör (`/mnt/project-files/`)
 | Klasör | Ne / güncel final |
@@ -47,6 +48,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `gelistirme/` | `DEVIR.md`, `beyin-firtinasi-2026-10-19.md` (son bölüm = güncel yol haritası), `gelistirme-plani.md`, `token-analizi-2026-10-19.md`, `maliyet.csv` (her sipariş bir satır), `katalog.jsonl` + `katalog.md` (teslim edilen her video; `katalog.py ara`), `render-sureleri.csv` |
 | `the-leaf/` | Müşteri The Leaf Berlin: `1-tv-ekrani`, `2-instagram-reel`, `3-bumper` (+ `v2`), `4-ebru-3d/` (DEVIR); kaynak `proje/` |
 | `jetpac/` | Müşteri Jetpac (Travel eSIM, İstanbul havalimanı): `teslim/` A akış, B ritim, C lounge; `teslim2/` D voice over, E ipuçları, F kısa (Atilla'nın kendi sesi + altyazı); betikler `teslim/kurgu_jetpac.py`, `teslim/kurgu_konusma.py`; ham klipler cihazda `D:\jetpac\ham` (DEVIR.md) |
+| `aurenza/` | Müşteri Aurenza (kuyumcu Ferhat, Berlin): `ferhat-31/teslim/` TR video (dede finali, C kancası), caption + 5 hashtag; stil verisi `arac/veri.json`; DEVIR |
 | `ber/`, `ber2/` | Flughafen BER bindirme videoları (Atilla'nın çekimi + Amex stili ince yazı animasyonu + Almanca altyazı, 9:16): `ber/teslim/` 1. video, `ber2/teslim/` 2. video; katman `arac/katman.html` + `kare.js`; her birinde DEVIR |
 | `amex/`, `amex/rev2/` | American Express Reel 4 bindirme: `amex/teslim/` ilk teslim, `amex/rev2/teslim/` Membership Rewards® revizyonu (2026-11-19); DEVIR her klasörde |
 | `lezzet-dunyasi/` | Müşteri, bitti: kinetik/kolaj/minyatür/origami (+ `-ses`) 9:16 |

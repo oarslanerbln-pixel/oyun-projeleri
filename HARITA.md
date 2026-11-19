@@ -47,7 +47,7 @@ Thread'ler klasör taramak ve geçmiş okumak yerine buradan başlar. Yalnız ih
 | `gelistirme/` | `DEVIR.md`, `beyin-firtinasi-2026-10-19.md` (son bölüm = güncel yol haritası), `gelistirme-plani.md`, `token-analizi-2026-10-19.md`, `maliyet.csv` (her sipariş bir satır), `katalog.jsonl` + `katalog.md` (teslim edilen her video; `katalog.py ara`), `render-sureleri.csv` |
 | `the-leaf/` | Müşteri The Leaf Berlin: `1-tv-ekrani`, `2-instagram-reel`, `3-bumper` (+ `v2`), `4-ebru-3d/` (DEVIR); kaynak `proje/` |
 | `jetpac/` | Müşteri Jetpac (Travel eSIM, İstanbul havalimanı): `teslim/` A akış, B ritim, C lounge; `teslim2/` D voice over, E ipuçları, F kısa (Atilla'nın kendi sesi + altyazı); betikler `teslim/kurgu_jetpac.py`, `teslim/kurgu_konusma.py`; ham klipler cihazda `D:\jetpac\ham` (DEVIR.md) |
-| `ber/`, `ber2/` | Flughafen BER bindirme videoları (Atilla'nın çekimi + Amex stili ince yazı animasyonu + Almanca altyazı, 9:16): `ber/teslim/` 1. video, `ber2/teslim/` 2. video; katman `arac/katman.html` + `kare.js`; her birinde DEVIR |
+| `ber/`, `ber2/`, `ber3/` | Flughafen BER bindirme videoları (Atilla'nın çekimi + Amex stili ince yazı animasyonu + Almanca altyazı, 9:16): `ber/teslim/` 1. video, `ber2/teslim/` 2. video, `ber3/teslim/` 3. video (WhatsApp-Kanal); katman `arac/katman.html` + `kare.js`; her birinde DEVIR |
 | `amex/`, `amex/rev2/` | American Express Reel 4 bindirme: `amex/teslim/` ilk teslim, `amex/rev2/teslim/` Membership Rewards® revizyonu (2026-11-19); DEVIR her klasörde |
 | `lezzet-dunyasi/` | Müşteri, bitti: kinetik/kolaj/minyatür/origami (+ `-ses`) 9:16 |
 | `le-mariage/` | Müşteri düğün salonu: reel, karusel (`onizleme/`), `animasyon/` neon, `sunum/le-mariage-praesentation.pdf`; DEVIR |

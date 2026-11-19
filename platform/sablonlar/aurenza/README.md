@@ -12,7 +12,7 @@ Kuyumcu Ferhat'ın (Aurenza Fine Jewelry, Berlin) konuşma videoları için sabi
 - `kancalar` A/B/C + `kancaSecim`: ilk ~2 sn başlık (`ust` büyük harf etiket, `s1` italik satır, `s2` altın satır). `t0` negatif verilirse ilk karede başlık hazır görünür.
 - `ogeler`: `alinti` (söz kartı, `imza`), `baslik` (kısa ara başlık), `kural` (Roma rakamlı kart; `alt` alt satır ya da `kelimeler` [[zaman, KELİME], ...] sözle senkron), `isim` (ad kartı), `etiket` (ince hap). Hepsinde `t0`, `t1`, isteğe bağlı `y`.
 - `altyazi`: [[başlangıç, bitiş, metin], ...]; `gizle`: altyazının saklanacağı aralıklar (ör. söz kartı ekrandayken).
-- `son`: kaynak bitince (`t0`) son kare bulanıklaşır, `foto` altın halkayla açılır, altında küpe çizgisi + `alinti` + `imza`; `cta` anında `marka`, `markaAlt`, `takip`, `takipAlt` kartı. Takip kartı stilin sabit parçasıdır (Atilla, 2026-11-19), en az 2 sn kalır. `sure` = kaynak + ~6,5 sn.
+- `son`: kaynak bitince (`t0`) son kare bulanıklaşır, `foto` altın halkayla açılır, altında küpe çizgisi + `alinti` + `imza`; `cta` anında `marka`, `markaAlt`, `takip`, `takipAlt` kartı. `logo` verilirse (siyah logo → beyaz+alfa maske PNG) marka yazısı yerine gerçek logo altın varakla çizilir; Aurenza logosu `/mnt/project-files/aurenza/marka/logo-maske.png` (müşteri dosyası, repoda değil). Takip kartı stilin sabit parçasıdır (Atilla, 2026-11-19), en az 2 sn kalır. `sure` = kaynak + ~6,5 sn.
 - Örnek: `ornek/veri.de.json`. Görsel yolları veri.json'un klasörüne göre çözülür.
 
 ## Kullanım

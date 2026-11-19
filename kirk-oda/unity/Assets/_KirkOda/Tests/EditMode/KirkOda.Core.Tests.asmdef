@@ -1,7 +1,7 @@
 {
     "name": "KirkOda.Core.Tests",
     "rootNamespace": "KirkOda.Core.Tests",
-    "references": [ "KirkOda.Core", "UnityEngine.TestRunner", "UnityEditor.TestRunner" ],
+    "references": [ "KirkOda.Core", "KirkOda.Tooling", "UnityEngine.TestRunner", "UnityEditor.TestRunner" ],
     "includePlatforms": [ "Editor" ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

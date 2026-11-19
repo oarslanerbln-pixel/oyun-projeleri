@@ -104,6 +104,7 @@ Kural: bir sonraki halkaya önceki halka "kilitli" olmadan geçilmez; ama cila (
 
 ## 6. Editor araçları (dikey dilimde yazılacak)
 
+- **Oda tablosu içe aktarıcı** (yazıldı): menü `Kirk Oda/Odaları tablodan üret (dikey dilim)`. `docs/01-senaryo-kilidi/kirk-oda.md` tablosunu okur (`KirkOda.Tooling.RoomTableParser`, motorsuz, dotnet testli) ve dikey dilimin altı odası için `Assets/_KirkOda/Data/Rooms/Room_R*.asset` ile `Data/Guardians/G-R*.asset` üretir ya da günceller (`KirkOda.EditorTools.RoomTableImporter`). Yalnız tablonun söylediği alanlara yazar: id, halka, sıra, bekçi, tek cümle, hâl, süre; boş `hintSteps`'e iki yer tutucu kademe koyar. Diorama, emitter, kamera ve modül referansları elle kurulur ve yeniden üretimde korunur. Tablo kimlik sözleşmesiyle çelişirse satır numarasıyla hata verir; tablo değişince çekirdek testleri de koşar.
 - **Room Scaffold**: `RoomDefinition` seçilir → boş oda prefab'ı tüm `Points/` ile oluşturulur.
 - **Id Validator**: tüm SO'ları `veri-modeli.md` kurallarına göre tarar.
 - **Ring Overview**: halkanın odalarını, hâl/emitter/kor durumlarını tek tabloda gösterir.

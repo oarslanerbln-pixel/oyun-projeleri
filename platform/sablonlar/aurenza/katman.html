@@ -65,10 +65,10 @@ function kural(o,t){const a=win(t,o.t0,0.45,o.t1,0.35);if(a<=0)return;const Y=o.
   else if(o.alt)inter(o.alt,W/2,Y+294,Math.min(a,eo((t-(o.altT||o.t0+0.9))/0.5)),'c',25);
   if(o.alt2){const b=Math.min(a,eo((t-o.alt2[0])/0.4)),f=o.kelimeler?1-eo((t-o.alt2[0]+0.35)/0.35):1;}
 }
-function isim(o,t){const a=win(t,o.t0,0.5,o.t1,0.45);if(a<=0)return;const Y=o.y||1440,h=380;card(200,Y,1040,h,a);
+function isim(o,t){const a=win(t,o.t0,0.5,o.t1,0.45);if(a<=0)return;const Y=o.y||1440,h=o.s1?(o.s2?380:330):270;card(200,Y,1040,h,a);
   caps(o.ust,W/2,Y+76,Math.min(a,eo((t-o.t0-0.05)/0.5)),'c',22);
   x.save();x.fillStyle=foil(Y+110,Y+190);shadow(true,26,.5);const tr=track(o.ad,W/2,Y+190,'600 96px Cin',96*0.14,'c');drawTrack(tr,(i)=>Math.min(a,eo((T-o.t0-0.2-i*0.05)/0.5)),12);x.restore();sweep(tr,Y+130,o.t0+1.0,0.8);
-  ornament(W/2,Y+232,300,Math.min(a,eio((t-o.t0-0.5)/0.7)),a);serif(o.s1,W/2,Y+298,58,o.t0+0.7,a);if(o.s2)inter(o.s2,W/2,Y+346,Math.min(a,eo((t-o.t0-1.2)/0.5)),'c',19,GOLD)}
+  ornament(W/2,Y+232,300,Math.min(a,eio((t-o.t0-0.5)/0.7)),a);if(o.s1)serif(o.s1,W/2,Y+298,58,o.t0+0.7,a);if(o.s2)inter(o.s2,W/2,Y+346,Math.min(a,eo((t-o.t0-1.2)/0.5)),'c',19,GOLD)}
 function etiket(o,t){const a=win(t,o.t0,0.4,o.t1,0.35);if(a<=0)return;x.save();x.font='500 24px Cin';const w=x.measureText(o.metin).width+o.metin.length*24*0.32+120;x.restore();
   const Y=o.y||268;card(W/2-w/2,Y,w,92,a,0.66);caps(o.metin,W/2,Y+58,Math.min(a,eo((t-o.t0-0.1)/0.4)),'c',24)}
 function subs(t){if(V.gizle&&V.gizle.some(g=>t>=g[0]&&t<g[1]))return;const k=V.altyazi.findIndex(q=>t>=q[0]&&t<q[1]);if(k<0)return;const s=V.altyazi[k];const a=Math.min(cl((t-s[0])/0.12),cl((s[1]-t)/0.12),1);

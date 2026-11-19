@@ -19,7 +19,7 @@ from pathlib import Path
 
 KLASOR = Path(__file__).resolve().parent
 TIPLER = {"alinti": ("metin", "imza"), "baslik": ("ust", "metin"), "kural": ("no", "metin"),
-          "isim": ("ust", "ad", "s1"), "etiket": ("metin",)}
+          "isim": ("ust", "ad"), "etiket": ("metin",)}
 SON_ALANLAR = ("t0", "cta", "kare", "foto", "alinti", "imza", "marka", "markaAlt", "takip", "takipAlt")
 
 

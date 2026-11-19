@@ -38,10 +38,12 @@ Halkalar `toprak su nefes golge ayna sessizlik an`; odalar `R{halka}-{oda:00}` (
 | Flow hazırlık araçları ve yapay zekâ manifesti | `tools/flow/flow.sh`, `art/flow-manifest.csv` |
 | Çekirdek için Unity'siz test projesi | `tools/core-tests/` |
 | Unity kod iskeleti (saf C# çekirdek + Unity kabuk + EditMode testleri) | `unity/Assets/_KirkOda/` |
+| Oda tablosundan varlık üreten Editor aracı | `unity/Assets/_KirkOda/Editor/` (`oda-kiti.md` §6) |
 
 ## Kod kuralları
 
 - `KirkOda.Core` UnityEngine'e bağımlı olamaz (`noEngineReferences: true`). Kural kararı Core'da verilir; MonoBehaviour'lar yalnız sunar ve iletir.
+- Editor araçlarının mantığı da motorsuz yazılır (`KirkOda.Tooling`, `Editor/RoomTable/`) ve `tools/core-tests` ile test edilir; `KirkOda.Editor` yalnız AssetDatabase'e yazar. Editor isim alanı `KirkOda.EditorTools`'tur (`.Editor` ile biten isim alanı `UnityEditor.Editor` ile çakışır).
 - Zincirleme etkilerin tek yeri `GameState`. Sır → kat → taş zinciri başka yerde tekrarlanmaz.
 - Veri ScriptableObject'tedir; kodda sabit oda/kasabalı listesi yazılmaz (`RingCatalog` dışında).
 - Core değişince `Tests/EditMode` testleri güncellenir ve `dotnet test kirk-oda/tools/core-tests` yeşil olmadan commit edilmez. Aynı testler GitHub Actions'ta her PR'da ve Unity Test Runner'da koşar. Core C# 9 ile sınırlıdır (Unity 6).

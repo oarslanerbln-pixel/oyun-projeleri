@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "kirk-oda/unity/Assets/_KirkOda/Runtime/Core/**"
+      - "kirk-oda/unity/Assets/_KirkOda/Editor/RoomTable/**"
+      - "kirk-oda/docs/01-senaryo-kilidi/kirk-oda.md"
       - "kirk-oda/unity/Assets/_KirkOda/Tests/**"
       - "kirk-oda/tools/core-tests/**"
       - ".github/workflows/kirk-oda-core.yml"
@@ -11,6 +13,8 @@ on:
     branches: [main]
     paths:
       - "kirk-oda/unity/Assets/_KirkOda/Runtime/Core/**"
+      - "kirk-oda/unity/Assets/_KirkOda/Editor/RoomTable/**"
+      - "kirk-oda/docs/01-senaryo-kilidi/kirk-oda.md"
       - "kirk-oda/unity/Assets/_KirkOda/Tests/**"
       - "kirk-oda/tools/core-tests/**"
       - ".github/workflows/kirk-oda-core.yml"

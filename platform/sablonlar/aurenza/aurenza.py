@@ -6,7 +6,7 @@
     python3 aurenza.py bindir <kaynak.mp4> <kare_klasoru> <veri.json> <cikti.mp4> [--boyut 1440x2560]
     python3 aurenza.py srt <veri.json> <cikti.srt>
 
-Kareler 30 fps, 2160x3840 saydam PNG; `son.t0` sonrası kareler opaktır (dede/fotoğraf finali + marka + takip kartı).
+Kareler kaynağın fps'iyle (--fps, varsayılan 30), 2160x3840 saydam PNG; `son.t0` sonrası kareler opaktır (dede/fotoğraf finali + marka + takip kartı).
 """
 
 from __future__ import annotations
@@ -128,9 +128,9 @@ def main(argv: list[str] | None = None) -> int:
     alt.add_parser("denetle").add_argument("veri")
     a = alt.add_parser("son-kare"); a.add_argument("kaynak"); a.add_argument("cikti")
     a = alt.add_parser("kareler"); a.add_argument("veri"); a.add_argument("klasor")
-    a.add_argument("--kanca"); a.add_argument("--paralel", type=int, default=6)
+    a.add_argument("--kanca"); a.add_argument("--paralel", type=int, default=6); a.add_argument("--fps", type=int, default=30)
     a = alt.add_parser("bindir"); a.add_argument("kaynak"); a.add_argument("klasor"); a.add_argument("veri")
-    a.add_argument("cikti"); a.add_argument("--boyut", default="1440x2560")
+    a.add_argument("cikti"); a.add_argument("--boyut", default="1440x2560"); a.add_argument("--fps", type=int, default=30)
     a = alt.add_parser("srt"); a.add_argument("veri"); a.add_argument("cikti")
     g = ap.parse_args(argv)
     if g.komut == "denetle":
@@ -142,9 +142,9 @@ def main(argv: list[str] | None = None) -> int:
     if g.komut == "son-kare":
         son_kare(g.kaynak, g.cikti)
     elif g.komut == "kareler":
-        return kareler(g.veri, g.klasor, g.kanca, g.paralel)
+        return kareler(g.veri, g.klasor, g.kanca, g.paralel, g.fps)
     elif g.komut == "bindir":
-        bindir(g.kaynak, g.klasor, g.veri, g.cikti, g.boyut)
+        bindir(g.kaynak, g.klasor, g.veri, g.cikti, g.boyut, g.fps)
     elif g.komut == "srt":
         Path(g.cikti).write_text(srt(oku(g.veri)), encoding="utf-8")
     return 0
